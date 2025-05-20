@@ -13,7 +13,7 @@ namespace RuleArchitect.ApplicationLogic.Services
 {
     public class SoftwareOptionService : ISoftwareOptionService
     {
-        // If you decide to inject DbContext later:
+        // If you decide to inject DbContext later using Dependency Injection:
         // private readonly RuleArchitectContext _dbContext;
         // public SoftwareOptionService(RuleArchitectContext dbContext)
         // {
@@ -30,7 +30,7 @@ namespace RuleArchitect.ApplicationLogic.Services
             }
         }
 
-        public async Task<SoftwareOption> GetSoftwareOptionByIdAsync(int softwareOptionId)
+        public async Task<SoftwareOption?> GetSoftwareOptionByIdAsync(int softwareOptionId)
         {
             using (var context = new RuleArchitectContext())
             {
@@ -38,6 +38,9 @@ namespace RuleArchitect.ApplicationLogic.Services
                                     .Include(so => so.ControlSystem)
                                     // Add other .Include() for related collections if needed immediately
                                     // .Include(so => so.OptionNumberRegistries)
+                                    // .Include(so => so.Requirements)
+                                    // .Include(so => so.SoftwareOptionSpecificationCodes)
+                                    // .Include(so => so.SoftwareOptionActivationRules)
                                     .FirstOrDefaultAsync(so => so.SoftwareOptionId == softwareOptionId);
             }
         }
@@ -46,7 +49,8 @@ namespace RuleArchitect.ApplicationLogic.Services
         {
             using (var context = new RuleArchitectContext())
             {
-                // using (var transaction = await context.Database.BeginTransactionAsync()) // If explicit transaction needed
+                // If you need an explicit transaction for all operations:
+                // using (var transaction = await context.Database.BeginTransactionAsync())
                 // {
                 try
                 {
@@ -58,16 +62,16 @@ namespace RuleArchitect.ApplicationLogic.Services
                         PrimaryOptionNumberDisplay = command.PrimaryOptionNumberDisplay,
                         Notes = command.Notes,
                         ControlSystemId = command.ControlSystemId,
-                        Version = 1,
+                        Version = 1, // Initial version
                         LastModifiedDate = DateTime.UtcNow,
                         LastModifiedBy = currentUser
                     };
 
                     context.SoftwareOptions.Add(newSoftwareOption);
-                    await context.SaveChangesAsync(); // Save to get newSoftwareOption.SoftwareOptionId
+                    await context.SaveChangesAsync(); // Save to get newSoftwareOption.SoftwareOptionId for FK relationships
 
                     // 1. Option Numbers
-                    if (command.OptionNumbers != null)
+                    if (command.OptionNumbers != null && command.OptionNumbers.Any())
                     {
                         foreach (var onrDto in command.OptionNumbers)
                         {
@@ -81,7 +85,7 @@ namespace RuleArchitect.ApplicationLogic.Services
                     }
 
                     // 2. Requirements
-                    if (command.Requirements != null)
+                    if (command.Requirements != null && command.Requirements.Any())
                     {
                         foreach (var reqDto in command.Requirements)
                         {
@@ -102,7 +106,7 @@ namespace RuleArchitect.ApplicationLogic.Services
                     }
 
                     // 3. SoftwareOptionSpecificationCodes
-                    if (command.SpecificationCodes != null)
+                    if (command.SpecificationCodes != null && command.SpecificationCodes.Any())
                     {
                         foreach (var soscDto in command.SpecificationCodes)
                         {
@@ -118,7 +122,7 @@ namespace RuleArchitect.ApplicationLogic.Services
                     }
 
                     // 4. SoftwareOptionActivationRules
-                    if (command.ActivationRules != null)
+                    if (command.ActivationRules != null && command.ActivationRules.Any())
                     {
                         foreach (var ruleDto in command.ActivationRules)
                         {
@@ -143,3 +147,34 @@ namespace RuleArchitect.ApplicationLogic.Services
                         SourceFileName = newSoftwareOption.SourceFileName,
                         PrimaryOptionNumberDisplay = newSoftwareOption.PrimaryOptionNumberDisplay,
                         Notes = newSoftwareOption.Notes,
+                        ControlSystemId = newSoftwareOption.ControlSystemId, // Assuming this should also be in history
+                        //ChangeDescription = "Initial creation of Software Option.", // Description of the change
+                        ChangeTimestamp = newSoftwareOption.LastModifiedDate,
+                        ChangedBy = newSoftwareOption.LastModifiedBy
+                    };
+                    context.SoftwareOptionHistories.Add(initialHistory);
+
+                    await context.SaveChangesAsync(); // Save all related entities and the history record
+
+                    // await transaction.CommitAsync(); // Commit transaction if used
+                    return newSoftwareOption;
+                }
+                catch (Exception ex) // Catching a general exception
+                {
+                    // await transaction.RollbackAsync(); // Rollback transaction if used and an error occurs
+                    // Log the exception (e.g., using a logging framework like Serilog or NLog)
+                    // Consider more specific exception handling if needed
+                    Console.WriteLine($"An error occurred: {ex.Message}"); // Basic error logging
+                    throw; // Re-throw the exception to let the caller know something went wrong
+                }
+                // } // Closes the transaction block if used
+            } // Closes the using block for RuleArchitectContext
+        }
+
+        // You would add other methods like UpdateSoftwareOptionAsync, DeleteSoftwareOptionAsync, etc., here.
+        // For example:
+        // public async Task UpdateSoftwareOptionAsync(UpdateSoftwareOptionCommandDto command, string currentUser) { /* ... */ }
+        // public async Task DeleteSoftwareOptionAsync(int softwareOptionId) { /* ... */ }
+
+    } // Closes the SoftwareOptionService class
+} // Closes the namespace

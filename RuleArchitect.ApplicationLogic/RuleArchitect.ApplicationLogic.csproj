@@ -124,6 +124,7 @@
     <Compile Include="DTOs\OptionNumberRegistryCreateDto.cs" />
     <Compile Include="DTOs\RequirementCreateDto.cs" />
     <Compile Include="DTOs\SoftwareOptionActivationRuleCreateDto.cs" />
+    <Compile Include="DTOs\SoftwareOptionDto.cs" />
     <Compile Include="DTOs\SoftwareOptionSpecificationCodeCreateDto.cs" />
     <Compile Include="DTOs\UpdateSoftwareOptionCommandDto.cs" />
     <Compile Include="Interfaces\ISoftwareOptionService.cs" />

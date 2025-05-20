@@ -41,7 +41,7 @@ namespace RuleArchitect.ApplicationLogic.Interfaces
         /// <param name="currentUser">The identifier for the user performing the action.</param>
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result contains the updated software option.</returns>
-        Task<SoftwareOption> UpdateSoftwareOptionAsync(UpdateSoftwareOptionCommandDto command, string currentUser);
+        //Task<SoftwareOption> UpdateSoftwareOptionAsync(UpdateSoftwareOptionCommandDto command, string currentUser);
 
         /// <summary>
         /// Gets the history for a specific software option by its ID asynchronously.
@@ -49,7 +49,7 @@ namespace RuleArchitect.ApplicationLogic.Interfaces
         /// <param name="softwareOptionId">The ID of the software option.</param>
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result contains a list of software option history records.</returns>
-        Task<List<SoftwareOptionHistory>> GetSoftwareOptionHistoryAsync(int softwareOptionId);
+        //Task<List<SoftwareOptionHistory>> GetSoftwareOptionHistoryAsync(int softwareOptionId);
 
         /// <summary>
         /// Deletes a software option by its ID asynchronously.
@@ -57,6 +57,6 @@ namespace RuleArchitect.ApplicationLogic.Interfaces
         /// <param name="softwareOptionId">The ID of the software option to delete.</param>
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result is true if the deletion was successful, false otherwise.</returns>
-        Task<bool> DeleteSoftwareOptionAsync(int softwareOptionId); // Example delete method
+        //Task<bool> DeleteSoftwareOptionAsync(int softwareOptionId); // Example delete method
     }
 }
