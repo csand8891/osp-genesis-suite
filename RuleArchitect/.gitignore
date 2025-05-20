@@ -1,0 +1,68 @@
+# Prerequisites
+*.glif
+*.user
+*.lock.json
+*.csproj.dotsettings
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# Visual Studio Team Services
+.vs/
+# Visual Studio Code
+.vscode/ # You might want to commit .vscode/launch.json and .vscode/tasks.json if they are generic for the project
+
+# Rider
+.idea/
+
+# Test results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.VisualState.xml
+TestResult.xml
+nunit-result.xml
+
+# Build Results of an ATL Project
+[Dd]ebugPS/
+[Rr]eleasePS/
+dlldata.c
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/packages/*
+# except build/, which is used as an MSBuild target.
+!**/packages/build/
+# Uncomment if you don't want to check in package versions
+#packages.config
+
+# Windows files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Dotnet files
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Rider
+*.sln.iml
