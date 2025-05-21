@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuleArchitect.DesktopClient
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuleArchitect", "RuleArchitect\RuleArchitect.csproj", "{2E91C9C5-CBCD-03A1-FB79-B886B552CD87}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuleArchitect.ApplicationLogic.Tests", "RuleArchitect.ApplicationLogic.Tests\RuleArchitect.ApplicationLogic.Tests.csproj", "{35BEB3CE-9D58-4690-B7C3-DD26A979A409}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,6 +32,10 @@ Global
 		{2E91C9C5-CBCD-03A1-FB79-B886B552CD87}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E91C9C5-CBCD-03A1-FB79-B886B552CD87}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E91C9C5-CBCD-03A1-FB79-B886B552CD87}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35BEB3CE-9D58-4690-B7C3-DD26A979A409}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35BEB3CE-9D58-4690-B7C3-DD26A979A409}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35BEB3CE-9D58-4690-B7C3-DD26A979A409}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35BEB3CE-9D58-4690-B7C3-DD26A979A409}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

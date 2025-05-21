@@ -6,18 +6,25 @@ namespace RuleArchitect.Data
 {
     public class RuleArchitectContext : DbContext
     {
-        public DbSet<MachineType> MachineTypes { get; set; } = null!;
-        public DbSet<ControlSystem> ControlSystems { get; set; } = null!;
-        public DbSet<SoftwareOption> SoftwareOptions { get; set; } = null!;
-        public DbSet<OptionNumberRegistry> OptionNumberRegistries { get; set; } = null!;
-        public DbSet<SpecCodeDefinition> SpecCodeDefinitions { get; set; } = null!;
-        public DbSet<SoftwareOptionActivationRule> SoftwareOptionActivationRules { get; set; } = null!;
-        public DbSet<SoftwareOptionSpecificationCode> SoftwareOptionSpecificationCodes { get; set; } = null!;
-        public DbSet<Requirement> Requirements { get; set; } = null!;
-        public DbSet<ParameterMapping> ParameterMappings { get; set; } = null!;
-        public DbSet<SoftwareOptionHistory> SoftwareOptionHistories { get; set; } = null!;
+        public virtual DbSet<MachineType> MachineTypes { get; set; } = null!;
+        public virtual DbSet<ControlSystem> ControlSystems { get; set; } = null!;
+        public virtual DbSet<SoftwareOption> SoftwareOptions { get; set; } = null!;
+        public virtual DbSet<OptionNumberRegistry> OptionNumberRegistries { get; set; } = null!;
+        public virtual DbSet<SpecCodeDefinition> SpecCodeDefinitions { get; set; } = null!;
+        public virtual DbSet<SoftwareOptionActivationRule> SoftwareOptionActivationRules { get; set; } = null!;
+        public virtual DbSet<SoftwareOptionSpecificationCode> SoftwareOptionSpecificationCodes { get; set; } = null!;
+        public virtual DbSet<Requirement> Requirements { get; set; } = null!;
+        public virtual DbSet<ParameterMapping> ParameterMappings { get; set; } = null!;
+        public virtual DbSet<SoftwareOptionHistory> SoftwareOptionHistories { get; set; } = null!;
 
+        // Parameterless constructor for existing uses (like EF Migrations tool)
         public RuleArchitectContext()
+        {
+        }
+
+        // Constructor for Dependency Injection
+        public RuleArchitectContext(DbContextOptions<RuleArchitectContext> options)
+            : base(options)
         {
         }
 
@@ -25,8 +32,8 @@ namespace RuleArchitect.Data
         {
             if (!optionsBuilder.IsConfigured)
             {
-                // Ensure your RuleArchitect project has a reference to System.Configuration.dll
-                // and your App.config has the "RuleArchitectSqliteConnection" connection string.
+                // This will be used if the parameterless constructor is called,
+                // or if optionsBuilder is not configured by a derived context.
                 string connectionString = ConfigurationManager.ConnectionStrings["RuleArchitectSqliteConnection"].ConnectionString;
                 optionsBuilder.UseSqlite(connectionString);
             }
@@ -88,7 +95,7 @@ namespace RuleArchitect.Data
 
                 entity.HasIndex(h => new { h.SoftwareOptionId, h.Version })
                       .HasName("IX_SoftwareOptionHistory_SoftwareOptionId_Version")
-                      .IsUnique(false);
+                      .IsUnique(false); // Ensure this is the desired behavior for uniqueness
             });
 
             modelBuilder.Entity<OptionNumberRegistry>(entity =>
@@ -108,16 +115,13 @@ namespace RuleArchitect.Data
                       .HasForeignKey(so => so.ControlSystemId)
                       .IsRequired(false) // Based on int? ControlSystemId in SoftwareOption.cs
                       .OnDelete(DeleteBehavior.ClientSetNull); // Default for optional if FK is nullable.
-                                                               // Use Restrict if ControlSystem should not be deleted if SoftwareOptions link to it,
-                                                               // even if link is removed.
 
                 // Relationship: SoftwareOption to ParameterMapping (One-to-Many, ParameterMapping.SoftwareOptionId is optional)
                 entity.HasMany(so => so.ParameterMappings)
                       .WithOne(pm => pm.SoftwareOption)
                       .HasForeignKey(pm => pm.SoftwareOptionId)
                       .IsRequired(false) // Based on int? SoftwareOptionId in ParameterMapping.cs
-                      .OnDelete(DeleteBehavior.ClientSetNull); // If SoftwareOption deleted, set FK to null in ParameterMapping
-                                                               // Or .OnDelete(DeleteBehavior.Cascade) if mappings should be deleted.
+                      .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             modelBuilder.Entity<SoftwareOptionActivationRule>(entity =>
@@ -127,7 +131,7 @@ namespace RuleArchitect.Data
                       .WithMany(so => so.SoftwareOptionActivationRules)
                       .HasForeignKey(soar => soar.SoftwareOptionId)
                       .IsRequired()
-                      .OnDelete(DeleteBehavior.Cascade); // If SoftwareOption is deleted, its ActivationRules are deleted.
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<SoftwareOptionSpecificationCode>(entity =>
@@ -137,20 +141,20 @@ namespace RuleArchitect.Data
                       .WithMany(so => so.SoftwareOptionSpecificationCodes)
                       .HasForeignKey(sosc => sosc.SoftwareOptionId)
                       .IsRequired()
-                      .OnDelete(DeleteBehavior.Cascade); // If SoftwareOption is deleted, its links to SpecCodes are deleted.
+                      .OnDelete(DeleteBehavior.Cascade);
 
                 // Relationship to SpecCodeDefinition (Many-to-One, SpecCodeDefinitionId is required)
                 entity.HasOne(sosc => sosc.SpecCodeDefinition)
                       .WithMany(scd => scd.SoftwareOptionSpecificationCodes)
                       .HasForeignKey(sosc => sosc.SpecCodeDefinitionId)
                       .IsRequired()
-                      .OnDelete(DeleteBehavior.Restrict); // Example: Prevent deleting a SpecCodeDefinition if it's in use here.
+                      .OnDelete(DeleteBehavior.Restrict);
 
                 // Relationship to SoftwareOptionActivationRule (Many-to-One, SoftwareOptionActivationRuleId is optional)
                 entity.HasOne(sosc => sosc.SoftwareOptionActivationRule)
                       .WithMany(soar => soar.SoftwareOptionSpecificationCodes)
                       .HasForeignKey(sosc => sosc.SoftwareOptionActivationRuleId)
-                      .IsRequired(false) // Based on int? SoftwareOptionActivationRuleId
+                      .IsRequired(false)
                       .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
@@ -168,20 +172,15 @@ namespace RuleArchitect.Data
                       .WithMany(so => so.RequiredByOptions)
                       .HasForeignKey(r => r.RequiredSoftwareOptionId)
                       .IsRequired(false)
-                      .OnDelete(DeleteBehavior.ClientSetNull); // If RequiredSoftwareOption is deleted, just null out the FK here.
-                                                               // Using Restrict would prevent deletion of RequiredSoftwareOption if it's linked.
+                      .OnDelete(DeleteBehavior.ClientSetNull);
 
                 // Relationship of Requirement TO SpecCodeDefinition (the one that IS required by this Requirement) - OPTIONAL
                 entity.HasOne(r => r.RequiredSpecCodeDefinition)
                       .WithMany(scd => scd.Requirements)
                       .HasForeignKey(r => r.RequiredSpecCodeDefinitionId)
                       .IsRequired(false)
-                      .OnDelete(DeleteBehavior.ClientSetNull); // Similar logic, or Restrict.
+                      .OnDelete(DeleteBehavior.ClientSetNull);
             });
-
-            // Ensure you review all entities and their desired relationships and constraints.
-            // For example, if any string properties that are not [Required] should have a default SQL value,
-            // or if any numeric properties need specific precision/scale for SQLite (though usually less critical for SQLite).
         }
     }
 }
