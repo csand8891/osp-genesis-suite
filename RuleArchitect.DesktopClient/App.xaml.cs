@@ -1,97 +1,94 @@
-﻿using RuleArchitect.Data;    // Namespace of your RuleArchitectContext
-using System;                // For Exception
-// using System.Data.Entity; // REMOVE THIS - EF6 specific
-using System.Diagnostics;      // For Debug.WriteLine
-using System.IO;               // For Path and File operations
-using System.Linq;             // For FirstOrDefault() - if still used by other logic in this file
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using RuleArchitect.ApplicationLogic.Interfaces;
+using RuleArchitect.ApplicationLogic.Services;
+using RuleArchitect.Data;
+using RuleArchitect.DesktopClient.ViewModels;
+using System;
 using System.Windows;
-// using System.Reflection; // Keep if used for other purposes, not directly for EF Core initialization here
-using Microsoft.EntityFrameworkCore; // ADD THIS - For EF Core functionality
 
 namespace RuleArchitect.DesktopClient
 {
     /// <summary>
-    /// Interaction logic for App.xaml
+    /// Provides application-specific behavior to supplement the default Application class.
+    /// Manages the overall lifecycle and setup of the RuleArchitect desktop application,
+    /// including dependency injection, database migrations, and main window initialization.
     /// </summary>
     public partial class App : Application
     {
+        private ServiceProvider _serviceProvider;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="App"/> class.
+        /// Sets up the dependency injection container.
+        /// </summary>
+        public App()
+        {
+            ServiceCollection services = new ServiceCollection();
+            ConfigureServices(services);
+            _serviceProvider = services.BuildServiceProvider();
+        }
+
+        /// <summary>
+        /// Configures the services for the application and registers them with the dependency injection container.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/> to add services to.</param>
+        // In RuleArchitect.DesktopClient/App.xaml.cs
+        private void ConfigureServices(IServiceCollection services)
+        {
+            // DbContext is typically Scoped
+            services.AddDbContext<RuleArchitectContext>(options => {
+                // Ensure your RuleArchitectContext.OnConfiguring uses the
+                // connection string from App.config if options aren't configured here.
+            }, ServiceLifetime.Scoped); // Explicitly Scoped
+
+            // Service can be Scoped as it will be resolved per operation scope
+            services.AddScoped<ISoftwareOptionService, SoftwareOptionService>();
+
+            // ViewModel remains Singleton, but it will create scopes for operations
+            services.AddSingleton<SoftwareOptionsViewModel>();
+            services.AddSingleton<MainWindow>();
+        }
+
+        /// <summary>
+        /// Raises the <see cref="Application.Startup"/> event.
+        /// This method is called when the application is starting up.
+        /// It handles database migrations and the display of the main application window.
+        /// </summary>
+        /// <param name="e">A <see cref="StartupEventArgs"/> that contains the event data.</param>
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-            Debug.WriteLine("Application OnStartup: Initializing database with Entity Framework Core.");
-
-            string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-            string dbFileName = "RuleArchitect.sqlite"; // Should match connection string in App.config
-            string dbFilePath = Path.Combine(baseDirectory, dbFileName);
-            Debug.WriteLine($"Expected database file path: {dbFilePath}");
-
-            if (!File.Exists(dbFilePath))
+            // Apply any pending Entity Framework migrations to the database.
+            using (var context = _serviceProvider.GetService<RuleArchitectContext>())
             {
-                Debug.WriteLine($"Database file '{dbFilePath}' does NOT exist. EF Core Migrations should create it.");
-            }
-            else
-            {
-                Debug.WriteLine($"Database file '{dbFilePath}' exists.");
-            }
-
-            try
-            {
-                Debug.WriteLine("Attempting to apply EF Core migrations and initialize database context...");
-                using (var context = new RuleArchitectContext()) // Assuming RuleArchitectContext is accessible
+                try
                 {
-                    // In EF Core, this applies pending migrations and creates the database if it doesn't exist.
                     context.Database.Migrate();
-                    Debug.WriteLine("EF Core context.Database.Migrate() completed.");
-
-                    // Optional: Re-check file existence if critical
-                    if (File.Exists(dbFilePath))
-                    {
-                        Debug.WriteLine($"Database file '{dbFilePath}' exists after Migrate call.");
-                    }
-                    else if (context.Database.CanConnect()) // Check if DB is connectable (e.g. in-memory wasn't intended)
-                    {
-                        Debug.WriteLine($"WARNING: Database file '{dbFilePath}' does NOT exist after Migrate call, but database is connectable. Review configuration if a file was expected.");
-                    }
-                    else
-                    {
-                        Debug.WriteLine($"CRITICAL: Database file '{dbFilePath}' STILL does NOT exist after Migrate call AND cannot connect. Check permissions or EF configuration.");
-                        MessageBox.Show($"CRITICAL: Database file '{dbFilePath}' was NOT created or connectable by EF Core. Check permissions or EF configuration.", "DB File Missing/Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                        Current.Shutdown(-1);
-                        return;
-                    }
-
-                    // Example query to confirm context is working after migration
-                    Debug.WriteLine("Attempting to query MachineTypes.Count()...");
-                    var count = context.MachineTypes.Count(); // Requires using System.Linq;
-                    Debug.WriteLine($"MachineTypes.Count() successful. Count: {count}.");
-                    MessageBox.Show($"Database initialization with EF Core migrations complete. MachineTypes count: {count}. Database should be up-to-date.", "DB Status");
+                    // Optional: Further database initialization or seeding logic can go here.
                 }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"EXCEPTION during EF Core database initialization/migration: {ex.ToString()}");
-                string fullError = $"Error during EF Core database initialization/migration: {ex.Message}\n";
-                Exception? inner = ex.InnerException; // Using nullable reference type (C# 8.0+)
-                int innerCount = 0;
-                while (inner != null && innerCount < 5)
+                catch (System.Exception ex)
                 {
-                    fullError += $"Inner: {inner.Message}\n";
-                    Debug.WriteLine($"INNER EXCEPTION ({innerCount}): {inner.ToString()}");
-                    inner = inner.InnerException;
-                    innerCount++;
+                    // Present a user-friendly error message if database migration fails.
+                    // Logging the full exception (ex) to a file or logging service is also recommended for debugging.
+                    MessageBox.Show($"Database migration failed: {ex.Message}",
+                                    "Migration Error",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Error);
+                    // Depending on the severity, consider shutting down the application.
+                    // Current.Shutdown(-1);
+                    // return;
                 }
-                MessageBox.Show(fullError,
-                                "Database Initialization Error",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Error);
-                Current.Shutdown(-1); // Consider if shutdown is always appropriate
-                return;
             }
-            finally
-            {
-                Debug.WriteLine("OnStartup EF Core database initialization section finished.");
-            }
+
+            var mainWindow = _serviceProvider.GetService<MainWindow>();
+
+            // Set the DataContext of the MainWindow to the SoftwareOptionsViewModel.
+            // This enables data binding between the View (MainWindow) and the ViewModel.
+            // This assumes MainWindow does not set its DataContext elsewhere or expects it via constructor.
+            mainWindow.DataContext = _serviceProvider.GetService<SoftwareOptionsViewModel>();
+            mainWindow.Show();
         }
     }
 }

@@ -1,21 +1,21 @@
 ﻿// In RuleArchitect.DesktopClient/ViewModels/SoftwareOptionsViewModel.cs
-using RuleArchitect.ApplicationLogic.DTOs;      // For SoftwareOptionDto
-using RuleArchitect.ApplicationLogic.Interfaces; // For ISoftwareOptionService
-using RuleArchitect.ApplicationLogic.Services;   // For SoftwareOption (the entity from the service)
-using RuleArchitect.DesktopClient.Commands;      // For RelayCommand (or your project's command location)
+using Microsoft.Extensions.DependencyInjection; // Required for IServiceScopeFactory
+using RuleArchitect.ApplicationLogic.DTOs;
+using RuleArchitect.ApplicationLogic.Interfaces;
+using RuleArchitect.DesktopClient.Commands;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Linq; // For .Select mapping
-using System;     // For Exception
+using System; // For Exception and ArgumentNullException
+// No need for System.Linq here if not used directly
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
-    public class SoftwareOptionsViewModel : INotifyPropertyChanged // Or your BaseViewModel
+    public class SoftwareOptionsViewModel : INotifyPropertyChanged
     {
-        private readonly ISoftwareOptionService _softwareOptionService;
+        private readonly IServiceScopeFactory _scopeFactory; // Use this to create scopes
         private bool _isLoading;
         private SoftwareOptionDto? _selectedSoftwareOption;
 
@@ -30,8 +30,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 {
                     _selectedSoftwareOption = value;
                     OnPropertyChanged();
-                    // Potentially trigger other actions when selection changes
-                    // For example, ((RelayCommand)EditCommand).RaiseCanExecuteChanged();
+                    ((RelayCommand?)EditCommand)?.RaiseCanExecuteChanged();
+                    ((RelayCommand?)DeleteCommand)?.RaiseCanExecuteChanged();
                 }
             }
         }
@@ -45,70 +45,110 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 {
                     _isLoading = value;
                     OnPropertyChanged();
+                    // Also notify CanExecute changes for commands that depend on IsLoading
+                    ((RelayCommand)LoadCommand).RaiseCanExecuteChanged();
+                    ((RelayCommand?)AddCommand)?.RaiseCanExecuteChanged();
+                    ((RelayCommand?)EditCommand)?.RaiseCanExecuteChanged();
+                    ((RelayCommand?)DeleteCommand)?.RaiseCanExecuteChanged();
                 }
             }
         }
 
         public ICommand LoadCommand { get; }
-        // public ICommand AddCommand { get; }
-        // public ICommand EditCommand { get; }
-        // public ICommand DeleteCommand { get; }
+        public ICommand? AddCommand { get; private set; }
+        public ICommand? EditCommand { get; private set; }
+        public ICommand? DeleteCommand { get; private set; }
 
-        public SoftwareOptionsViewModel(ISoftwareOptionService softwareOptionService)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SoftwareOptionsViewModel"/> class.
+        /// This constructor is intended for use by the XAML designer.
+        /// </summary>
+        public SoftwareOptionsViewModel()
         {
-            _softwareOptionService = softwareOptionService ?? throw new ArgumentNullException(nameof(softwareOptionService));
+            // This constructor is primarily for the XAML designer.
+            // _scopeFactory will be null. Operations requiring it won't work.
+            _scopeFactory = null!; // Should not be used if this constructor is hit at runtime in error
             SoftwareOptions = new ObservableCollection<SoftwareOptionDto>();
 
-            // Initialize Commands
-            LoadCommand = new RelayCommand(async () => await LoadSoftwareOptionsAsync(), () => !IsLoading);
-            // AddCommand = new RelayCommand(async () => await AddSoftwareOptionAsync(), () => !IsLoading);
-            // EditCommand = new RelayCommand(async () => await EditSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading);
-            // DeleteCommand = new RelayCommand(async () => await DeleteSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading);
+            LoadCommand = new RelayCommand(async () => await LoadSoftwareOptionsAsync(), () => !IsLoading && _scopeFactory != null);
+            AddCommand = new RelayCommand(async () => await AddSoftwareOptionAsync(), () => !IsLoading && _scopeFactory != null);
+            EditCommand = new RelayCommand(async () => await EditSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading && _scopeFactory != null);
+            DeleteCommand = new RelayCommand(async () => await DeleteSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading && _scopeFactory != null);
 
-            // Load data initially if desired
-            // Task.Run(async () => await LoadSoftwareOptionsAsync()); // Or call from view's Loaded event
+            if (DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject()))
+            {
+                SoftwareOptions.Add(new SoftwareOptionDto { SoftwareOptionId = 1, PrimaryName = "Sample Option 1 (Design)", Version = 1 });
+                SoftwareOptions.Add(new SoftwareOptionDto { SoftwareOptionId = 2, PrimaryName = "Sample Option 2 (Design)", Version = 2 });
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SoftwareOptionsViewModel"/> class with dependencies.
+        /// </summary>
+        /// <param name="scopeFactory">The service scope factory for creating operational scopes.</param>
+        public SoftwareOptionsViewModel(IServiceScopeFactory scopeFactory)
+        {
+            _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+            SoftwareOptions = new ObservableCollection<SoftwareOptionDto>();
+
+            LoadCommand = new RelayCommand(async () => await LoadSoftwareOptionsAsync(), () => !IsLoading);
+            AddCommand = new RelayCommand(async () => await AddSoftwareOptionAsync(), () => !IsLoading);
+            EditCommand = new RelayCommand(async () => await EditSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading);
+            DeleteCommand = new RelayCommand(async () => await DeleteSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading);
         }
 
         private async Task LoadSoftwareOptionsAsync()
         {
             if (IsLoading) return;
+            // Guard for design-time or if scopeFactory wasn't injected (shouldn't happen at runtime with DI)
+            if (_scopeFactory == null)
+            {
+                Console.WriteLine("IServiceScopeFactory is not available. Cannot load options.");
+                if (DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject()))
+                {
+                    SoftwareOptions.Clear();
+                    SoftwareOptions.Add(new SoftwareOptionDto { PrimaryName = "Design Mode: Scope factory unavailable" });
+                }
+                return;
+            }
 
             IsLoading = true;
-            SoftwareOptions.Clear(); // Clear existing items
+            SoftwareOptions.Clear();
 
             try
             {
-                var options = await _softwareOptionService.GetAllSoftwareOptionsAsync(); // This returns List<SoftwareOption>
-
-                if (options != null)
+                using (var scope = _scopeFactory.CreateScope()) // Create a new scope for this operation
                 {
-                    foreach (var optionEntity in options) // optionEntity is of type SoftwareOption
+                    var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+                    var options = await softwareOptionService.GetAllSoftwareOptionsAsync();
+
+                    if (options != null)
                     {
-                        // Manual Mapping from SoftwareOption (Entity) to SoftwareOptionDto
-                        var dto = new SoftwareOptionDto
+                        foreach (var optionEntity in options)
                         {
-                            SoftwareOptionId = optionEntity.SoftwareOptionId,
-                            PrimaryName = optionEntity.PrimaryName,
-                            AlternativeNames = optionEntity.AlternativeNames,
-                            SourceFileName = optionEntity.SourceFileName,
-                            PrimaryOptionNumberDisplay = optionEntity.PrimaryOptionNumberDisplay,
-                            Notes = optionEntity.Notes,
-                            ControlSystemId = optionEntity.ControlSystemId.GetValueOrDefault(),
-                            ControlSystemName = optionEntity.ControlSystem?.Name, // Assuming ControlSystem is included and has a Name property
-                            Version = optionEntity.Version,
-                            LastModifiedDate = optionEntity.LastModifiedDate,
-                            LastModifiedBy = optionEntity.LastModifiedBy
-                            // Map other properties as needed
-                        };
-                        SoftwareOptions.Add(dto);
+                            var dto = new SoftwareOptionDto
+                            {
+                                SoftwareOptionId = optionEntity.SoftwareOptionId,
+                                PrimaryName = optionEntity.PrimaryName,
+                                AlternativeNames = optionEntity.AlternativeNames,
+                                SourceFileName = optionEntity.SourceFileName,
+                                PrimaryOptionNumberDisplay = optionEntity.PrimaryOptionNumberDisplay,
+                                Notes = optionEntity.Notes,
+                                ControlSystemId = optionEntity.ControlSystemId.GetValueOrDefault(),
+                                ControlSystemName = optionEntity.ControlSystem?.Name,
+                                Version = optionEntity.Version,
+                                LastModifiedDate = optionEntity.LastModifiedDate,
+                                LastModifiedBy = optionEntity.LastModifiedBy
+                            };
+                            SoftwareOptions.Add(dto);
+                        }
                     }
-                }
+                } // Scope (and DbContext + Service instance for this scope) is disposed here
             }
             catch (Exception ex)
             {
-                // Handle exceptions (e.g., log them, show a message to the user)
                 Console.WriteLine($"Error loading software options: {ex.Message}");
-                // Consider showing a user-friendly error message
+                // Handle user-facing error display
             }
             finally
             {
@@ -116,11 +156,34 @@ namespace RuleArchitect.DesktopClient.ViewModels
             }
         }
 
-        // Placeholder for Add/Edit/Delete methods
-        // private async Task AddSoftwareOptionAsync() { /* ... call service, refresh list ... */ }
-        // private async Task EditSoftwareOptionAsync() { /* ... use SelectedSoftwareOption, call service, refresh item/list ... */ }
-        // private async Task DeleteSoftwareOptionAsync() { /* ... use SelectedSoftwareOption, call service, remove from list ... */ }
+        // Similarly update AddSoftwareOptionAsync, EditSoftwareOptionAsync, DeleteSoftwareOptionAsync
+        // to use the _scopeFactory to resolve ISoftwareOptionService within a using(var scope = ...) block.
 
+        private async Task AddSoftwareOptionAsync()
+        {
+            if (_scopeFactory == null) return;
+            Console.WriteLine("AddSoftwareOptionAsync called - (Not Implemented with Scoping yet)");
+            // Example structure:
+            // using (var scope = _scopeFactory.CreateScope())
+            // {
+            //     var service = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+            //     // ... use service to add option ...
+            // }
+            // await LoadSoftwareOptionsAsync(); // Refresh list
+            await Task.CompletedTask;
+        }
+        private async Task EditSoftwareOptionAsync()
+        {
+            if (_scopeFactory == null || SelectedSoftwareOption == null) return;
+            Console.WriteLine($"EditSoftwareOptionAsync called for {SelectedSoftwareOption.PrimaryName} - (Not Implemented with Scoping yet)");
+            await Task.CompletedTask;
+        }
+        private async Task DeleteSoftwareOptionAsync()
+        {
+            if (_scopeFactory == null || SelectedSoftwareOption == null) return;
+            Console.WriteLine($"DeleteSoftwareOptionAsync called for {SelectedSoftwareOption.PrimaryName} - (Not Implemented with Scoping yet)");
+            await Task.CompletedTask;
+        }
 
         public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)

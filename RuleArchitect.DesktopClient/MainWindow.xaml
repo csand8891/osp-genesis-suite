@@ -4,9 +4,73 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RuleArchitect.DesktopClient"
+        xmlns:viewModels="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Rule Architect" Height="720" Width="1280"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        FontFamily="{materialDesign:MaterialDesignFont}"
+        d:DataContext="{d:DesignInstance Type=viewModels:SoftwareOptionsViewModel, IsDesignTimeCreatable=True}">
+
     <Grid>
-        
+        <materialDesign:DialogHost Identifier="RootDialogHost">
+            <TabControl>
+                <TabItem Header="Software Options">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="0">
+                            <Button Content="Load Options" Command="{Binding LoadCommand}" Style="{StaticResource MaterialDesignRaisedButton}" Margin="5"/>
+                            <Button Content="Add Option" Command="{Binding AddCommand}" Style="{StaticResource MaterialDesignRaisedButton}" Margin="5" IsEnabled="{Binding IsLoading, Converter={StaticResource BooleanNegationConverter}}"/>
+                            <Button Content="Edit Option" Command="{Binding EditCommand}" Style="{StaticResource MaterialDesignRaisedButton}" Margin="5" IsEnabled="{Binding SelectedSoftwareOption, Converter={StaticResource NullToBooleanConverter}}"/>
+                            <Button Content="Delete Option" Command="{Binding DeleteCommand}" Style="{StaticResource MaterialDesignRaisedLightButton}" Margin="5" IsEnabled="{Binding SelectedSoftwareOption, Converter={StaticResource NullToBooleanConverter}}"/>
+                            <materialDesign:Chip Content="{Binding SoftwareOptions.Count, StringFormat='Total: {0}'}" Margin="10,5" />
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding SoftwareOptions}"
+                                  SelectedItem="{Binding SelectedSoftwareOption}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  IsReadOnly="True"
+                                  SelectionMode="Single"
+                                  materialDesign:DataGridAssist.CellPadding="13 8 8 8"
+                                  materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="ID" Binding="{Binding SoftwareOptionId}" Width="Auto"/>
+                                <DataGridTextColumn Header="Primary Name" Binding="{Binding PrimaryName}" Width="*"/>
+                                <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="Auto"/>
+                                <DataGridTextColumn Header="Control System" Binding="{Binding ControlSystemName}" Width="Auto"/>
+                                <DataGridTextColumn Header="Last Modified By" Binding="{Binding LastModifiedBy}" Width="Auto"/>
+                                <DataGridTextColumn Header="Last Modified Date" Binding="{Binding LastModifiedDate, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="Auto"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <materialDesign:Card Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="10"
+                                             Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                            <StackPanel Orientation="Horizontal">
+                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" IsIndeterminate="True" Value="0" Margin="0 0 10 0"/>
+                                <TextBlock Text="Loading Software Options..." VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </materialDesign:Card>
+                    </Grid>
+                </TabItem>
+
+                <TabItem Header="Control Systems">
+                    <TextBlock Text="Control Systems Management Area" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </TabItem>
+
+                <TabItem Header="Machine Types">
+                    <TextBlock Text="Machine Types Management Area" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </TabItem>
+
+            </TabControl>
+        </materialDesign:DialogHost>
     </Grid>
 </Window>
