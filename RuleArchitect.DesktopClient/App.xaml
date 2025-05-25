@@ -23,6 +23,7 @@
                     <converters:NullToBooleanConverter x:Key="NullToBooleanConverter"/>
                     <BooleanToVisibilityConverter x:Key="SystemBooleanToVisibilityConverter" />
                     <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
+                    <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
                 </ResourceDictionary>
 
             </ResourceDictionary.MergedDictionaries>

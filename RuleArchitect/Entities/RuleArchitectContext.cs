@@ -1,10 +1,13 @@
 using Microsoft.EntityFrameworkCore;
-using RuleArchitect.Entities; // Assuming your entities are here
+using RuleArchitect.Entities;
 using System.Configuration;
-
+using System.Threading;
+using System.Threading.Tasks;
+using GenesisSentry.Interfaces;
+using GenesisSentry.Entities;
 namespace RuleArchitect.Data
 {
-    public class RuleArchitectContext : DbContext
+    public class RuleArchitectContext : DbContext, IAuthenticationDbContext
     {
         public virtual DbSet<MachineType> MachineTypes { get; set; } = null!;
         public virtual DbSet<ControlSystem> ControlSystems { get; set; } = null!;
@@ -16,6 +19,7 @@ namespace RuleArchitect.Data
         public virtual DbSet<Requirement> Requirements { get; set; } = null!;
         public virtual DbSet<ParameterMapping> ParameterMappings { get; set; } = null!;
         public virtual DbSet<SoftwareOptionHistory> SoftwareOptionHistories { get; set; } = null!;
+        public virtual DbSet<UserEntity> Users { get; set; } = null!;
 
         // Parameterless constructor for existing uses (like EF Migrations tool)
         public RuleArchitectContext()
@@ -180,6 +184,17 @@ namespace RuleArchitect.Data
                       .HasForeignKey(r => r.RequiredSpecCodeDefinitionId)
                       .IsRequired(false)
                       .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
+            modelBuilder.Entity<UserEntity>(entity =>
+            {
+                entity.HasKey(e => e.UserId);
+                entity.HasIndex(e => e.UserName).IsUnique();
+                entity.Property(e => e.UserName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.PasswordHash).IsRequired();
+                entity.Property(e => e.PasswordSalt).IsRequired();
+                entity.Property(e => e.Role).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.IsActive).IsRequired();
             });
         }
     }

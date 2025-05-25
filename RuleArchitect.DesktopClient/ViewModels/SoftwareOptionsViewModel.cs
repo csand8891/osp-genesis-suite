@@ -9,6 +9,8 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System; // For Exception and ArgumentNullException
+using GenesisSentry.Interfaces;
+using GenesisSentry.DTOs;
 // No need for System.Linq here if not used directly
 
 namespace RuleArchitect.DesktopClient.ViewModels
@@ -16,8 +18,10 @@ namespace RuleArchitect.DesktopClient.ViewModels
     public class SoftwareOptionsViewModel : INotifyPropertyChanged
     {
         private readonly IServiceScopeFactory _scopeFactory; // Use this to create scopes
+        private readonly IAuthenticationStateProvider _authStateProvider;
         private bool _isLoading;
         private SoftwareOptionDto? _selectedSoftwareOption;
+        private UserDto? _currentUser;
 
         public ObservableCollection<SoftwareOptionDto> SoftwareOptions { get; private set; }
 
@@ -54,6 +58,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
             }
         }
 
+        public UserDto? CurrentUser
+        {
+            get => _currentUser;
+            set { _currentUser = value; OnPropertyChanged(); }
+        }
+
         public ICommand LoadCommand { get; }
         public ICommand? AddCommand { get; private set; }
         public ICommand? EditCommand { get; private set; }
@@ -86,15 +96,25 @@ namespace RuleArchitect.DesktopClient.ViewModels
         /// Initializes a new instance of the <see cref="SoftwareOptionsViewModel"/> class with dependencies.
         /// </summary>
         /// <param name="scopeFactory">The service scope factory for creating operational scopes.</param>
-        public SoftwareOptionsViewModel(IServiceScopeFactory scopeFactory)
+        public SoftwareOptionsViewModel(IServiceScopeFactory scopeFactory, IAuthenticationStateProvider authStateProvider)
         {
             _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+            _authStateProvider = authStateProvider ?? throw new ArgumentNullException(nameof(authStateProvider));
             SoftwareOptions = new ObservableCollection<SoftwareOptionDto>();
 
             LoadCommand = new RelayCommand(async () => await LoadSoftwareOptionsAsync(), () => !IsLoading);
             AddCommand = new RelayCommand(async () => await AddSoftwareOptionAsync(), () => !IsLoading);
             EditCommand = new RelayCommand(async () => await EditSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading);
             DeleteCommand = new RelayCommand(async () => await DeleteSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading);
+
+            CurrentUser = _authStateProvider.CurrentUser;
+            _authStateProvider.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(IAuthenticationStateProvider.CurrentUser))
+                {
+                    CurrentUser = _authStateProvider.CurrentUser;
+                }
+            };
         }
 
         private async Task LoadSoftwareOptionsAsync()

@@ -6,6 +6,8 @@ using RuleArchitect.Data;
 using RuleArchitect.DesktopClient.ViewModels;
 using System;
 using System.Windows;
+using GenesisSentry.Interfaces;
+using GenesisSentry.Services;
 
 namespace RuleArchitect.DesktopClient
 {
@@ -42,12 +44,23 @@ namespace RuleArchitect.DesktopClient
                 // connection string from App.config if options aren't configured here.
             }, ServiceLifetime.Scoped); // Explicitly Scoped
 
+            // Register RuleArchitectContext as IAuthenticationDbContext
+            services.AddScoped<IAuthenticationDbContext>(provider =>
+                provider.GetRequiredService<RuleArchitectContext>());
+
             // Service can be Scoped as it will be resolved per operation scope
             services.AddScoped<ISoftwareOptionService, SoftwareOptionService>();
 
+            // Register GenesisSentry Services
+            services.AddTransient<IPasswordHasher, PasswordHasher>(); // <-- Add this
+            services.AddScoped<IAuthenticationService, AuthenticationService>(); // <-- Add this
+            services.AddSingleton<IAuthenticationStateProvider, GenesisSentry.Services.AuthenticationStateProvider>(); // <-- Add this
+
             // ViewModel remains Singleton, but it will create scopes for operations
             services.AddSingleton<SoftwareOptionsViewModel>();
+            services.AddTransient<LoginViewModel>();
             services.AddSingleton<MainWindow>();
+            services.AddTransient<LoginWindow>();
         }
 
         /// <summary>
@@ -81,14 +94,35 @@ namespace RuleArchitect.DesktopClient
                     // return;
                 }
             }
+            // --- NEW: Login Flow ---
+            var loginWindow = _serviceProvider.GetService<LoginWindow>(); // Assuming registered
+            var loginViewModel = _serviceProvider.GetService<LoginViewModel>(); // Assuming registered
 
-            var mainWindow = _serviceProvider.GetService<MainWindow>();
+            // This part needs refinement: How to pass the password and close/show windows.
+            // A common pattern:
+            bool? loginResult = false;
+            loginViewModel.OnLoginSuccess += () => {
+                loginResult = true;
+                loginWindow.Close();
+            };
+            // Need to handle GetPassword, e.g., pass loginWindow.PasswordBox to ViewModel or use a helper.
+            // loginViewModel.GetPassword = () => loginWindow.PasswordBox.Password; // Simplified example
 
-            // Set the DataContext of the MainWindow to the SoftwareOptionsViewModel.
-            // This enables data binding between the View (MainWindow) and the ViewModel.
-            // This assumes MainWindow does not set its DataContext elsewhere or expects it via constructor.
-            mainWindow.DataContext = _serviceProvider.GetService<SoftwareOptionsViewModel>();
-            mainWindow.Show();
+            loginWindow.DataContext = loginViewModel;
+            loginWindow.ShowDialog(); // Show modally
+
+            if (loginResult == true)
+            {
+                // Login successful, show main window
+                var mainWindow = _serviceProvider.GetService<MainWindow>();
+                mainWindow.DataContext = _serviceProvider.GetService<SoftwareOptionsViewModel>();
+                mainWindow.Show();
+            }
+            else
+            {
+                // Login failed or cancelled, shutdown application
+                Current.Shutdown();
+            }
         }
     }
 }

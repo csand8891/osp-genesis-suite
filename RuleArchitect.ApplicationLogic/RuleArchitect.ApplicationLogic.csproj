@@ -136,6 +136,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GenesisSentry\GenesisSentry.csproj">
+      <Project>{28967177-5fe7-49f6-9c18-5a6b6aed137b}</Project>
+      <Name>GenesisSentry</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RuleArchitect\RuleArchitect.csproj">
       <Project>{2e91c9c5-cbcd-03a1-fb79-b886b552cd87}</Project>
       <Name>RuleArchitect</Name>

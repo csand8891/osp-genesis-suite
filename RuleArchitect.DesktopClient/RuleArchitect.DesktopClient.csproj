@@ -186,8 +186,17 @@
     </ApplicationDefinition>
     <Compile Include="Commands\RelayCommand.cs" />
     <Compile Include="Converters\BooleanNegationConverter.cs" />
+    <Compile Include="Converters\NullOrEmptyToVisibilityConverter.cs" />
     <Compile Include="Converters\NullToBooleanConverter.cs" />
+    <Compile Include="LoginWindow.xaml.cs">
+      <DependentUpon>LoginWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\SoftwareOptionsViewModel.cs" />
+    <Page Include="LoginWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -229,6 +238,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GenesisSentry\GenesisSentry.csproj">
+      <Project>{28967177-5fe7-49f6-9c18-5a6b6aed137b}</Project>
+      <Name>GenesisSentry</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RuleArchitect.ApplicationLogic\RuleArchitect.ApplicationLogic.csproj">
       <Project>{0d7f746d-e1bf-4fbf-b7fb-95295e91218f}</Project>
       <Name>RuleArchitect.ApplicationLogic</Name>
