@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36109.1 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenesisSentry", "GenesisSentry.csproj", "{28967177-5FE7-49F6-9C18-5A6B6AED137B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenesisSentryTests", "GenesisSentryTests\GenesisSentryTests.csproj", "{E60BB763-178E-4446-AF99-E766E0D39E82}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{28967177-5FE7-49F6-9C18-5A6B6AED137B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28967177-5FE7-49F6-9C18-5A6B6AED137B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28967177-5FE7-49F6-9C18-5A6B6AED137B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28967177-5FE7-49F6-9C18-5A6B6AED137B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E60BB763-178E-4446-AF99-E766E0D39E82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E60BB763-178E-4446-AF99-E766E0D39E82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E60BB763-178E-4446-AF99-E766E0D39E82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E60BB763-178E-4446-AF99-E766E0D39E82}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {91B384ED-5E85-4F3D-8B0C-0928879F4A98}
+	EndGlobalSection
+EndGlobal
