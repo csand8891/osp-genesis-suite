@@ -14,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuleArchitect", "RuleArchit
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuleArchitect.ApplicationLogic.Tests", "RuleArchitect.ApplicationLogic.Tests\RuleArchitect.ApplicationLogic.Tests.csproj", "{35BEB3CE-9D58-4690-B7C3-DD26A979A409}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenesisSentry", "..\..\GenesisSentry\GenesisSentry.csproj", "{28967177-5FE7-49F6-9C18-5A6B6AED137B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenesisSentry", "GenesisSentry\GenesisSentry.csproj", "{28967177-5FE7-49F6-9C18-5A6B6AED137B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
