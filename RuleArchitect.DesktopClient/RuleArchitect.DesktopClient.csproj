@@ -191,8 +191,14 @@
     <Compile Include="LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ViewModels\ActivationRuleViewModel.cs" />
+    <Compile Include="ViewModels\BaseViewModel.cs" />
+    <Compile Include="ViewModels\EditSoftwareOptionViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
+    <Compile Include="ViewModels\OptionNumberViewModel.cs" />
+    <Compile Include="ViewModels\RequirementViewModel.cs" />
     <Compile Include="ViewModels\SoftwareOptionsViewModel.cs" />
+    <Compile Include="ViewModels\SpecCodeViewModel.cs" />
     <Page Include="LoginWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

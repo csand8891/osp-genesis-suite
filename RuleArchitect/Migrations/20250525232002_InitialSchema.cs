@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace RuleArchitect.Migrations
 {
-    public partial class InitialCommit : Migration
+    public partial class InitialSchema : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -21,6 +21,24 @@ namespace RuleArchitect.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Users",
+                columns: table => new
+                {
+                    UserId = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    UserName = table.Column<string>(maxLength: 100, nullable: false),
+                    PasswordHash = table.Column<string>(nullable: true),
+                    PasswordSalt = table.Column<string>(nullable: true),
+                    Role = table.Column<string>(nullable: true),
+                    IsActive = table.Column<bool>(nullable: false),
+                    LastLoginDate = table.Column<DateTime>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Users", x => x.UserId);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ControlSystems",
                 columns: table => new
                 {
@@ -34,6 +52,26 @@ namespace RuleArchitect.Migrations
                     table.PrimaryKey("PK_ControlSystems", x => x.ControlSystemId);
                     table.ForeignKey(
                         name: "FK_ControlSystems_MachineTypes_MachineTypeId",
+                        column: x => x.MachineTypeId,
+                        principalTable: "MachineTypes",
+                        principalColumn: "MachineTypeId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MachineModels",
+                columns: table => new
+                {
+                    MachineModelId = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    Name = table.Column<string>(maxLength: 100, nullable: false),
+                    MachineTypeId = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MachineModels", x => x.MachineModelId);
+                    table.ForeignKey(
+                        name: "FK_MachineModels_MachineTypes_MachineTypeId",
                         column: x => x.MachineTypeId,
                         principalTable: "MachineTypes",
                         principalColumn: "MachineTypeId",
@@ -89,6 +127,81 @@ namespace RuleArchitect.Migrations
                         column: x => x.ControlSystemId,
                         principalTable: "ControlSystems",
                         principalColumn: "ControlSystemId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Orders",
+                columns: table => new
+                {
+                    OrderId = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    OrderNumber = table.Column<string>(maxLength: 100, nullable: false),
+                    CustomerName = table.Column<string>(maxLength: 255, nullable: true),
+                    OrderDate = table.Column<DateTime>(nullable: false),
+                    RequiredDate = table.Column<DateTime>(nullable: true),
+                    Status = table.Column<int>(nullable: false),
+                    Notes = table.Column<string>(nullable: true),
+                    ControlSystemId = table.Column<int>(nullable: false),
+                    MachineModelId = table.Column<int>(nullable: false),
+                    CreatedByUserId = table.Column<int>(nullable: false),
+                    CreatedAt = table.Column<DateTime>(nullable: false),
+                    OrderReviewerUserId = table.Column<int>(nullable: true),
+                    OrderReviewedAt = table.Column<DateTime>(nullable: true),
+                    OrderReviewNotes = table.Column<string>(nullable: true),
+                    ProductionTechUserId = table.Column<int>(nullable: true),
+                    ProductionCompletedAt = table.Column<DateTime>(nullable: true),
+                    ProductionNotes = table.Column<string>(nullable: true),
+                    SoftwareReviewerUserId = table.Column<int>(nullable: true),
+                    SoftwareReviewedAt = table.Column<DateTime>(nullable: true),
+                    SoftwareReviewNotes = table.Column<string>(nullable: true),
+                    LastModifiedByUserId = table.Column<int>(nullable: true),
+                    LastModifiedAt = table.Column<DateTime>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Orders", x => x.OrderId);
+                    table.ForeignKey(
+                        name: "FK_Orders_ControlSystems_ControlSystemId",
+                        column: x => x.ControlSystemId,
+                        principalTable: "ControlSystems",
+                        principalColumn: "ControlSystemId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_Users_CreatedByUserId",
+                        column: x => x.CreatedByUserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_Users_LastModifiedByUserId",
+                        column: x => x.LastModifiedByUserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_MachineModels_MachineModelId",
+                        column: x => x.MachineModelId,
+                        principalTable: "MachineModels",
+                        principalColumn: "MachineModelId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_Users_OrderReviewerUserId",
+                        column: x => x.OrderReviewerUserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_Users_ProductionTechUserId",
+                        column: x => x.ProductionTechUserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Orders_Users_SoftwareReviewerUserId",
+                        column: x => x.SoftwareReviewerUserId,
+                        principalTable: "Users",
+                        principalColumn: "UserId",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -228,6 +341,33 @@ namespace RuleArchitect.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "OrderItems",
+                columns: table => new
+                {
+                    OrderItemId = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    OrderId = table.Column<int>(nullable: false),
+                    SoftwareOptionId = table.Column<int>(nullable: false),
+                    AddedAt = table.Column<DateTime>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_OrderItems", x => x.OrderItemId);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_Orders_OrderId",
+                        column: x => x.OrderId,
+                        principalTable: "Orders",
+                        principalColumn: "OrderId",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_OrderItems_SoftwareOptions_SoftwareOptionId",
+                        column: x => x.SoftwareOptionId,
+                        principalTable: "SoftwareOptions",
+                        principalColumn: "SoftwareOptionId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "SoftwareOptionSpecificationCodes",
                 columns: table => new
                 {
@@ -273,6 +413,17 @@ namespace RuleArchitect.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_MachineModels_MachineTypeId",
+                table: "MachineModels",
+                column: "MachineTypeId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MachineModelName",
+                table: "MachineModels",
+                column: "Name",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MachineTypeName",
                 table: "MachineTypes",
                 column: "Name",
@@ -282,6 +433,58 @@ namespace RuleArchitect.Migrations
                 name: "IX_OptionNumberRegistries_SoftwareOptionId",
                 table: "OptionNumberRegistries",
                 column: "SoftwareOptionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderItems_SoftwareOptionId",
+                table: "OrderItems",
+                column: "SoftwareOptionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Order_SoftwareOption",
+                table: "OrderItems",
+                columns: new[] { "OrderId", "SoftwareOptionId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_ControlSystemId",
+                table: "Orders",
+                column: "ControlSystemId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_CreatedByUserId",
+                table: "Orders",
+                column: "CreatedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_LastModifiedByUserId",
+                table: "Orders",
+                column: "LastModifiedByUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_MachineModelId",
+                table: "Orders",
+                column: "MachineModelId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_OrderNumber",
+                table: "Orders",
+                column: "OrderNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_OrderReviewerUserId",
+                table: "Orders",
+                column: "OrderReviewerUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_ProductionTechUserId",
+                table: "Orders",
+                column: "ProductionTechUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Orders_SoftwareReviewerUserId",
+                table: "Orders",
+                column: "SoftwareReviewerUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ParameterMappings_SoftwareOptionId",
@@ -343,12 +546,21 @@ namespace RuleArchitect.Migrations
                 table: "SpecCodeDefinitions",
                 columns: new[] { "SpecCodeNo", "SpecCodeBit", "MachineTypeId" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_UserName",
+                table: "Users",
+                column: "UserName",
+                unique: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
                 name: "OptionNumberRegistries");
+
+            migrationBuilder.DropTable(
+                name: "OrderItems");
 
             migrationBuilder.DropTable(
                 name: "ParameterMappings");
@@ -363,10 +575,19 @@ namespace RuleArchitect.Migrations
                 name: "SoftwareOptionSpecificationCodes");
 
             migrationBuilder.DropTable(
+                name: "Orders");
+
+            migrationBuilder.DropTable(
                 name: "SoftwareOptionActivationRules");
 
             migrationBuilder.DropTable(
                 name: "SpecCodeDefinitions");
+
+            migrationBuilder.DropTable(
+                name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "MachineModels");
 
             migrationBuilder.DropTable(
                 name: "SoftwareOptions");

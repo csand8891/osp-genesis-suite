@@ -29,17 +29,13 @@ namespace RuleArchitect.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordHash")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PasswordSalt")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(50);
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("UserName")
                         .IsRequired()
@@ -77,6 +73,31 @@ namespace RuleArchitect.Migrations
                         .HasName("IX_ControlSystemName");
 
                     b.ToTable("ControlSystems");
+                });
+
+            modelBuilder.Entity("RuleArchitect.Entities.MachineModel", b =>
+                {
+                    b.Property<int>("MachineModelId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MachineTypeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(100);
+
+                    b.HasKey("MachineModelId");
+
+                    b.HasIndex("MachineTypeId");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasName("IX_MachineModelName");
+
+                    b.ToTable("MachineModels");
                 });
 
             modelBuilder.Entity("RuleArchitect.Entities.MachineType", b =>
@@ -118,6 +139,127 @@ namespace RuleArchitect.Migrations
                     b.HasIndex("SoftwareOptionId");
 
                     b.ToTable("OptionNumberRegistries");
+                });
+
+            modelBuilder.Entity("RuleArchitect.Entities.Order", b =>
+                {
+                    b.Property<int>("OrderId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ControlSystemId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("CustomerName")
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(255);
+
+                    b.Property<DateTime?>("LastModifiedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("LastModifiedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MachineModelId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("OrderDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OrderNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasMaxLength(100);
+
+                    b.Property<string>("OrderReviewNotes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("OrderReviewedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("OrderReviewerUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("ProductionCompletedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProductionNotes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("ProductionTechUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("RequiredDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("SoftwareReviewNotes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("SoftwareReviewedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("SoftwareReviewerUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("OrderId");
+
+                    b.HasIndex("ControlSystemId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("LastModifiedByUserId");
+
+                    b.HasIndex("MachineModelId");
+
+                    b.HasIndex("OrderNumber")
+                        .IsUnique()
+                        .HasName("IX_OrderNumber");
+
+                    b.HasIndex("OrderReviewerUserId");
+
+                    b.HasIndex("ProductionTechUserId");
+
+                    b.HasIndex("SoftwareReviewerUserId");
+
+                    b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("RuleArchitect.Entities.OrderItem", b =>
+                {
+                    b.Property<int>("OrderItemId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AddedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SoftwareOptionId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("OrderItemId");
+
+                    b.HasIndex("SoftwareOptionId");
+
+                    b.HasIndex("OrderId", "SoftwareOptionId")
+                        .IsUnique()
+                        .HasName("IX_Order_SoftwareOption");
+
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("RuleArchitect.Entities.ParameterMapping", b =>
@@ -421,12 +563,73 @@ namespace RuleArchitect.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("RuleArchitect.Entities.MachineModel", b =>
+                {
+                    b.HasOne("RuleArchitect.Entities.MachineType", "MachineType")
+                        .WithMany("MachineModels")
+                        .HasForeignKey("MachineTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("RuleArchitect.Entities.OptionNumberRegistry", b =>
                 {
                     b.HasOne("RuleArchitect.Entities.SoftwareOption", "SoftwareOption")
                         .WithMany("OptionNumberRegistries")
                         .HasForeignKey("SoftwareOptionId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("RuleArchitect.Entities.Order", b =>
+                {
+                    b.HasOne("RuleArchitect.Entities.ControlSystem", "ControlSystem")
+                        .WithMany()
+                        .HasForeignKey("ControlSystemId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GenesisSentry.Entities.UserEntity", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GenesisSentry.Entities.UserEntity", "LastModifiedByUser")
+                        .WithMany()
+                        .HasForeignKey("LastModifiedByUserId");
+
+                    b.HasOne("RuleArchitect.Entities.MachineModel", "MachineModel")
+                        .WithMany()
+                        .HasForeignKey("MachineModelId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GenesisSentry.Entities.UserEntity", "OrderReviewerUser")
+                        .WithMany()
+                        .HasForeignKey("OrderReviewerUserId");
+
+                    b.HasOne("GenesisSentry.Entities.UserEntity", "ProductionTechUser")
+                        .WithMany()
+                        .HasForeignKey("ProductionTechUserId");
+
+                    b.HasOne("GenesisSentry.Entities.UserEntity", "SoftwareReviewerUser")
+                        .WithMany()
+                        .HasForeignKey("SoftwareReviewerUserId");
+                });
+
+            modelBuilder.Entity("RuleArchitect.Entities.OrderItem", b =>
+                {
+                    b.HasOne("RuleArchitect.Entities.Order", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("RuleArchitect.Entities.SoftwareOption", "SoftwareOption")
+                        .WithMany()
+                        .HasForeignKey("SoftwareOptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

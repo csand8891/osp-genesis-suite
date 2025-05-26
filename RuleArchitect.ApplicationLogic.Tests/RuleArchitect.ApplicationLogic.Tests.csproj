@@ -338,6 +338,7 @@
   <ItemGroup>
     <Compile Include="Helpers\MockDbSetHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\OrderServiceTests.cs" />
     <Compile Include="Services\SoftwareOptionServiceTests.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -345,6 +346,18 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GenesisOrderGateway\GenesisOrderGateway.csproj">
+      <Project>{75d80bce-9528-4ac3-ab69-8f81718a9756}</Project>
+      <Name>GenesisOrderGateway</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GenesisSentry\GenesisSentry.csproj">
+      <Project>{28967177-5fe7-49f6-9c18-5a6b6aed137b}</Project>
+      <Name>GenesisSentry</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HeraldKit\HeraldKit\HeraldKit.csproj">
+      <Project>{bfb69c3c-c16c-42d9-a39f-45fb1d56f778}</Project>
+      <Name>HeraldKit</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RuleArchitect.ApplicationLogic\RuleArchitect.ApplicationLogic.csproj">
       <Project>{0d7f746d-e1bf-4fbf-b7fb-95295e91218f}</Project>
       <Name>RuleArchitect.ApplicationLogic</Name>

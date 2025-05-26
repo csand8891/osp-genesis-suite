@@ -1,3 +1,4 @@
+// Current file: csand8891/osp-genesis-suite/osp-genesis-suite-development/RuleArchitect/Entities/RuleArchitectContext.cs
 using Microsoft.EntityFrameworkCore;
 using RuleArchitect.Entities;
 using System.Configuration;
@@ -5,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using GenesisSentry.Interfaces;
 using GenesisSentry.Entities;
+
 namespace RuleArchitect.Data
 {
     public class RuleArchitectContext : DbContext, IAuthenticationDbContext
@@ -20,24 +22,18 @@ namespace RuleArchitect.Data
         public virtual DbSet<ParameterMapping> ParameterMappings { get; set; } = null!;
         public virtual DbSet<SoftwareOptionHistory> SoftwareOptionHistories { get; set; } = null!;
         public virtual DbSet<UserEntity> Users { get; set; } = null!;
+        public virtual DbSet<Order> Orders { get; set; } = null!;
+        public virtual DbSet<OrderItem> OrderItems { get; set; } = null!;
+        public virtual DbSet<MachineModel> MachineModels { get; set; } = null!; // <-- NEW DbSet
 
-        // Parameterless constructor for existing uses (like EF Migrations tool)
-        public RuleArchitectContext()
-        {
-        }
+        public RuleArchitectContext() { }
 
-        // Constructor for Dependency Injection
-        public RuleArchitectContext(DbContextOptions<RuleArchitectContext> options)
-            : base(options)
-        {
-        }
+        public RuleArchitectContext(DbContextOptions<RuleArchitectContext> options) : base(options) { }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                // This will be used if the parameterless constructor is called,
-                // or if optionsBuilder is not configured by a derived context.
                 string connectionString = ConfigurationManager.ConnectionStrings["RuleArchitectSqliteConnection"].ConnectionString;
                 optionsBuilder.UseSqlite(connectionString);
             }
@@ -47,59 +43,40 @@ namespace RuleArchitect.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // --- Index Configurations (from removed [Index] attributes) ---
-
+            // --- Existing Configurations ---
             modelBuilder.Entity<ControlSystem>(entity =>
             {
-                entity.HasIndex(cs => cs.Name)
-                      .IsUnique()
-                      .HasName("IX_ControlSystemName"); // EF Core 3.1 uses HasName
-
-                // Relationship: ControlSystem to MachineType (Many-to-One)
+                entity.HasIndex(cs => cs.Name).IsUnique().HasName("IX_ControlSystemName");
                 entity.HasOne(cs => cs.MachineType)
                       .WithMany(mt => mt.ControlSystems)
                       .HasForeignKey(cs => cs.MachineTypeId)
-                      .IsRequired() // Since MachineTypeId is not nullable
-                      .OnDelete(DeleteBehavior.Restrict); // Example: Prevent deletion of MachineType if ControlSystems are linked.
-                                                          // EF Core default for required is Cascade. Adjust as needed.
+                      .IsRequired().OnDelete(DeleteBehavior.Restrict);
             });
 
             modelBuilder.Entity<MachineType>(entity =>
             {
-                entity.HasIndex(mt => mt.Name)
-                      .IsUnique()
-                      .HasName("IX_MachineTypeName");
+                entity.HasIndex(mt => mt.Name).IsUnique().HasName("IX_MachineTypeName");
+                // Relationship to MachineModel is configured below in MachineModel entity configuration
             });
 
             modelBuilder.Entity<SpecCodeDefinition>(entity =>
             {
-                // Composite unique index
                 entity.HasIndex(scd => new { scd.SpecCodeNo, scd.SpecCodeBit, scd.MachineTypeId })
-                      .IsUnique()
-                      .HasName("IX_SpecCodeNoBitMachineType");
-
-                // Relationship: SpecCodeDefinition to MachineType (Many-to-One)
+                      .IsUnique().HasName("IX_SpecCodeNoBitMachineType");
                 entity.HasOne(scd => scd.MachineType)
                       .WithMany(mt => mt.SpecCodeDefinitions)
                       .HasForeignKey(scd => scd.MachineTypeId)
-                      .IsRequired() // Since MachineTypeId is not nullable
-                      .OnDelete(DeleteBehavior.Restrict); // Example
+                      .IsRequired().OnDelete(DeleteBehavior.Restrict);
             });
-
-
-            // --- Relationship Configurations (incorporating your previous setup) ---
 
             modelBuilder.Entity<SoftwareOptionHistory>(entity =>
             {
                 entity.HasOne(h => h.SoftwareOption)
                       .WithMany(so => so.Histories)
                       .HasForeignKey(h => h.SoftwareOptionId)
-                      .IsRequired()
-                      .OnDelete(DeleteBehavior.Cascade);
-
+                      .IsRequired().OnDelete(DeleteBehavior.Cascade);
                 entity.HasIndex(h => new { h.SoftwareOptionId, h.Version })
-                      .HasName("IX_SoftwareOptionHistory_SoftwareOptionId_Version")
-                      .IsUnique(false); // Ensure this is the desired behavior for uniqueness
+                      .HasName("IX_SoftwareOptionHistory_SoftwareOptionId_Version").IsUnique(false);
             });
 
             modelBuilder.Entity<OptionNumberRegistry>(entity =>
@@ -107,83 +84,59 @@ namespace RuleArchitect.Data
                 entity.HasOne(onr => onr.SoftwareOption)
                       .WithMany(so => so.OptionNumberRegistries)
                       .HasForeignKey(onr => onr.SoftwareOptionId)
-                      .IsRequired()
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .IsRequired().OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<SoftwareOption>(entity =>
             {
-                // Relationship: SoftwareOption to ControlSystem (Many-to-One, optional)
                 entity.HasOne(so => so.ControlSystem)
                       .WithMany(cs => cs.SoftwareOptions)
                       .HasForeignKey(so => so.ControlSystemId)
-                      .IsRequired(false) // Based on int? ControlSystemId in SoftwareOption.cs
-                      .OnDelete(DeleteBehavior.ClientSetNull); // Default for optional if FK is nullable.
-
-                // Relationship: SoftwareOption to ParameterMapping (One-to-Many, ParameterMapping.SoftwareOptionId is optional)
+                      .IsRequired(false).OnDelete(DeleteBehavior.ClientSetNull);
                 entity.HasMany(so => so.ParameterMappings)
                       .WithOne(pm => pm.SoftwareOption)
                       .HasForeignKey(pm => pm.SoftwareOptionId)
-                      .IsRequired(false) // Based on int? SoftwareOptionId in ParameterMapping.cs
-                      .OnDelete(DeleteBehavior.ClientSetNull);
+                      .IsRequired(false).OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             modelBuilder.Entity<SoftwareOptionActivationRule>(entity =>
             {
-                // Relationship to SoftwareOption (Many-to-One, SoftwareOptionId is required)
                 entity.HasOne(soar => soar.SoftwareOption)
                       .WithMany(so => so.SoftwareOptionActivationRules)
                       .HasForeignKey(soar => soar.SoftwareOptionId)
-                      .IsRequired()
-                      .OnDelete(DeleteBehavior.Cascade);
+                      .IsRequired().OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<SoftwareOptionSpecificationCode>(entity =>
             {
-                // Relationship to SoftwareOption (Many-to-One, SoftwareOptionId is required)
                 entity.HasOne(sosc => sosc.SoftwareOption)
                       .WithMany(so => so.SoftwareOptionSpecificationCodes)
                       .HasForeignKey(sosc => sosc.SoftwareOptionId)
-                      .IsRequired()
-                      .OnDelete(DeleteBehavior.Cascade);
-
-                // Relationship to SpecCodeDefinition (Many-to-One, SpecCodeDefinitionId is required)
+                      .IsRequired().OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(sosc => sosc.SpecCodeDefinition)
                       .WithMany(scd => scd.SoftwareOptionSpecificationCodes)
                       .HasForeignKey(sosc => sosc.SpecCodeDefinitionId)
-                      .IsRequired()
-                      .OnDelete(DeleteBehavior.Restrict);
-
-                // Relationship to SoftwareOptionActivationRule (Many-to-One, SoftwareOptionActivationRuleId is optional)
+                      .IsRequired().OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(sosc => sosc.SoftwareOptionActivationRule)
                       .WithMany(soar => soar.SoftwareOptionSpecificationCodes)
                       .HasForeignKey(sosc => sosc.SoftwareOptionActivationRuleId)
-                      .IsRequired(false)
-                      .OnDelete(DeleteBehavior.ClientSetNull);
+                      .IsRequired(false).OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             modelBuilder.Entity<Requirement>(entity =>
             {
-                // Relationship of Requirement TO SoftwareOption (the one that HAS the requirement)
                 entity.HasOne(r => r.SoftwareOption)
                       .WithMany(so => so.Requirements)
                       .HasForeignKey(r => r.SoftwareOptionId)
-                      .IsRequired()
-                      .OnDelete(DeleteBehavior.Cascade);
-
-                // Relationship of Requirement TO another SoftwareOption (the one that IS required by this Requirement) - OPTIONAL
+                      .IsRequired().OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(r => r.RequiredSoftwareOption)
                       .WithMany(so => so.RequiredByOptions)
                       .HasForeignKey(r => r.RequiredSoftwareOptionId)
-                      .IsRequired(false)
-                      .OnDelete(DeleteBehavior.ClientSetNull);
-
-                // Relationship of Requirement TO SpecCodeDefinition (the one that IS required by this Requirement) - OPTIONAL
+                      .IsRequired(false).OnDelete(DeleteBehavior.ClientSetNull);
                 entity.HasOne(r => r.RequiredSpecCodeDefinition)
                       .WithMany(scd => scd.Requirements)
                       .HasForeignKey(r => r.RequiredSpecCodeDefinitionId)
-                      .IsRequired(false)
-                      .OnDelete(DeleteBehavior.ClientSetNull);
+                      .IsRequired(false).OnDelete(DeleteBehavior.ClientSetNull);
             });
 
             modelBuilder.Entity<UserEntity>(entity =>
@@ -191,10 +144,62 @@ namespace RuleArchitect.Data
                 entity.HasKey(e => e.UserId);
                 entity.HasIndex(e => e.UserName).IsUnique();
                 entity.Property(e => e.UserName).IsRequired().HasMaxLength(100);
-                entity.Property(e => e.PasswordHash).IsRequired();
-                entity.Property(e => e.PasswordSalt).IsRequired();
-                entity.Property(e => e.Role).IsRequired().HasMaxLength(50);
-                entity.Property(e => e.IsActive).IsRequired();
+                // ... other UserEntity properties
+            });
+
+            // --- Configuration for MachineModel ---
+            modelBuilder.Entity<MachineModel>(entity =>
+            {
+                entity.HasKey(mm => mm.MachineModelId);
+                entity.HasIndex(mm => mm.Name).IsUnique().HasName("IX_MachineModelName");
+
+                entity.HasOne(mm => mm.MachineType) // MachineModel has one MachineType
+                      .WithMany(mt => mt.MachineModels) // MachineType has many MachineModels
+                      .HasForeignKey(mm => mm.MachineTypeId)
+                      .IsRequired()
+                      .OnDelete(DeleteBehavior.Restrict); // Prevent deleting MachineType if MachineModels are linked
+            });
+
+            // --- Updated Order and OrderItem Configurations ---
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasIndex(o => o.OrderNumber).IsUnique().HasName("IX_OrderNumber");
+
+                entity.HasOne(o => o.ControlSystem)
+                      .WithMany()
+                      .HasForeignKey(o => o.ControlSystemId)
+                      .IsRequired().OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(o => o.MachineModel) // <-- NEW Relationship Order to MachineModel
+                      .WithMany() // Assuming MachineModel doesn't need ICollection<Order>
+                      .HasForeignKey(o => o.MachineModelId)
+                      .IsRequired() // If MachineModelId is not nullable
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(o => o.CreatedByUser).WithMany().HasForeignKey(o => o.CreatedByUserId)
+                      .IsRequired().OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(o => o.OrderReviewerUser).WithMany().HasForeignKey(o => o.OrderReviewerUserId)
+                      .IsRequired(false).OnDelete(DeleteBehavior.ClientSetNull); // Or Restrict
+                entity.HasOne(o => o.ProductionTechUser).WithMany().HasForeignKey(o => o.ProductionTechUserId)
+                      .IsRequired(false).OnDelete(DeleteBehavior.ClientSetNull); // Or Restrict
+                entity.HasOne(o => o.SoftwareReviewerUser).WithMany().HasForeignKey(o => o.SoftwareReviewerUserId)
+                      .IsRequired(false).OnDelete(DeleteBehavior.ClientSetNull); // Or Restrict
+                entity.HasOne(o => o.LastModifiedByUser).WithMany().HasForeignKey(o => o.LastModifiedByUserId)
+                      .IsRequired(false).OnDelete(DeleteBehavior.ClientSetNull); // Or Restrict
+
+                entity.HasMany(o => o.OrderItems)
+                      .WithOne(oi => oi.Order)
+                      .HasForeignKey(oi => oi.OrderId)
+                      .IsRequired().OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<OrderItem>(entity =>
+            {
+                entity.HasIndex(oi => new { oi.OrderId, oi.SoftwareOptionId })
+                      .IsUnique().HasName("IX_Order_SoftwareOption");
+                entity.HasOne(oi => oi.SoftwareOption).WithMany()
+                      .HasForeignKey(oi => oi.SoftwareOptionId)
+                      .IsRequired().OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

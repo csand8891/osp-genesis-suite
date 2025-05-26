@@ -1,64 +1,88 @@
 ﻿// File: RuleArchitect.ApplicationLogic/DTOs/UpdateSoftwareOptionCommandDto.cs
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations; // For potential validation attributes
 
 namespace RuleArchitect.ApplicationLogic.DTOs
 {
     /// <summary>
-    /// Data Transfer Object for updating an existing SoftwareOption and its related collections.
+    /// Data Transfer Object for updating an existing SoftwareOption.
+    /// Allows for updating scalar properties and optionally replacing related collections.
     /// </summary>
     public class UpdateSoftwareOptionCommandDto
     {
         /// <summary>
         /// The ID of the SoftwareOption to update. This is mandatory.
         /// </summary>
+        [Required]
         public int SoftwareOptionId { get; set; }
 
-        // Properties for SoftwareOption itself that can be updated
-        public string PrimaryName { get; set; }
-        public string AlternativeNames { get; set; } // Can be null
-        public string SourceFileName { get; set; }   // Can be null
-        public string PrimaryOptionNumberDisplay { get; set; } // Can be null
-        public string Notes { get; set; }            // Can be null
-        public int? ControlSystemId { get; set; }    // Nullable if it can be unassigned
+        // --- Scalar Properties ---
+        // Include all scalar properties from SoftwareOption that can be modified.
+        // The service layer will compare these to the existing entity to detect changes.
 
-        // Collections representing the desired state of dependent entities after the update.
-        // The service layer will need to implement logic to synchronize these
-        // with the existing entities (e.g., add new, remove old, update existing).
+        [Required]
+        [MaxLength(255)]
+        public string PrimaryName { get; set; } = null!;
+
+        [MaxLength(500)]
+        public string? AlternativeNames { get; set; }
+
+        [MaxLength(255)]
+        public string? SourceFileName { get; set; }
+
+        [MaxLength(100)]
+        public string? PrimaryOptionNumberDisplay { get; set; }
+
+        public string? Notes { get; set; }
+
+        [MaxLength(100)]
+        public string? CheckedBy { get; set; }
+
+        public DateTime? CheckedDate { get; set; }
+
+        public int? ControlSystemId { get; set; }
+
+
+        // --- Related Collections (Nullable) ---
+        // If a list is provided (not null), its contents will REPLACE the existing collection.
+        // If a list is null, the existing collection will NOT be changed.
 
         /// <summary>
-        /// The complete list of OptionNumbers that should be associated with this SoftwareOption after the update.
+        /// If provided, replaces the existing Option Numbers. If null, existing ones remain.
         /// </summary>
-        public List<OptionNumberRegistryCreateDto> OptionNumbers { get; set; }
+        public List<OptionNumberRegistryCreateDto>? OptionNumbers { get; set; }
 
         /// <summary>
-        /// The complete list of Requirements that should be associated with this SoftwareOption after the update.
+        /// If provided, replaces the existing Requirements. If null, existing ones remain.
         /// </summary>
-        public List<RequirementCreateDto> Requirements { get; set; }
+        public List<RequirementCreateDto>? Requirements { get; set; }
 
         /// <summary>
-        /// The complete list of SpecificationCodes that should be associated with this SoftwareOption after the update.
+        /// If provided, replaces the existing Specification Codes. If null, existing ones remain.
         /// </summary>
-        public List<SoftwareOptionSpecificationCodeCreateDto> SpecificationCodes { get; set; }
+        public List<SoftwareOptionSpecificationCodeCreateDto>? SpecificationCodes { get; set; }
 
         /// <summary>
-        /// The complete list of ActivationRules that should be associated with this SoftwareOption after the update.
+        /// If provided, replaces the existing Activation Rules. If null, existing ones remain.
         /// </summary>
-        public List<SoftwareOptionActivationRuleCreateDto> ActivationRules { get; set; }
+        public List<SoftwareOptionActivationRuleCreateDto>? ActivationRules { get; set; }
 
-        // Add other lists for other dependent entities if their collections can be modified
-        // during a SoftwareOption update (e.g., ParameterMappings).
+        // Add other collections like ParameterMappings if they should also be updatable.
+        // public List<ParameterMappingDto>? ParameterMappings { get; set; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UpdateSoftwareOptionCommandDto"/> class.
+        /// Initializes a new instance of the UpdateSoftwareOptionCommandDto.
+        /// By default, all collections are null, meaning an update using this
+        /// default object would only attempt to update scalar properties.
         /// </summary>
         public UpdateSoftwareOptionCommandDto()
         {
-            // Initialize collections to prevent null reference exceptions if they are not provided
-            OptionNumbers = new List<OptionNumberRegistryCreateDto>();
-            Requirements = new List<RequirementCreateDto>();
-            SpecificationCodes = new List<SoftwareOptionSpecificationCodeCreateDto>();
-            ActivationRules = new List<SoftwareOptionActivationRuleCreateDto>();
+            // By default, collections are null to indicate "no change intended"
+            OptionNumbers = null;
+            Requirements = null;
+            SpecificationCodes = null;
+            ActivationRules = null;
         }
     }
 }

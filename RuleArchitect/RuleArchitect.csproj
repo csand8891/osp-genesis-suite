@@ -26,12 +26,4 @@
 	  <Reference Include="System.Configuration" />
 	</ItemGroup>
 
-	<ItemGroup>
-		<EmbeddedResource Update="Migrations\*.resx">
-			<Generator>ResXFileCodeGenerator</Generator>
-			<LastGenOutput>%(Filename).Designer.cs</LastGenOutput>
-			<ManifestResourceName>$(RootNamespace).Migrations.%(Filename.Substring(16))</ManifestResourceName>
-		</EmbeddedResource>
-	</ItemGroup>
-
 </Project>
