@@ -203,6 +203,7 @@
     <Compile Include="ViewModels\RequirementViewModel.cs" />
     <Compile Include="ViewModels\SoftwareOptionsViewModel.cs" />
     <Compile Include="ViewModels\SpecCodeViewModel.cs" />
+    <Compile Include="ViewModels\UserManagementViewModel.cs" />
     <Compile Include="Views\AdminDashboardView.xaml.cs">
       <DependentUpon>AdminDashboardView.xaml</DependentUpon>
     </Compile>

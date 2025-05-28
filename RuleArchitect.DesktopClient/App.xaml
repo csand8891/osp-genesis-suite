@@ -3,7 +3,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:RuleArchitect.DesktopClient"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:converters="clr-namespace:RuleArchitect.DesktopClient.Converters">
+             xmlns:converters="clr-namespace:RuleArchitect.DesktopClient.Converters"
+             xmlns:viewModels="clr-namespace:RuleArchitect.DesktopClient.ViewModels" 
+             xmlns:views="clr-namespace:RuleArchitect.DesktopClient.Views"
+             ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -21,12 +24,19 @@
 
                 <ResourceDictionary>
                     <converters:NullToBooleanConverter x:Key="NullToBooleanConverter"/>
-                    <BooleanToVisibilityConverter x:Key="SystemBooleanToVisibilityConverter" />
+                    <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
                     <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
                     <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
                 </ResourceDictionary>
 
             </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate DataType="{x:Type viewModels:AdminDashboardViewModel}">
+                <views:AdminDashboardView />                
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:MainViewModel}">
+                <local:MainWindow />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

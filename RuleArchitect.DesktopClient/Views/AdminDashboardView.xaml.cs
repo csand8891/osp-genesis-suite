@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RuleArchitect.DesktopClient.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -29,9 +30,29 @@ namespace RuleArchitect.DesktopClient.Views
             this.Loaded += AdminDashboardView_Loaded;
         }
 
-        private void AdminDashboardView_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        private void AdminDashboardView_Loaded(object sender, RoutedEventArgs e)
         {
-            Debug.WriteLine("AdminDashboardView: LOADED event fired!");
+            System.Diagnostics.Debug.WriteLine("AdminDashboardView: LOADED event fired!");
+            if (this.DataContext is AdminDashboardViewModel vm)
+            {
+                System.Diagnostics.Debug.WriteLine($"AdminDashboardView: DataContext IS AdminDashboardViewModel. IsLoading: {vm.IsLoading}");
+                System.Diagnostics.Debug.WriteLine($"AdminDashboardView: LoadDashboardDataCommand is null: {vm.LoadDashboardDataCommand == null}");
+                if (vm.LoadDashboardDataCommand != null)
+                {
+                    bool canExecute = vm.LoadDashboardDataCommand.CanExecute(null);
+                    System.Diagnostics.Debug.WriteLine($"AdminDashboardView: CanExecute LoadDashboardDataCommand: {canExecute}");
+                    if (!canExecute)
+                    {
+                        System.Diagnostics.Debug.WriteLine("AdminDashboardView: LoadDashboardDataCommand.CanExecute is false. Check IsLoading or command initialization.");
+                    }
+                    // The XAML Behavior should handle the command execution now.
+                    // If it doesn't, then the XAML Behavior (<i:InvokeCommandAction.../>) itself has an issue.
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine($"AdminDashboardView: DataContext is NOT AdminDashboardViewModel. Actual DataContext: {this.DataContext?.GetType().FullName ?? "null"}");
+            }
         }
     }
 }

@@ -11,15 +11,7 @@
         Title="OSP Genesis Suite" Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}">
-    <Window.Resources>
-        <DataTemplate DataType="{x:Type vm:AdminDashboardViewModel}">
-            <TextBlock Text="AdminDashboardViewModel DataTemplate Test" FontSize="20" Foreground="Blue" />
-        </DataTemplate>
-        <DataTemplate DataType="{x:Type vm:SoftwareOptionsViewModel}">
-            <TextBlock Text="Software Options View (Not Implemented Yet)" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
-        </DataTemplate>
 
-    </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>

@@ -6,9 +6,16 @@
              xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
              xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"  mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=vm:AdminDashboardViewModel, IsDesignTimeCreatable=True}"
              d:DesignHeight="700" d:DesignWidth="900">
+
+    <i:Interaction.Triggers>
+        <i:EventTrigger EventName="Loaded">
+            <i:InvokeCommandAction Command="{Binding LoadDashboardDataCommand}" />
+        </i:EventTrigger>
+    </i:Interaction.Triggers>
+
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="16">
             <TextBlock Text="Administrator Dashboard" Style="{StaticResource MaterialDesignHeadline4TextBlock}" Margin="0,0,0,24" HorizontalAlignment="Center"/>

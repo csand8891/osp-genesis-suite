@@ -1,23 +1,22 @@
-﻿// In RuleArchitect.DesktopClient/ViewModels/AdminDashboardViewModel.cs
-using RuleArchitect.ApplicationLogic.Interfaces; // For ISoftwareOptionService, IOrderService, IUserService (you'll need to define IUserService)
-using RuleArchitect.DesktopClient.Commands; // For RelayCommand
+﻿// Ensure this is the content of RuleArchitect.DesktopClient/ViewModels/AdminDashboardViewModel.cs
+
+using RuleArchitect.ApplicationLogic.Interfaces;
+using RuleArchitect.DesktopClient.Commands;
 using System;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows;
-// Add other necessary using statements
+using GenesisSentry.Interfaces;
+// No need for Microsoft.Extensions.DependencyInjection here if not using IServiceScopeFactory
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
-    public class AdminDashboardViewModel : BaseViewModel // Assuming you have a BaseViewModel for INotifyPropertyChanged
+    public class AdminDashboardViewModel : BaseViewModel
     {
-        // Services to be injected
         private readonly ISoftwareOptionService _softwareOptionService;
         private readonly IOrderService _orderService;
-        // private readonly IUserService _userService; // You'll need to create this service for user counts etc.
-        // private readonly INavigationService _navigationService; // For handling navigation commands
+        private readonly IUserService _userService;
 
-        // Properties for Card Data Bindings
         private int _totalRulesheets;
         public int TotalRulesheets
         {
@@ -39,101 +38,111 @@ namespace RuleArchitect.DesktopClient.ViewModels
             set => SetProperty(ref _ordersPendingReview, value);
         }
 
-        // Commands for Buttons
+        // ****** ENSURE THIS IsLoading PROPERTY IS EXACTLY AS BELOW ******
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading;
+            private set
+            {
+                // Use the SetProperty from BaseViewModel which should also handle ItemChangedCallback
+                // and then manually raise CanExecuteChanged for the command.
+                if (SetProperty(ref _isLoading, value)) // SetProperty returns true if value changed
+                {
+                    // Manually notify the command that its CanExecute status might have changed.
+                    ((RelayCommand)LoadDashboardDataCommand)?.RaiseCanExecuteChanged();
+                    // Also notify other commands that might depend on IsLoading
+                    ((RelayCommand)GoToRulesheetsCommand)?.RaiseCanExecuteChanged();
+                    ((RelayCommand)GoToUserManagementCommand)?.RaiseCanExecuteChanged();
+                    ((RelayCommand)GoToOrdersCommand)?.RaiseCanExecuteChanged();
+                    ((RelayCommand)GoToReportsCommand)?.RaiseCanExecuteChanged();
+                }
+            }
+        }
+        // *****************************************************************
+
         public ICommand GoToRulesheetsCommand { get; }
         public ICommand GoToUserManagementCommand { get; }
         public ICommand GoToOrdersCommand { get; }
         public ICommand GoToReportsCommand { get; }
         public ICommand LoadDashboardDataCommand { get; }
 
-
         public AdminDashboardViewModel(
             ISoftwareOptionService softwareOptionService,
-            IOrderService orderService
-            // IUserService userService, // Inject when created
-            // INavigationService navigationService // Inject your navigation service
-            )
+            IOrderService orderService, IUserService userService)
         {
-            _softwareOptionService = softwareOptionService;
-            _orderService = orderService;
-            // _userService = userService;
-            // _navigationService = navigationService;
+            _softwareOptionService = softwareOptionService ?? throw new ArgumentNullException(nameof(softwareOptionService));
+            _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
 
-            // Initialize Commands
-            LoadDashboardDataCommand = new RelayCommand(async () => await LoadDataAsync());
-            GoToRulesheetsCommand = new RelayCommand(ExecuteGoToRulesheets);
-            GoToUserManagementCommand = new RelayCommand(ExecuteGoToUserManagement);
-            GoToOrdersCommand = new RelayCommand(ExecuteGoToOrders);
-            GoToReportsCommand = new RelayCommand(ExecuteGoToReports);
+            // IsLoading is false by default for a bool field.
+            LoadDashboardDataCommand = new RelayCommand(async () => await LoadDataAsync(), () => !IsLoading);
+            System.Diagnostics.Debug.WriteLine($"AdminDashboardViewModel Constructor: IsLoading is initially {IsLoading}. CanExecute LoadDashboardDataCommand: {LoadDashboardDataCommand.CanExecute(null)}");
 
-            // Load data when ViewModel is created
-            // Consider if this should be called explicitly by the view or a navigation event
-            // Change this for better debugging:
-            // _ = LoadDataAsync(); 
-            // TO:
-            //Task.Run(async () => {
-            //    try
-            //    {
-            //        await LoadDataAsync();
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        System.Diagnostics.Debug.WriteLine($"CRITICAL UNHANDLED EXCEPTION from LoadDataAsync task: {ex.ToString()}");
-            //        // You might want to dispatch a message to the UI thread here to show an error
-            //        Application.Current?.Dispatcher?.Invoke(() =>
-            //            MessageBox.Show($"Critical error during dashboard loading: {ex.Message}", "Dashboard Load Error", MessageBoxButton.OK, MessageBoxImage.Error)
-            //        );
-            //    }
-            //});
-            System.Diagnostics.Debug.WriteLine("AdminDashboardViewModel: Constructor END (LoadDataAsync launched).");
+            // Assuming other commands should also be disabled while loading
+            GoToRulesheetsCommand = new RelayCommand(ExecuteGoToRulesheets, () => !IsLoading);
+            GoToUserManagementCommand = new RelayCommand(ExecuteGoToUserManagement, () => !IsLoading);
+            GoToOrdersCommand = new RelayCommand(ExecuteGoToOrders, () => !IsLoading);
+            GoToReportsCommand = new RelayCommand(ExecuteGoToReports, () => !IsLoading);
+
+            System.Diagnostics.Debug.WriteLine("AdminDashboardViewModel: Constructor END. Data loading should be triggered by view's Loaded event.");
         }
 
         private async Task LoadDataAsync()
         {
+            if (IsLoading) return;
+
             System.Diagnostics.Debug.WriteLine("AdminDashboardViewModel: LoadDataAsync START.");
+            IsLoading = true;
+
             try
             {
                 var allOptions = await _softwareOptionService.GetAllSoftwareOptionsAsync();
                 TotalRulesheets = allOptions?.Count ?? 0;
                 System.Diagnostics.Debug.WriteLine($"AdminDashboardViewModel: TotalRulesheets = {TotalRulesheets}");
+
+                ActiveUsers = await _userService.GetActiveUserCountAsync();
+                OrdersPendingReview = 0;
             }
             catch (System.Exception ex)
             {
                 TotalRulesheets = -1;
-                System.Diagnostics.Debug.WriteLine($"Error loading rulesheets count in LoadDataAsync: {ex.ToString()}"); // Log full exception
-                                                                                                                         // Do not re-throw here if the Task.Run wrapper is meant to catch it. Or, handle specifically.
+                ActiveUsers = -1;
+                OrdersPendingReview = -1;
+                System.Diagnostics.Debug.WriteLine($"CRITICAL ERROR in AdminDashboardViewModel.LoadDataAsync: {ex.ToString()}");
+                Application.Current?.Dispatcher?.Invoke(() =>
+                    MessageBox.Show($"Error loading dashboard data: {ex.Message}", "Dashboard Error", MessageBoxButton.OK, MessageBoxImage.Error)
+                );
             }
-
-            ActiveUsers = 0;
-            OrdersPendingReview = 0;
+            finally
+            {
+                IsLoading = false;
+            }
             System.Diagnostics.Debug.WriteLine("AdminDashboardViewModel: LoadDataAsync END.");
         }
 
         private void ExecuteGoToRulesheets()
         {
-            // Use NavigationService or other mechanism to navigate to the Rulesheets management view
-            // _navigationService.NavigateTo(ViewModelLocator.RulesheetsManagementPageKey);
             System.Diagnostics.Debug.WriteLine("Navigate to Rulesheets triggered.");
-            // For now, this could switch the content of your MainWindow or open a new window.
-            // This is where your existing SoftwareOptionsViewModel and its view would be shown.
+            // Navigation logic here
         }
 
         private void ExecuteGoToUserManagement()
         {
             System.Diagnostics.Debug.WriteLine("Navigate to User Management triggered.");
-            // _navigationService.NavigateTo(ViewModelLocator.UserManagementPageKey);
+            // Navigation logic here
         }
 
         private void ExecuteGoToOrders()
         {
             System.Diagnostics.Debug.WriteLine("Navigate to Orders triggered.");
-            // _navigationService.NavigateTo(ViewModelLocator.OrdersOverviewPageKey);
+            // Navigation logic here
         }
 
         private void ExecuteGoToReports()
         {
             System.Diagnostics.Debug.WriteLine("Navigate to Reports triggered.");
-            // _navigationService.NavigateTo(ViewModelLocator.ReportsPageKey);
+            // Navigation logic here
         }
     }
 }

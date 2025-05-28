@@ -21,9 +21,11 @@ namespace RuleArchitect.DesktopClient
 
         public App()
         {
+            this.ShutdownMode = ShutdownMode.OnLastWindowClose;
             ServiceCollection services = new ServiceCollection();
             ConfigureServices(services);
             _serviceProvider = services.BuildServiceProvider();
+            
         }
 
         private void ConfigureServices(IServiceCollection services)
@@ -47,6 +49,7 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddSingleton<IAuthenticationStateProvider, GenesisSentry.Services.AuthenticationStateProvider>();
+            services.AddScoped<IUserService, UserService>();
 
             // GenesisOrderGateway Service
             services.AddTransient<IGenesisOrderGateway, PdfOrderGatewayService>();
@@ -59,7 +62,7 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<LoginViewModel>();
             services.AddSingleton<MainViewModel>();      // MainViewModel is likely a singleton for the app's main shell
             services.AddTransient<AdminDashboardViewModel>(); // Specific dashboard/view ViewModels can be transient or scoped
-            services.AddTransient<SoftwareOptionsViewModel>();
+            //services.AddTransient<SoftwareOptionsViewModel>();
             // Register other ViewModels for your different views/UserControls as you create them:
             // services.AddTransient<UserManagementViewModel>();
             // services.AddTransient<OrdersViewModel>();
@@ -106,6 +109,11 @@ namespace RuleArchitect.DesktopClient
             if (loginWindow != null)
             {
                 loginResult = loginWindow.ShowDialog();
+                System.Diagnostics.Debug.WriteLine($"App.OnStartup: After LoginWindow.ShowDialog(). Number of open windows: {Application.Current.Windows.Count}");
+                foreach (Window w in Application.Current.Windows)
+                {
+                    System.Diagnostics.Debug.WriteLine($"App.OnStartup: Open window (post-LoginWindow): Type={w.GetType().FullName}, Title='{w.Title}', IsVisible={w.IsVisible}, IsActive={w.IsActive}");
+                }
             }
             else
             {
