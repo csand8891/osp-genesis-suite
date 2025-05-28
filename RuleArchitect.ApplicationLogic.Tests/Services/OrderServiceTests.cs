@@ -7,7 +7,7 @@ using RuleArchitect.ApplicationLogic.Interfaces;
 using RuleArchitect.ApplicationLogic.DTOs;
 using RuleArchitect.Data;
 using RuleArchitect.Entities;
-using HeraldKit.Interaces;
+using HeraldKit.Interfaces;
 using GenesisSentry.Entities; // Ensure this project is referenced and this using directive is present
 using System;
 using System.Collections.Generic;

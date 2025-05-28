@@ -55,9 +55,17 @@ namespace RuleArchitect.DesktopClient.ViewModels
             LoginCommand = new RelayCommand(async () => await ExecuteLoginAsync(), CanExecuteLogin);
         }
 
+        // In LoginViewModel.cs
         private bool CanExecuteLogin()
         {
-            return !string.IsNullOrWhiteSpace(Username) && !IsLoggingIn && GetPassword != null;
+            System.Diagnostics.Debug.WriteLine($"CanExecuteLogin Check: User='{Username}', IsLoggingIn='{IsLoggingIn}', GetPasswordSet='{GetPassword != null}'");
+            string? password = GetPassword?.Invoke();
+            System.Diagnostics.Debug.WriteLine($"Password from GetPassword: '{password}'");
+
+            return !string.IsNullOrWhiteSpace(Username) &&
+                   !string.IsNullOrWhiteSpace(password) &&
+                   !IsLoggingIn &&
+                   GetPassword != null;
         }
 
         private async Task ExecuteLoginAsync()

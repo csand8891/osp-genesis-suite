@@ -1,0 +1,113 @@
+﻿<UserControl x:Class="RuleArchitect.DesktopClient.Views.AdminDashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
+             xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=vm:AdminDashboardViewModel, IsDesignTimeCreatable=True}"
+             d:DesignHeight="700" d:DesignWidth="900">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="16">
+            <TextBlock Text="Administrator Dashboard" Style="{StaticResource MaterialDesignHeadline4TextBlock}" Margin="0,0,0,24" HorizontalAlignment="Center"/>
+            <WrapPanel HorizontalAlignment="Center" Orientation="Horizontal">
+                <materialDesign:Card Width="300" Margin="16" Padding="0" UniformCornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <materialDesign:ColorZone Mode="PrimaryMid" Padding="16">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="FileDocumentMultipleOutline" VerticalAlignment="Center" Margin="0,0,8,0" Width="24" Height="24"/>
+                                <TextBlock Text="Manage Rulesheets" Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+                            </StackPanel>
+                        </materialDesign:ColorZone>
+                        <StackPanel Grid.Row="1" Margin="16">
+                            <TextBlock Text="{Binding TotalRulesheets, StringFormat='Total Rulesheets: {0}'}" Margin="0,0,0,8"/>
+                            <TextBlock Text="Add, edit, or delete software option rulesheets and their configurations." TextWrapping="Wrap" MinHeight="60"/>
+                        </StackPanel>
+                        <Button Grid.Row="2" Style="{StaticResource MaterialDesignFlatButton}"
+                                Command="{Binding GoToRulesheetsCommand}"
+                                HorizontalAlignment="Right" Margin="8"
+                                Content="GO TO RULESHEETS"/>
+                    </Grid>
+                </materialDesign:Card>
+
+                <materialDesign:Card Width="300" Margin="16" Padding="0" UniformCornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <materialDesign:ColorZone Mode="PrimaryMid" Padding="16">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="AccountGroupOutline" VerticalAlignment="Center" Margin="0,0,8,0" Width="24" Height="24"/>
+                                <TextBlock Text="Manage Users" Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+                            </StackPanel>
+                        </materialDesign:ColorZone>
+                        <StackPanel Grid.Row="1" Margin="16">
+                            <TextBlock Text="{Binding ActiveUsers, StringFormat='Active Users: {0}'}" Margin="0,0,0,8"/>
+                            <TextBlock Text="Create new user accounts, manage roles, and modify existing user details." TextWrapping="Wrap" MinHeight="60"/>
+                        </StackPanel>
+                        <Button Grid.Row="2" Style="{StaticResource MaterialDesignFlatButton}"
+                                Command="{Binding GoToUserManagementCommand}"
+                                HorizontalAlignment="Right" Margin="8"
+                                Content="GO TO USER MANAGEMENT"/>
+                    </Grid>
+                </materialDesign:Card>
+
+                <materialDesign:Card Width="300" Margin="16" Padding="0" UniformCornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <materialDesign:ColorZone Mode="PrimaryMid" Padding="16">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="ClipboardListOutline" VerticalAlignment="Center" Margin="0,0,8,0" Width="24" Height="24"/>
+                                <TextBlock Text="View All Orders" Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+                            </StackPanel>
+                        </materialDesign:ColorZone>
+                        <StackPanel Grid.Row="1" Margin="16">
+                            <TextBlock Text="{Binding OrdersPendingReview, StringFormat='Orders Pending Review: {0}'}" Margin="0,0,0,8"/>
+                            <TextBlock Text="Oversee the status of all orders within the system and track their progress." TextWrapping="Wrap" MinHeight="60"/>
+                        </StackPanel>
+                        <Button Grid.Row="2" Style="{StaticResource MaterialDesignFlatButton}"
+                                Command="{Binding GoToOrdersCommand}"
+                                HorizontalAlignment="Right" Margin="8"
+                                Content="GO TO ORDERS"/>
+                    </Grid>
+                </materialDesign:Card>
+
+                <materialDesign:Card Width="300" Margin="16" Padding="0" UniformCornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <materialDesign:ColorZone Mode="PrimaryMid" Padding="16">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="ChartBar" VerticalAlignment="Center" Margin="0,0,8,0" Width="24" Height="24"/>
+                                <TextBlock Text="System Reports" Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+                            </StackPanel>
+                        </materialDesign:ColorZone>
+                        <StackPanel Grid.Row="1" Margin="16">
+                            <TextBlock Text="Generate reports on rulesheet usage, order processing times, and other system metrics." TextWrapping="Wrap" MinHeight="60"/>
+                        </StackPanel>
+                        <Button Grid.Row="2" Style="{StaticResource MaterialDesignFlatButton}"
+                                Command="{Binding GoToReportsCommand}"
+                                HorizontalAlignment="Right" Margin="8"
+                                Content="GO TO REPORTS"/>
+                    </Grid>
+                </materialDesign:Card>
+            </WrapPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

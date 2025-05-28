@@ -23,6 +23,13 @@ namespace RuleArchitect.DesktopClient
         public MainWindow()
         {
             InitializeComponent();
+            System.Diagnostics.Debug.WriteLine("MainWindow Constructor - After InitializeComponent");
+        }
+
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            System.Diagnostics.Debug.WriteLine("MainWindow - Loaded event fired!");
+            // Breakpoint here
         }
     }
 }

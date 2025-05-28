@@ -201,6 +201,23 @@ namespace RuleArchitect.Data
                       .HasForeignKey(oi => oi.SoftwareOptionId)
                       .IsRequired().OnDelete(DeleteBehavior.Restrict);
             });
+
+            string adminSalt = "f9DAu0b2jcGAhuVKmgFYNw=="; // e.g., Convert.ToBase64String(new byte[16])
+            string adminHash = "gHarxnybaF14pg0khiMv27IsdXuj2dmx0ytALdo5+aE="; // e.g., Hash of "DefaultAdminPassword123!" using the salt
+
+            modelBuilder.Entity<UserEntity>().HasData(
+                new UserEntity
+                {
+                    UserId = 1, // Explicitly set ID for seeding
+                    UserName = "admin",
+                    PasswordSalt = adminSalt,
+                    PasswordHash = adminHash,
+                    Role = "Administrator", // Or your standard role name
+                    IsActive = true,
+                    LastLoginDate = null
+                }
+                // You can add more default users here if needed
+            );
         }
     }
 }

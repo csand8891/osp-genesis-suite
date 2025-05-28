@@ -4,73 +4,56 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:RuleArchitect.DesktopClient"
-        xmlns:viewModels="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+        xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+        xmlns:views="clr-namespace:RuleArchitect.DesktopClient.Views" 
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
-        Title="Rule Architect" Height="720" Width="1280"
-        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        Background="{DynamicResource MaterialDesignPaper}"
-        TextElement.FontWeight="Regular"
-        TextElement.FontSize="13"
-        FontFamily="{materialDesign:MaterialDesignFont}"
-        d:DataContext="{d:DesignInstance Type=viewModels:SoftwareOptionsViewModel, IsDesignTimeCreatable=True}">
+        Title="OSP Genesis Suite" Height="720" Width="1280"
+        WindowStartupLocation="CenterScreen"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:AdminDashboardViewModel}">
+            <TextBlock Text="AdminDashboardViewModel DataTemplate Test" FontSize="20" Foreground="Blue" />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SoftwareOptionsViewModel}">
+            <TextBlock Text="Software Options View (Not Implemented Yet)" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        </DataTemplate>
+
+    </Window.Resources>
 
     <Grid>
-        <materialDesign:DialogHost Identifier="RootDialogHost">
-            <TabControl>
-                <TabItem Header="Software Options">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="220" MaxWidth="300"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-                        <StackPanel Orientation="Horizontal" Margin="10" Grid.Row="0">
-                            <Button Content="Load Options" Command="{Binding LoadCommand}" Style="{StaticResource MaterialDesignRaisedButton}" Margin="5"/>
-                            <Button Content="Add Option" Command="{Binding AddCommand}" Style="{StaticResource MaterialDesignRaisedButton}" Margin="5" IsEnabled="{Binding IsLoading, Converter={StaticResource BooleanNegationConverter}}"/>
-                            <Button Content="Edit Option" Command="{Binding EditCommand}" Style="{StaticResource MaterialDesignRaisedButton}" Margin="5" IsEnabled="{Binding SelectedSoftwareOption, Converter={StaticResource NullToBooleanConverter}}"/>
-                            <Button Content="Delete Option" Command="{Binding DeleteCommand}" Style="{StaticResource MaterialDesignRaisedLightButton}" Margin="5" IsEnabled="{Binding SelectedSoftwareOption, Converter={StaticResource NullToBooleanConverter}}"/>
-                            <materialDesign:Chip Content="{Binding SoftwareOptions.Count, StringFormat='Total: {0}'}" Margin="10,5" />
-                        </StackPanel>
+        <Border Grid.Column="0" Background="{DynamicResource MaterialDesignPaper}" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,1,0">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,8">
+                    <Separator Margin="8,16"/>
+                    <Button Content="Logout" Command="{Binding LogoutCommand}" Style="{StaticResource MaterialDesignFlatButton}" Margin="8,5" Height="40"/>
+                </StackPanel>
 
-                        <DataGrid Grid.Row="1"
-                                  ItemsSource="{Binding SoftwareOptions}"
-                                  SelectedItem="{Binding SelectedSoftwareOption}"
-                                  AutoGenerateColumns="False"
-                                  CanUserAddRows="False"
-                                  IsReadOnly="True"
-                                  SelectionMode="Single"
-                                  materialDesign:DataGridAssist.CellPadding="13 8 8 8"
-                                  materialDesign:DataGridAssist.ColumnHeaderPadding="8">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="ID" Binding="{Binding SoftwareOptionId}" Width="Auto"/>
-                                <DataGridTextColumn Header="Primary Name" Binding="{Binding PrimaryName}" Width="*"/>
-                                <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="Auto"/>
-                                <DataGridTextColumn Header="Control System" Binding="{Binding ControlSystemName}" Width="Auto"/>
-                                <DataGridTextColumn Header="Last Modified By" Binding="{Binding LastModifiedBy}" Width="Auto"/>
-                                <DataGridTextColumn Header="Last Modified Date" Binding="{Binding LastModifiedDate, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Width="Auto"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
+                <TextBlock DockPanel.Dock="Top" Text="{Binding CurrentUser.UserName, StringFormat='User: {0}'}" FontWeight="SemiBold" Margin="16,16,16,0"/>
+                <TextBlock DockPanel.Dock="Top" Text="{Binding CurrentUser.Role, StringFormat='Role: {0}'}" Margin="16,4,16,8" FontStyle="Italic"/>
+                <Separator DockPanel.Dock="Top" Margin="8,8"/>
 
-                        <materialDesign:Card Grid.Row="0" Grid.RowSpan="2" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="10"
-                                             Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
-                            <StackPanel Orientation="Horizontal">
-                                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" IsIndeterminate="True" Value="0" Margin="0 0 10 0"/>
-                                <TextBlock Text="Loading Software Options..." VerticalAlignment="Center"/>
+                <ListBox ItemsSource="{Binding NavigationItems}" 
+                         SelectedItem="{Binding SelectedNavigationItem}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         BorderThickness="0"
+                         Style="{StaticResource MaterialDesignNavigationListBox}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type vm:NavigationItemViewModel}">
+                            <StackPanel Orientation="Horizontal" Margin="16,10">
+                                <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center"/>
                             </StackPanel>
-                        </materialDesign:Card>
-                    </Grid>
-                </TabItem>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </DockPanel>
+        </Border>
 
-                <TabItem Header="Control Systems">
-                    <TextBlock Text="Control Systems Management Area" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </TabItem>
-
-                <TabItem Header="Machine Types">
-                    <TextBlock Text="Machine Types Management Area" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                </TabItem>
-
-            </TabControl>
-        </materialDesign:DialogHost>
+        <ContentControl Grid.Column="1" Content="{Binding CurrentViewViewModel}" Margin="16"/>
     </Grid>
 </Window>

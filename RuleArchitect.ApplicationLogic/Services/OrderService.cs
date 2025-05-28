@@ -4,7 +4,7 @@ using RuleArchitect.ApplicationLogic.DTOs;
 using RuleArchitect.ApplicationLogic.Interfaces;
 using RuleArchitect.Data; // For RuleArchitectContext
 using RuleArchitect.Entities;
-using HeraldKit.Interaces; // For INotificationService
+using HeraldKit.Interfaces; // For INotificationService
 using System;
 using System.Collections.Generic;
 using System.Linq;

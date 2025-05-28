@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HeraldKit.Models;
 
-namespace HeraldKit.Interaces
+namespace HeraldKit.Interfaces
 {
     /// <summary>
     /// Defines a contract for services that can display notifications to the user.

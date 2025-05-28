@@ -68,8 +68,7 @@
                             Height="48" Margin="0,24,0,8" Command="{Binding LoginCommand}"
                             materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsLoggingIn}"
                             materialDesign:ButtonProgressAssist.Value="-1"
-                            materialDesign:ButtonProgressAssist.IsIndeterminate="True"
-                            IsEnabled="{Binding Path=IsLoggingIn, Converter={StaticResource BooleanNegationConverter}}"/>
+                            materialDesign:ButtonProgressAssist.IsIndeterminate="True" />
                 </StackPanel>
             </materialDesign:Card>
         </Grid>

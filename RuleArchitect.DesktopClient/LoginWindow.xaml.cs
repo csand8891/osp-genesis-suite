@@ -1,27 +1,51 @@
-﻿using RuleArchitect.DesktopClient.ViewModels;
+﻿using RuleArchitect.DesktopClient.Commands;
+using RuleArchitect.DesktopClient.ViewModels;
 using System.Windows;
 
 namespace RuleArchitect.DesktopClient
 {
     public partial class LoginWindow : Window
     {
-        public LoginWindow(LoginViewModel viewModel) // Inject the ViewModel
+        private bool _isWindowLoaded = false; // Flag to track if the window has loaded
+
+        public LoginWindow(LoginViewModel viewModel)
         {
             InitializeComponent();
             DataContext = viewModel;
 
-            // --- Password Handling & Closing Logic ---
             if (viewModel != null)
             {
-                // Pass a delegate to the ViewModel to get the password
-                viewModel.GetPassword = () => PasswordBox.Password; // Basic example (not SecureString)
+                viewModel.GetPassword = () => PasswordBox.Password; // PasswordBox is from your XAML
 
-                // Subscribe to the ViewModel's success event to close the window
                 viewModel.OnLoginSuccess += () =>
                 {
-                    this.DialogResult = true; // Set DialogResult to indicate success
+                    this.DialogResult = true;
                     this.Close();
                 };
+
+                // Modified PasswordChanged handler
+                PasswordBox.PasswordChanged += (s, e) =>
+                {
+                    // Only raise CanExecuteChanged if the window is fully loaded
+                    if (_isWindowLoaded && viewModel.LoginCommand is RelayCommand loginRelayCommand)
+                    {
+                        loginRelayCommand.RaiseCanExecuteChanged();
+                    }
+                };
+            }
+
+            // Subscribe to the Loaded event of the window
+            this.Loaded += LoginWindow_Loaded;
+        }
+
+        private void LoginWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            _isWindowLoaded = true;
+            // After the window is loaded, explicitly update the command's CanExecute state once.
+            // This ensures the button's initial state is correct based on initial (likely empty) values.
+            if (DataContext is LoginViewModel vm && vm.LoginCommand is RelayCommand rc)
+            {
+                rc.RaiseCanExecuteChanged();
             }
         }
     }

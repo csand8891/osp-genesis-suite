@@ -1,4 +1,4 @@
-﻿using HeraldKit.Interaces; // Ensure you have the 's' if your folder/namespace is 'Interaces'
+﻿using HeraldKit.Interfaces; // Ensure you have the 's' if your folder/namespace is 'Interaces'
 using HeraldKit.Models;
 using System;
 using System.Collections.Generic;

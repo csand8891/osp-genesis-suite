@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HeraldKit.Interaces
+namespace HeraldKit.Interfaces
 {
     /// <summary>
     /// Defines a contract for storing and managing user notifications.

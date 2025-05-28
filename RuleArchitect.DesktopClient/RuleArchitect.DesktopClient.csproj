@@ -191,14 +191,21 @@
     <Compile Include="LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Services\WpfNotificationService.cs" />
     <Compile Include="ViewModels\ActivationRuleViewModel.cs" />
+    <Compile Include="ViewModels\AdminDashboardViewModel.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="ViewModels\EditSoftwareOptionViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
+    <Compile Include="ViewModels\MainViewModel.cs" />
+    <Compile Include="ViewModels\NavigationItemViewModel.cs" />
     <Compile Include="ViewModels\OptionNumberViewModel.cs" />
     <Compile Include="ViewModels\RequirementViewModel.cs" />
     <Compile Include="ViewModels\SoftwareOptionsViewModel.cs" />
     <Compile Include="ViewModels\SpecCodeViewModel.cs" />
+    <Compile Include="Views\AdminDashboardView.xaml.cs">
+      <DependentUpon>AdminDashboardView.xaml</DependentUpon>
+    </Compile>
     <Page Include="LoginWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -215,6 +222,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Views\AdminDashboardView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
@@ -244,9 +255,17 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GenesisOrderGateway\GenesisOrderGateway.csproj">
+      <Project>{75d80bce-9528-4ac3-ab69-8f81718a9756}</Project>
+      <Name>GenesisOrderGateway</Name>
+    </ProjectReference>
     <ProjectReference Include="..\GenesisSentry\GenesisSentry.csproj">
       <Project>{28967177-5fe7-49f6-9c18-5a6b6aed137b}</Project>
       <Name>GenesisSentry</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HeraldKit\HeraldKit\HeraldKit.csproj">
+      <Project>{bfb69c3c-c16c-42d9-a39f-45fb1d56f778}</Project>
+      <Name>HeraldKit</Name>
     </ProjectReference>
     <ProjectReference Include="..\RuleArchitect.ApplicationLogic\RuleArchitect.ApplicationLogic.csproj">
       <Project>{0d7f746d-e1bf-4fbf-b7fb-95295e91218f}</Project>
@@ -257,9 +276,7 @@
       <Name>RuleArchitect</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Views\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\MaterialDesignThemes.4.9.0\build\MaterialDesignThemes.targets" Condition="Exists('..\packages\MaterialDesignThemes.4.9.0\build\MaterialDesignThemes.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

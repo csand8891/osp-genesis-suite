@@ -42,8 +42,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Implementations\InMemoryNotificationStore.cs" />
-    <Compile Include="Interaces\INotificationService.cs" />
-    <Compile Include="Interaces\INotificationStore.cs" />
+    <Compile Include="Interfaces\INotificationService.cs" />
+    <Compile Include="Interfaces\INotificationStore.cs" />
     <Compile Include="Models\NotificationMessage.cs" />
     <Compile Include="Models\StoreChangeAction.cs" />
     <Compile Include="Models\StoreChangedEventArgs.cs" />
