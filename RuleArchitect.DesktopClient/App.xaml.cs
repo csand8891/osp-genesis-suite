@@ -12,6 +12,7 @@ using RuleArchitect.DesktopClient.ViewModels; // For LoginViewModel, MainViewMod
 using System;
 using System.Windows;
 using RuleArchitect.DesktopClient.Services;
+using RuleArchitect.DesktopClient.Views;
 
 namespace RuleArchitect.DesktopClient
 {
@@ -64,7 +65,7 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<AdminDashboardViewModel>(); // Specific dashboard/view ViewModels can be transient or scoped
             //services.AddTransient<SoftwareOptionsViewModel>();
             // Register other ViewModels for your different views/UserControls as you create them:
-            // services.AddTransient<UserManagementViewModel>();
+            services.AddTransient<UserManagementViewModel>();
             // services.AddTransient<OrdersViewModel>();
             // services.AddTransient<ReportsViewModel>();
             // services.AddTransient<OrderReviewDashboardViewModel>(); 
@@ -74,6 +75,8 @@ namespace RuleArchitect.DesktopClient
             // --- Windows and Views (Views are often instantiated by DataTemplates) ---
             services.AddTransient<LoginWindow>();
             services.AddSingleton<MainWindow>(); // MainWindow is the shell, likely singleton
+            
+           
         }
 
         protected override void OnStartup(StartupEventArgs e)

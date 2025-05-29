@@ -30,7 +30,9 @@
                 </ResourceDictionary>
 
             </ResourceDictionary.MergedDictionaries>
-
+            <DataTemplate DataType="{x:Type viewModels:UserManagementViewModel}">
+                <views:UserManagementView />
+            </DataTemplate>
             <DataTemplate DataType="{x:Type viewModels:AdminDashboardViewModel}">
                 <views:AdminDashboardView />                
             </DataTemplate>
