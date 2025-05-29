@@ -114,8 +114,11 @@
   <ItemGroup>
     <Compile Include="Class1.cs" />
     <Compile Include="DTOs\AuthenticationResult.cs" />
+    <Compile Include="DTOs\UpdateUserDto.cs" />
     <Compile Include="DTOs\UserDto.cs" />
+    <Compile Include="Entities\RoleEntity.cs" />
     <Compile Include="Entities\UserEntity.cs" />
+    <Compile Include="Enums\ApplicationPermission.cs" />
     <Compile Include="Interfaces\IAuthenticationDbContext.cs" />
     <Compile Include="Interfaces\IAuthenticationService.cs" />
     <Compile Include="Interfaces\IAuthenticationStateProvider.cs" />

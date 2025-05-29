@@ -13,5 +13,10 @@ namespace GenesisSentry.Interfaces
         // Task<UserDto> CreateUserAsync(string username, string password, string role, bool isActive); // Consider if this duplicates AuthenticationService or centralizes it here
         // Task UpdateUserAsync(UserDto user);
         // Task DeleteUserAsync(int userId);
+        Task<UserDto> CreateUserAsync(string username, string password, string role, bool isActive);
+        Task<UserDto> GetUserByIdAsync(int userId);
+        Task<UserDto> UpdateUserAsync(UpdateUserDto updateUserDto);
+        Task<IEnumerable<UserDto>> GetAllUsersAsync();
+        Task<bool> DeleteUserAsync(int userId);
     }
 }

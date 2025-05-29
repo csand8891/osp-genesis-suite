@@ -1,4 +1,6 @@
 ﻿using GenesisSentry.DTOs;
+using GenesisSentry.Interfaces;
+using HeraldKit.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
 using System;
 using System.Collections.Generic;
@@ -36,7 +38,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             get => _selectedUser;
             set
             {
-                if (SetProperty(_selectedUser, value))
+                if (SetProperty(ref _selectedUser, value))
                 {
                     CurrentEditUser = new UserEditViewModel(_selectedUser);
                     IsDetailPaneVisible = true;
@@ -52,10 +54,30 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 }
             }
         }
+        private IUserService _userService;
+        private INotificationService _notificationService;
+        private UserEditViewModel _currentEditUser;
+        public UserEditViewModel CurrentEditUser
+        {
+            get => _currentEditUser; set => SetProperty(ref _currentEditUser, value);
+        }
+        private bool _isLoading;
+        public bool IsLoading
+        {
+            get => _isLoading; set {  SetProperty(ref _isLoading, value);}
+        }
 
-        UserEditViewModel CurrentEditUser;
-        bool IsEditing;
-        bool IsAdding;
+        private bool _isEditing;
+        public bool IsEditing
+        {
+            get => _isEditing; set => SetProperty(ref _isEditing, value);
+        }
+
+        private bool _isAdding;
+        public bool IsAdding
+        {
+            get => _isAdding; set => SetProperty(ref _isAdding, value);
+        }
 
         public UserManagementViewModel()
         {
