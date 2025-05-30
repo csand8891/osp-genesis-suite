@@ -18,10 +18,10 @@
     </i:Interaction.Triggers>
 
     <UserControl.Resources>
-        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
+        <!--<BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
         <converters:BooleanNegationConverter x:Key="BoolNegationConverter"/>
         <converters:NullToBooleanConverter x:Key="NullToFalseConverter" FalseForNull="True"/>
-        <converters:NullToBooleanConverter x:Key="NullToTrueConverter" FalseForNull="False"/>
+        <converters:NullToBooleanConverter x:Key="NullToTrueConverter" FalseForNull="False"/>-->
 
         <DataTemplate DataType="{x:Type vm:UserEditViewModel}">
             <Grid Margin="10">
@@ -64,7 +64,7 @@
             </Grid>
         </DataTemplate>
 
-        <converters:TrueFalseToCustomStringConverter x:Key="TrueFalseToCustomStringConverter" TrueString="Create New User" FalseString="Edit User Details"/>
+        
 
     </UserControl.Resources>
 
@@ -136,7 +136,7 @@
             </Grid>
 
             <Border Grid.Column="1" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="1,0,0,0"
-                    Visibility="{Binding IsDetailPaneVisible, Converter={StaticResource BoolToVisConverter}}">
+                    Visibility="{Binding IsDetailPaneVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
@@ -155,7 +155,7 @@
             </Border>
         </Grid>
         <Grid Grid.Row="0" Grid.RowSpan="2" Grid.ColumnSpan="2" Background="#77000000"
-              Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisConverter}}">
+              Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
             <ProgressBar IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
                          HorizontalAlignment="Center" VerticalAlignment="Center" Width="50" Height="50"/>
         </Grid>

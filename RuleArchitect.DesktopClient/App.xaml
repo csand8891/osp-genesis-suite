@@ -23,10 +23,12 @@
                 </ResourceDictionary>
 
                 <ResourceDictionary>
-                    <converters:NullToBooleanConverter x:Key="NullToBooleanConverter"/>
+                    <converters:NullToBooleanConverter x:Key="NullToFalseConverter" FalseForNull="True"/>
+                    <converters:NullToBooleanConverter x:Key=" NullToTrueConverter" FalseForNull="False" />
                     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
                     <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
                     <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
+                    <converters:TrueFalseToCustomStringConverter x:Key="TrueFalseToCustomStringConverter" />
                 </ResourceDictionary>
 
             </ResourceDictionary.MergedDictionaries>
