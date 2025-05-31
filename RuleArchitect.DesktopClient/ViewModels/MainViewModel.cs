@@ -121,7 +121,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             {
                 case "Administrator":
                     AddNavItem("Dashboard", typeof(AdminDashboardViewModel));
-                    //AddNavItem("Manage Rulesheets", typeof(SoftwareOptionsViewModel)); // Example
+                    AddNavItem("Rulesheets", typeof(SoftwareOptionsViewModel)); // Example
                     AddNavItem("Manage Users", typeof(UserManagementViewModel)); // When UserManagementViewModel exists
                     // AddNavItem("View All Orders", typeof(OrdersViewModel));     // When OrdersViewModel exists
                     // AddNavItem("System Reports", typeof(ReportsViewModel));    // When ReportsViewModel exists

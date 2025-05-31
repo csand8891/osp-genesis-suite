@@ -14,9 +14,10 @@ namespace GenesisSentry.Services
         private readonly IAuthenticationDbContext _dbContext;
         private readonly IPasswordHasher _passwordHasher;
 
-        public UserService(IAuthenticationDbContext dbContext)
+        public UserService(IAuthenticationDbContext dbContext, IPasswordHasher passwordHasher)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(_passwordHasher));
         }
 
         public async Task<int> GetActiveUserCountAsync()

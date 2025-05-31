@@ -24,11 +24,13 @@
 
                 <ResourceDictionary>
                     <converters:NullToBooleanConverter x:Key="NullToFalseConverter" FalseForNull="True"/>
-                    <converters:NullToBooleanConverter x:Key=" NullToTrueConverter" FalseForNull="False" />
+                    <converters:NullToBooleanConverter x:Key="NullToTrueConverter" FalseForNull="False" />
                     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
                     <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
                     <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
-                    <converters:TrueFalseToCustomStringConverter x:Key="TrueFalseToCustomStringConverter" />
+                    <converters:TrueFalseToCustomStringConverter x:Key="TrueFalseToCustomStringConverter"
+                                                     TrueString="New User"
+                                                     FalseString="Edit User" />
                 </ResourceDictionary>
 
             </ResourceDictionary.MergedDictionaries>
@@ -40,6 +42,13 @@
             </DataTemplate>
             <DataTemplate DataType="{x:Type viewModels:MainViewModel}">
                 <local:MainWindow />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:SoftwareOptionsViewModel}">
+                <views:SoftwareOptionsView />
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type viewModels:EditSoftwareOptionViewModel}">
+                <views:EditSoftwareOptionView />
             </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>

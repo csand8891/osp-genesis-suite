@@ -54,7 +54,7 @@ namespace RuleArchitect.DesktopClient
 
             // GenesisOrderGateway Service
             services.AddTransient<IGenesisOrderGateway, PdfOrderGatewayService>();
-
+            
             // HeraldKit Notification Service (example, replace with your actual implementation if you have one)
             services.AddSingleton<HeraldKit.Interfaces.INotificationService, WpfNotificationService>();
 
@@ -63,7 +63,8 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<LoginViewModel>();
             services.AddSingleton<MainViewModel>();      // MainViewModel is likely a singleton for the app's main shell
             services.AddTransient<AdminDashboardViewModel>(); // Specific dashboard/view ViewModels can be transient or scoped
-            //services.AddTransient<SoftwareOptionsViewModel>();
+            services.AddTransient<SoftwareOptionsViewModel>();
+            services.AddTransient<EditSoftwareOptionViewModel>();
             // Register other ViewModels for your different views/UserControls as you create them:
             services.AddTransient<UserManagementViewModel>();
             // services.AddTransient<OrdersViewModel>();

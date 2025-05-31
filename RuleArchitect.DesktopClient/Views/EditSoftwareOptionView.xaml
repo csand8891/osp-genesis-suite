@@ -1,0 +1,93 @@
+﻿<UserControl x:Class="RuleArchitect.DesktopClient.Views.EditSoftwareOptionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
+             xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=vm:EditSoftwareOptionViewModel, IsDesignTimeCreatable=True}"
+             d:DesignHeight="700" d:DesignWidth="500">
+    <UserControl.Resources>
+        <Style TargetType="Label" BasedOn="{StaticResource MaterialDesignLabel}">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,10,8"/>
+        </Style>
+        <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignOutlinedComboBox}">
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="DatePicker" BasedOn="{StaticResource MaterialDesignOutlinedDatePicker}">
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style TargetType="CheckBox">
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,10,0">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MinWidth="180"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.ColumnSpan="2" 
+                       Text="{Binding SoftwareOptionId, StringFormat='Edit Software Option (ID: {0})', FallbackValue='Create New Software Option'}" 
+                       Style="{StaticResource MaterialDesignHeadline5TextBlock}" Margin="0,0,0,20"/>
+
+            <Label Grid.Row="1" Grid.Column="0" Content="Primary Name:"/>
+            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PrimaryName, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Enter primary name"/>
+
+            <Label Grid.Row="2" Grid.Column="0" Content="Alternative Names:"/>
+            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding AlternativeNames, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., AltName1; AltName2"/>
+
+            <Label Grid.Row="3" Grid.Column="0" Content="Source File Name:"/>
+            <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SourceFileName, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., rules.xlsx"/>
+
+            <Label Grid.Row="4" Grid.Column="0" Content="Primary Option Number:"/>
+            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PrimaryOptionNumberDisplay, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., OPT-001"/>
+
+            <Label Grid.Row="5" Grid.Column="0" Content="Control System ID:"/>
+            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ControlSystemId, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Numeric ID or lookup"/>
+            <Label Grid.Row="6" Grid.Column="0" Content="Notes:"/>
+            <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" MinLines="3" MaxLines="5" VerticalScrollBarVisibility="Auto" materialDesign:HintAssist.Hint="Additional notes"/>
+
+            <Label Grid.Row="7" Grid.Column="0" Content="Checked By:"/>
+            <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding CheckedBy, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="User who checked"/>
+
+            <Label Grid.Row="8" Grid.Column="0" Content="Checked Date:"/>
+            <DatePicker Grid.Row="8" Grid.Column="1" SelectedDate="{Binding CheckedDate, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Date of check"/>
+
+            <TextBlock Grid.Row="9" Grid.Column="0" Text="Version:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding Version}" VerticalAlignment="Center" Margin="0,5,0,12"/>
+
+            <TextBlock Grid.Row="10" Grid.Column="0" Text="Last Modified:" VerticalAlignment="Center"/>
+            <StackPanel Grid.Row="10" Grid.Column="1" Orientation="Vertical" Margin="0,5,0,12">
+                <TextBlock Text="{Binding LastModifiedDate, StringFormat='{}{0:g}'}"/>
+                <TextBlock Text="{Binding LastModifiedBy, StringFormat='by {0}'}" Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+            </StackPanel>
+
+        </Grid>
+    </ScrollViewer>
+</UserControl>

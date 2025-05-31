@@ -209,6 +209,12 @@
     <Compile Include="Views\AdminDashboardView.xaml.cs">
       <DependentUpon>AdminDashboardView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Views\EditSoftwareOptionView.xaml.cs">
+      <DependentUpon>EditSoftwareOptionView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\SoftwareOptionsView.xaml.cs">
+      <DependentUpon>SoftwareOptionsView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\UserManagementView.xaml.cs">
       <DependentUpon>UserManagementView.xaml</DependentUpon>
     </Compile>
@@ -229,6 +235,14 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="Views\AdminDashboardView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EditSoftwareOptionView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\SoftwareOptionsView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

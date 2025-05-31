@@ -15,7 +15,7 @@ using GenesisSentry.DTOs;
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
-    public class SoftwareOptionsViewModel : INotifyPropertyChanged
+    public class SoftwareOptionsViewModel : BaseViewModel
     {
         private readonly IServiceScopeFactory _scopeFactory; // Use this to create scopes
         private readonly IAuthenticationStateProvider _authStateProvider;
