@@ -1,6 +1,7 @@
 ﻿using RuleArchitect.DesktopClient.Commands;
 using RuleArchitect.DesktopClient.ViewModels;
 using System.Windows;
+using System.Windows.Media.Animation;
 using System; // Required for EventArgs
 
 namespace RuleArchitect.DesktopClient
@@ -21,6 +22,7 @@ namespace RuleArchitect.DesktopClient
                 _viewModel.GetPassword = () => PasswordBox.Password;
                 _viewModel.OnLoginSuccess += ViewModel_OnLoginSuccess; // Use named handler
                 PasswordBox.PasswordChanged += PasswordBox_PasswordChanged; // Use named handler
+                _viewModel.LoginFailedErrorOccurred += ViewModel_LoginFailedErrorOccurred;
             }
 
             this.Loaded += LoginWindow_Loaded;
@@ -31,6 +33,18 @@ namespace RuleArchitect.DesktopClient
         {
             this.DialogResult = true;
             this.Close();
+        }
+
+        private void ViewModel_LoginFailedErrorOccurred(object sender, EventArgs e)
+        {
+            // Ensure ErrorMessageTextBlock has x:Name="ErrorMessageTextBlock" in your XAML
+            // and that ShakeErrorStoryboard is defined in LoginWindow.Resources
+            if (FindResource("ShakeErrorStoryboard") is Storyboard shakeStoryboard)
+            {
+                // The storyboard targets 'ErrorMessageTextTransform' which is part of 'ErrorMessageTextBlock'.
+                // Begin the storyboard on the TextBlock that contains the transform.
+                shakeStoryboard.Begin(this.ErrorMessageTextBlock);
+            }
         }
 
         private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e) // Named event handler
@@ -78,5 +92,7 @@ namespace RuleArchitect.DesktopClient
             DataContext = null;
             _viewModel = null; // Clear the stored ViewModel reference
         }
+
+        
     }
 }

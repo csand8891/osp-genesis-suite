@@ -1,6 +1,7 @@
 ﻿// In RuleArchitect.DesktopClient/ViewModels/LoginViewModel.cs
 using GenesisSentry.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Security;
@@ -47,6 +48,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public delegate void LoginSuccessDelegate();
         public event LoginSuccessDelegate? OnLoginSuccess;
 
+        public event EventHandler? LoginFailedErrorOccurred;
+
 
         public LoginViewModel(IAuthenticationService authService, IAuthenticationStateProvider authStateProvider)
         {
@@ -85,11 +88,13 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 else
                 {
                     ErrorMessage = result.ErrorMessage ?? "Login failed.";
+                    LoginFailedErrorOccurred?.Invoke(this, EventArgs.Empty);
                 }
             }
             catch (System.Exception ex)
             {
                 ErrorMessage = $"An error occurred: {ex.Message}";
+                LoginFailedErrorOccurred?.Invoke(this, EventArgs.Empty);
             }
             finally
             {

@@ -12,7 +12,36 @@
         d:DataContext="{d:DesignInstance Type=vm:LoginViewModel, IsDesignTimeCreatable=True}">
 
     <Window.Resources>
+        <Storyboard x:Key="LoginControlsAppear">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="stackPanel" Storyboard.TargetProperty="(UIElement.Opacity)">
+                <EasingDoubleKeyFrame KeyTime="00:00:00" Value="0"/>
+                <EasingDoubleKeyFrame KeyTime="00:00:00.7000000" Value="1"/>
+            </DoubleAnimationUsingKeyFrames>
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="stackPanel" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[3].(TranslateTransform.Y)">
+                <EasingDoubleKeyFrame KeyTime="00:00:00" Value="29"/>
+                <EasingDoubleKeyFrame KeyTime="00:00:00.7000000" Value="0"/>
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+        <Storyboard x:Key="ShakeErrorStoryboard">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ErrorMessageTextTransform"
+                                           Storyboard.TargetProperty="X"
+                                           Duration="0:0:0.5">
+                <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0" />
+                <LinearDoubleKeyFrame Value="-10" KeyTime="0:0:0.1" />
+                <LinearDoubleKeyFrame Value="10" KeyTime="0:0:0.2" />
+                <LinearDoubleKeyFrame Value="-10" KeyTime="0:0:0.3" />
+                <LinearDoubleKeyFrame Value="10" KeyTime="0:0:0.4" />
+                <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0.5" />
+
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
     </Window.Resources>
+
+    <Window.Triggers>
+        <EventTrigger RoutedEvent="Loaded">
+            <BeginStoryboard Storyboard="{StaticResource LoginControlsAppear}"/>
+        </EventTrigger>
+    </Window.Triggers>
 
     <Grid>
         <Grid.ColumnDefinitions>
@@ -41,7 +70,15 @@
                                  HorizontalAlignment="Center" VerticalAlignment="Center"
                                  Width="380" UniformCornerRadius="8"
                                  materialDesign:ElevationAssist.Elevation="Dp8">
-                <StackPanel>
+                <StackPanel x:Name="stackPanel" RenderTransformOrigin="0.5,0.5">
+                    <StackPanel.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform/>
+                            <SkewTransform/>
+                            <RotateTransform/>
+                            <TranslateTransform/>
+                        </TransformGroup>
+                    </StackPanel.RenderTransform>
                     <TextBlock Text="Login" Style="{StaticResource MaterialDesignHeadline5TextBlock}"
                                HorizontalAlignment="Center" Margin="0,0,0,24"/>
 
@@ -58,17 +95,21 @@
                                  materialDesign:TextFieldAssist.HasLeadingIcon="True"
                                  materialDesign:TextFieldAssist.LeadingIcon="Password"/>
 
-                    <TextBlock Text="{Binding ErrorMessage}"
+                    <TextBlock x:Name="ErrorMessageTextBlock" Text="{Binding ErrorMessage}"
                                Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"
                                Style="{StaticResource MaterialDesignCaptionTextBlock}"
                                TextWrapping="Wrap" MinHeight="32" Margin="0,8,0,0"
                                HorizontalAlignment="Center" TextAlignment="Center"
-                               Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}"/>
+                               Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}">
+                        <TextBlock.RenderTransform>
+                            <TranslateTransform x:Name="ErrorMessageTextTransform" X="0"/>
+                        </TextBlock.RenderTransform>
+                    </TextBlock>
                     <Button Content="LOGIN" Style="{StaticResource MaterialDesignRaisedButton}"
                             Height="48" Margin="0,24,0,8" Command="{Binding LoginCommand}"
                             materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsLoggingIn}"
                             materialDesign:ButtonProgressAssist.Value="-1"
-                            materialDesign:ButtonProgressAssist.IsIndeterminate="True" />
+                            materialDesign:ButtonProgressAssist.IsIndeterminate="True"/>
                 </StackPanel>
             </materialDesign:Card>
         </Grid>
