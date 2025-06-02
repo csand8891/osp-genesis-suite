@@ -17,13 +17,13 @@ namespace RuleArchitect.Entities
         public string Name { get; set; } = null!; // e.g., "Lathe", "Machining Center", "Grinder"
 
         public virtual ICollection<ControlSystem> ControlSystems { get; set; }
-        public virtual ICollection<SpecCodeDefinition> SpecCodeDefinitions { get; set; }
+        //public virtual ICollection<SpecCodeDefinition> SpecCodeDefinitions { get; set; }
         public virtual ICollection<MachineModel> MachineModels { get; set; } // <-- NEW: Collection of specific models
 
         public MachineType()
         {
             ControlSystems = new HashSet<ControlSystem>();
-            SpecCodeDefinitions = new HashSet<SpecCodeDefinition>();
+            //SpecCodeDefinitions = new HashSet<SpecCodeDefinition>();
             MachineModels = new HashSet<MachineModel>(); // <-- NEW: Initialize the collection
         }
     }

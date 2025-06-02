@@ -58,5 +58,11 @@ namespace RuleArchitect.ApplicationLogic.Interfaces
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result is true if the deletion was successful, false otherwise.</returns>
         Task<bool> DeleteSoftwareOptionAsync(int softwareOptionId); // Example delete method
+
+        Task<List<ControlSystemLookupDto>> GetControlSystemLookupsAsync();
+
+        Task<List<SpecCodeDefinitionDetailDto>> GetSpecCodeDefinitionsForControlSystemAsync(int controlSystemId);
+
+        Task<SpecCodeDefinitionDetailDto?> FindSpecCodeDefinitionAsync(int controlSystemId, string category, string specCodeNo, string specCodeBit);
     }
 }

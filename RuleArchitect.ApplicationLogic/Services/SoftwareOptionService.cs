@@ -339,5 +339,81 @@ namespace RuleArchitect.ApplicationLogic.Services
                 return false;
             }
         }
+
+        public async Task<List<ControlSystemLookupDto>> GetControlSystemLookupsAsync()
+        {
+            return await _context.ControlSystems
+                .AsNoTracking()
+                .Select(cs => new ControlSystemLookupDto
+                {
+                    ControlSystemId = cs.ControlSystemId,
+                    Name = cs.Name
+                    // If you add MachineTypeName to DTO:
+                    // MachineTypeName = cs.MachineType.Name // Requires .Include(cs => cs.MachineType)
+                })
+                .OrderBy(cs => cs.Name) // Optional: Order by name
+                .ToListAsync();
+        }
+
+        public async Task<List<SpecCodeDefinitionDetailDto>> GetSpecCodeDefinitionsForControlSystemAsync(int controlSystemId)
+        {
+            if (controlSystemId <= 0)
+            {
+                return new List<SpecCodeDefinitionDetailDto>(); // Or throw ArgumentOutOfRangeException
+            }
+
+            return await _context.SpecCodeDefinitions
+                .AsNoTracking()
+                .Include(scd => scd.ControlSystem) // Include ControlSystem to get its name
+                .Where(scd => scd.ControlSystemId == controlSystemId)
+                .Select(scd => new SpecCodeDefinitionDetailDto
+                {
+                    SpecCodeDefinitionId = scd.SpecCodeDefinitionId,
+                    ControlSystemId = scd.ControlSystemId,
+                    ControlSystemName = scd.ControlSystem.Name, // Assumes ControlSystem entity is loaded
+                    Category = scd.Category,
+                    SpecCodeNo = scd.SpecCodeNo,
+                    SpecCodeBit = scd.SpecCodeBit,
+                    Description = scd.Description
+                })
+                .OrderBy(dto => dto.Category)
+                .ThenBy(dto => dto.SpecCodeNo)
+                .ThenBy(dto => dto.SpecCodeBit)
+                .ToListAsync();
+        }
+
+        public async Task<SpecCodeDefinitionDetailDto?> FindSpecCodeDefinitionAsync(int controlSystemId, string category, string specCodeNo, string specCodeBit)
+        {
+            if (controlSystemId <= 0 || string.IsNullOrWhiteSpace(category) || string.IsNullOrWhiteSpace(specCodeNo) || string.IsNullOrWhiteSpace(specCodeBit))
+            {
+                // Or throw ArgumentException for invalid parameters
+                return null;
+            }
+
+            var specCodeDefinition = await _context.SpecCodeDefinitions
+                .AsNoTracking()
+                .Include(scd => scd.ControlSystem) // Include ControlSystem to get its name
+                .FirstOrDefaultAsync(scd =>
+                    scd.ControlSystemId == controlSystemId &&
+                    scd.Category == category &&
+                    scd.SpecCodeNo == specCodeNo &&
+                    scd.SpecCodeBit == specCodeBit);
+
+            if (specCodeDefinition == null)
+            {
+                return null;
+            }
+
+            return new SpecCodeDefinitionDetailDto
+            {
+                SpecCodeDefinitionId = specCodeDefinition.SpecCodeDefinitionId,
+                ControlSystemId = specCodeDefinition.ControlSystemId,
+                ControlSystemName = specCodeDefinition.ControlSystem.Name, // Assumes ControlSystem entity is loaded
+                Category = specCodeDefinition.Category,
+                SpecCodeNo = specCodeDefinition.SpecCodeNo,
+                SpecCodeBit = specCodeDefinition.SpecCodeBit,
+                Description = specCodeDefinition.Description
+            };
+        }
     }
 }

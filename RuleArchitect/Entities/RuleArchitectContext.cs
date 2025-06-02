@@ -61,11 +61,11 @@ namespace RuleArchitect.Data
 
             modelBuilder.Entity<SpecCodeDefinition>(entity =>
             {
-                entity.HasIndex(scd => new { scd.SpecCodeNo, scd.SpecCodeBit, scd.MachineTypeId })
-                      .IsUnique().HasName("IX_SpecCodeNoBitMachineType");
-                entity.HasOne(scd => scd.MachineType)
-                      .WithMany(mt => mt.SpecCodeDefinitions)
-                      .HasForeignKey(scd => scd.MachineTypeId)
+                entity.HasIndex(scd => new { scd.SpecCodeNo, scd.SpecCodeBit, scd.ControlSystemId })
+                      .IsUnique().HasName("IX_SpecCodeNoBitControlSystem");
+                entity.HasOne(scd => scd.ControlSystem)
+                      .WithMany(cs => cs.SpecCodeDefinitions)
+                      .HasForeignKey(scd => scd.ControlSystemId)
                       .IsRequired().OnDelete(DeleteBehavior.Restrict);
             });
 

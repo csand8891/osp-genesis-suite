@@ -67,6 +67,7 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<EditSoftwareOptionViewModel>();
             // Register other ViewModels for your different views/UserControls as you create them:
             services.AddTransient<UserManagementViewModel>();
+            services.AddTransient<EditSpecCodeDialogViewModel>();
             // services.AddTransient<OrdersViewModel>();
             // services.AddTransient<ReportsViewModel>();
             // services.AddTransient<OrderReviewDashboardViewModel>(); 
@@ -76,8 +77,10 @@ namespace RuleArchitect.DesktopClient
             // --- Windows and Views (Views are often instantiated by DataTemplates) ---
             services.AddTransient<LoginWindow>();
             services.AddSingleton<MainWindow>(); // MainWindow is the shell, likely singleton
-            
-           
+            services.AddTransient<EditSpecCodeDialog>();
+
+
+
         }
 
         protected override void OnStartup(StartupEventArgs e)

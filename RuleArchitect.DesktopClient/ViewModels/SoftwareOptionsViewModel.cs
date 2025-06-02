@@ -322,14 +322,13 @@ namespace RuleArchitect.DesktopClient.ViewModels
             // Resolve EditSoftwareOptionViewModel using _scopeFactory to ensure its dependencies are injected if it had any
             // For now, assuming EditSoftwareOptionViewModel can be newed up directly if it has no complex dependencies.
             // If EditSoftwareOptionViewModel needs ISoftwareOptionService for lookups, it should be resolved via DI.
-            using (var scope = _scopeFactory.CreateScope())
+            using (var serviceResolutionScope = _scopeFactory.CreateScope()) // Scope to resolve ISoftwareOptionService
             {
-                // If EditSoftwareOptionViewModel takes services in its constructor, resolve it:
-                CurrentEditSoftwareOption = scope.ServiceProvider.GetRequiredService<EditSoftwareOptionViewModel>();
-                // For a simple DTO-like Edit VM:
-                //CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>(), _authStateProvider);
-                // If you want to pass a new DTO or set it to a "new" state:
-                // CurrentEditSoftwareOption.LoadForCreate(); // A method you might add to EditSoftwareOptionViewModel
+                CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(
+                    serviceResolutionScope.ServiceProvider.GetRequiredService<ISoftwareOptionService>(),
+                    _authStateProvider, // Already available in SoftwareOptionsViewModel
+                    _scopeFactory       // Pass the IServiceScopeFactory
+                );
             }
             IsDetailPaneVisible = true;
             UpdateCommandStates();
@@ -353,12 +352,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
             if (SelectedSoftwareOption == null) return;
             IsAdding = false; // Clear flag
 
-            using (var scope = _scopeFactory.CreateScope())
+            using (var serviceResolutionScope = _scopeFactory.CreateScope()) // Scope to resolve ISoftwareOptionService
             {
-                // Assuming EditSoftwareOptionViewModel can take ISoftwareOptionService, etc.
                 CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(
-                    scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>(),
-                    _authStateProvider
+                    serviceResolutionScope.ServiceProvider.GetRequiredService<ISoftwareOptionService>(),
+                    _authStateProvider,
+                    _scopeFactory // Pass the IServiceScopeFactory
                 );
                 await CurrentEditSoftwareOption.LoadSoftwareOptionAsync(SelectedSoftwareOption.SoftwareOptionId);
             }

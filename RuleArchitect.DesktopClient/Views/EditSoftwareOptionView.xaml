@@ -130,46 +130,51 @@
                 </Grid.RowDefinitions>
 
                 <DataGrid ItemsSource="{Binding SpecificationCodes}" 
-                          SelectedItem="{Binding SelectedSpecificationCode}"
-                          AutoGenerateColumns="False" CanUserAddRows="False" MaxHeight="200"
-                          HorizontalScrollBarVisibility="Disabled"
-                          materialDesign:DataGridAssist.CellPadding="8,4"
-                          materialDesign:DataGridAssist.ColumnHeaderPadding="8,4">
+          SelectedItem="{Binding SelectedSpecificationCode}"
+          AutoGenerateColumns="False" CanUserAddRows="False" MaxHeight="250" 
+          IsReadOnly="True" HorizontalScrollBarVisibility="Disabled"
+          materialDesign:DataGridAssist.CellPadding="8,4,8,4" 
+          materialDesign:DataGridAssist.ColumnHeaderPadding="8,4">
                     <DataGrid.Columns>
-                        <DataGridTemplateColumn Header="Spec Code Def." Width="2*">
+                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="*"/>
+                        <DataGridTextColumn Header="Spec No" Binding="{Binding SpecCodeNo}" Width="*"/>
+                        <DataGridTextColumn Header="Spec Bit" Binding="{Binding SpecCodeBit}" Width="*"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                    <Setter Property="ToolTip" Value="{Binding Description}"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        <DataGridTextColumn Header="Activation Rule" Binding="{Binding ActivationRuleName}" Width="*"/>
+                        <DataGridTextColumn Header="Interpretation" Binding="{Binding SpecificInterpretation}" Width="1.5*">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                    <Setter Property="ToolTip" Value="{Binding SpecificInterpretation}"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTemplateColumn Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate DataType="{x:Type vm:SpecCodeViewModel}">
-                                    <ComboBox ItemsSource="{Binding DataContext.AvailableSpecCodeDefinitions, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
-                                              SelectedValue="{Binding SpecCodeDefinitionId, UpdateSourceTrigger=PropertyChanged}"
-                                              SelectedValuePath="Id"
-                                              DisplayMemberPath="DisplayName"
-                                              Style="{StaticResource MaterialDesignComboBox}" Margin="-7,-3,-6,-3"
-                                              materialDesign:HintAssist.Hint="Select Spec Code"/>
+                                <DataTemplate>
+                                    <Button Command="{Binding DataContext.EditSpecificationCodeCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" 
+                            CommandParameter="{Binding}" 
+                            Style="{StaticResource MaterialDesignToolButton}" Padding="2" ToolTip="Edit Spec Code">
+                                        <materialDesign:PackIcon Kind="PencilOutline"/>
+                                    </Button>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-
-                        <DataGridTemplateColumn Header="Activation Rule" Width="2*">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate DataType="{x:Type vm:SpecCodeViewModel}">
-                                    <ComboBox ItemsSource="{Binding DataContext.AvailableActivationRules, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
-                                              SelectedValue="{Binding SoftwareOptionActivationRuleId, UpdateSourceTrigger=PropertyChanged}"
-                                              SelectedValuePath="Id"
-                                              DisplayMemberPath="DisplayName"
-                                              Style="{StaticResource MaterialDesignComboBox}" Margin="-7,-3,-6,-3"
-                                              materialDesign:HintAssist.Hint="Select Rule (Optional)"/>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
-
-                        <DataGridTextColumn Header="Interpretation" Binding="{Binding SpecificInterpretation, UpdateSourceTrigger=PropertyChanged}" Width="3*"/>
 
                         <DataGridTemplateColumn Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Button Command="{Binding DataContext.RemoveSpecificationCodeCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" 
-                                            CommandParameter="{Binding}" 
-                                            Style="{StaticResource MaterialDesignToolButton}" Padding="2" ToolTip="Remove Spec Code">
+                            CommandParameter="{Binding}" 
+                            Style="{StaticResource MaterialDesignToolButton}" Padding="2" ToolTip="Remove Spec Code">
                                         <materialDesign:PackIcon Kind="MinusCircleOutline" Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"/>
                                     </Button>
                                 </DataTemplate>
@@ -177,6 +182,15 @@
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
+
+                <Button Grid.Row="1" Command="{Binding AddSpecificationCodeCommand}" 
+        Style="{StaticResource MaterialDesignFlatButton}" 
+        HorizontalAlignment="Left" Margin="0,8,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center"/>
+                        <TextBlock Text="Add Specification Code" Margin="4,0,0,0"/>
+                    </StackPanel>
+                </Button>
 
                 <Button Grid.Row="1" Command="{Binding AddSpecificationCodeCommand}" 
                         Style="{StaticResource MaterialDesignFlatButton}" 

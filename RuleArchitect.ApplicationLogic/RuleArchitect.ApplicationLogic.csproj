@@ -120,6 +120,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
+    <Compile Include="DTOs\ControlSystemLookupDto.cs" />
     <Compile Include="DTOs\CreateOrderDto.cs" />
     <Compile Include="DTOs\CreateOrderItemDto.cs" />
     <Compile Include="DTOs\CreateSoftwareOptionCommandDto.cs" />
@@ -133,6 +134,7 @@
     <Compile Include="DTOs\SoftwareOptionActivationRuleCreateDto.cs" />
     <Compile Include="DTOs\SoftwareOptionDto.cs" />
     <Compile Include="DTOs\SoftwareOptionSpecificationCodeCreateDto.cs" />
+    <Compile Include="DTOs\SpecCodeDefinitionDetailDto.cs" />
     <Compile Include="DTOs\UpdateOrderDto.cs" />
     <Compile Include="DTOs\UpdateSoftwareOptionCommandDto.cs" />
     <Compile Include="Interfaces\IOrderService.cs" />

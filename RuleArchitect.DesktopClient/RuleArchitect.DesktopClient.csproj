@@ -198,6 +198,7 @@
     <Compile Include="ViewModels\AdminDashboardViewModel.cs" />
     <Compile Include="ViewModels\BaseViewModel.cs" />
     <Compile Include="ViewModels\EditSoftwareOptionViewModel.cs" />
+    <Compile Include="ViewModels\EditSpecCodeDialogViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\NavigationItemViewModel.cs" />
@@ -212,6 +213,9 @@
     </Compile>
     <Compile Include="Views\EditSoftwareOptionView.xaml.cs">
       <DependentUpon>EditSoftwareOptionView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\EditSpecCodeDialog.xaml.cs">
+      <DependentUpon>EditSpecCodeDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\SoftwareOptionsView.xaml.cs">
       <DependentUpon>SoftwareOptionsView.xaml</DependentUpon>
@@ -240,6 +244,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\EditSoftwareOptionView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\EditSpecCodeDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

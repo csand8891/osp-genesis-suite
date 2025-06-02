@@ -67,7 +67,7 @@ namespace RuleArchitect.ApplicationLogic.Tests.Services
 
             _machineTypesData = new List<MachineType> { new MachineType { MachineTypeId = 1, Name = "Lathe" } };
             _controlSystemsData = new List<ControlSystem> { new ControlSystem { ControlSystemId = 1, Name = "CS1", MachineTypeId = 1, MachineType = _machineTypesData.First() } };
-            _specCodeDefinitionsData = new List<SpecCodeDefinition> { new SpecCodeDefinition { SpecCodeDefinitionId = 1, SpecCodeNo = "S01", SpecCodeBit = "B01", Category = "Cat1", MachineTypeId = 1, MachineType = _machineTypesData.First() } };
+            _specCodeDefinitionsData = new List<SpecCodeDefinition> { new SpecCodeDefinition { SpecCodeDefinitionId = 1, SpecCodeNo = "S01", SpecCodeBit = "B01", Category = "Cat1", ControlSystemId = 1, ControlSystem = _controlSystemsData.First() } };
 
             _nextSoftwareOptionId = 1;
 
