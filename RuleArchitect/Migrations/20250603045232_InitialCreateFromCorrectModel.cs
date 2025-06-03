@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace RuleArchitect.Migrations
 {
-    public partial class InitialSchema : Migration
+    public partial class InitialCreateFromCorrectModel : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -79,29 +79,6 @@ namespace RuleArchitect.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "SpecCodeDefinitions",
-                columns: table => new
-                {
-                    SpecCodeDefinitionId = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    SpecCodeNo = table.Column<string>(maxLength: 50, nullable: false),
-                    SpecCodeBit = table.Column<string>(maxLength: 50, nullable: false),
-                    Description = table.Column<string>(maxLength: 255, nullable: true),
-                    Category = table.Column<string>(maxLength: 50, nullable: false),
-                    MachineTypeId = table.Column<int>(nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_SpecCodeDefinitions", x => x.SpecCodeDefinitionId);
-                    table.ForeignKey(
-                        name: "FK_SpecCodeDefinitions_MachineTypes_MachineTypeId",
-                        column: x => x.MachineTypeId,
-                        principalTable: "MachineTypes",
-                        principalColumn: "MachineTypeId",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "SoftwareOptions",
                 columns: table => new
                 {
@@ -124,6 +101,29 @@ namespace RuleArchitect.Migrations
                     table.PrimaryKey("PK_SoftwareOptions", x => x.SoftwareOptionId);
                     table.ForeignKey(
                         name: "FK_SoftwareOptions_ControlSystems_ControlSystemId",
+                        column: x => x.ControlSystemId,
+                        principalTable: "ControlSystems",
+                        principalColumn: "ControlSystemId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SpecCodeDefinitions",
+                columns: table => new
+                {
+                    SpecCodeDefinitionId = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    SpecCodeNo = table.Column<string>(maxLength: 50, nullable: false),
+                    SpecCodeBit = table.Column<string>(maxLength: 50, nullable: false),
+                    Description = table.Column<string>(maxLength: 255, nullable: true),
+                    Category = table.Column<string>(maxLength: 50, nullable: false),
+                    ControlSystemId = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SpecCodeDefinitions", x => x.SpecCodeDefinitionId);
+                    table.ForeignKey(
+                        name: "FK_SpecCodeDefinitions_ControlSystems_ControlSystemId",
                         column: x => x.ControlSystemId,
                         principalTable: "ControlSystems",
                         principalColumn: "ControlSystemId",
@@ -250,45 +250,6 @@ namespace RuleArchitect.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Requirements",
-                columns: table => new
-                {
-                    RequirementId = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    SoftwareOptionId = table.Column<int>(nullable: false),
-                    RequirementType = table.Column<string>(maxLength: 100, nullable: false),
-                    Condition = table.Column<string>(maxLength: 100, nullable: true),
-                    GeneralRequiredValue = table.Column<string>(nullable: false),
-                    RequiredSoftwareOptionId = table.Column<int>(nullable: true),
-                    RequiredSpecCodeDefinitionId = table.Column<int>(nullable: true),
-                    OspFileName = table.Column<string>(maxLength: 255, nullable: true),
-                    OspFileVersion = table.Column<string>(maxLength: 50, nullable: true),
-                    Notes = table.Column<string>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Requirements", x => x.RequirementId);
-                    table.ForeignKey(
-                        name: "FK_Requirements_SoftwareOptions_RequiredSoftwareOptionId",
-                        column: x => x.RequiredSoftwareOptionId,
-                        principalTable: "SoftwareOptions",
-                        principalColumn: "SoftwareOptionId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Requirements_SpecCodeDefinitions_RequiredSpecCodeDefinitionId",
-                        column: x => x.RequiredSpecCodeDefinitionId,
-                        principalTable: "SpecCodeDefinitions",
-                        principalColumn: "SpecCodeDefinitionId",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_Requirements_SoftwareOptions_SoftwareOptionId",
-                        column: x => x.SoftwareOptionId,
-                        principalTable: "SoftwareOptions",
-                        principalColumn: "SoftwareOptionId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "SoftwareOptionActivationRules",
                 columns: table => new
                 {
@@ -334,6 +295,45 @@ namespace RuleArchitect.Migrations
                     table.PrimaryKey("PK_SoftwareOptionHistories", x => x.SoftwareOptionHistoryId);
                     table.ForeignKey(
                         name: "FK_SoftwareOptionHistories_SoftwareOptions_SoftwareOptionId",
+                        column: x => x.SoftwareOptionId,
+                        principalTable: "SoftwareOptions",
+                        principalColumn: "SoftwareOptionId",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Requirements",
+                columns: table => new
+                {
+                    RequirementId = table.Column<int>(nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    SoftwareOptionId = table.Column<int>(nullable: false),
+                    RequirementType = table.Column<string>(maxLength: 100, nullable: false),
+                    Condition = table.Column<string>(maxLength: 100, nullable: true),
+                    GeneralRequiredValue = table.Column<string>(nullable: false),
+                    RequiredSoftwareOptionId = table.Column<int>(nullable: true),
+                    RequiredSpecCodeDefinitionId = table.Column<int>(nullable: true),
+                    OspFileName = table.Column<string>(maxLength: 255, nullable: true),
+                    OspFileVersion = table.Column<string>(maxLength: 50, nullable: true),
+                    Notes = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Requirements", x => x.RequirementId);
+                    table.ForeignKey(
+                        name: "FK_Requirements_SoftwareOptions_RequiredSoftwareOptionId",
+                        column: x => x.RequiredSoftwareOptionId,
+                        principalTable: "SoftwareOptions",
+                        principalColumn: "SoftwareOptionId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Requirements_SpecCodeDefinitions_RequiredSpecCodeDefinitionId",
+                        column: x => x.RequiredSpecCodeDefinitionId,
+                        principalTable: "SpecCodeDefinitions",
+                        principalColumn: "SpecCodeDefinitionId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Requirements_SoftwareOptions_SoftwareOptionId",
                         column: x => x.SoftwareOptionId,
                         principalTable: "SoftwareOptions",
                         principalColumn: "SoftwareOptionId",
@@ -400,6 +400,56 @@ namespace RuleArchitect.Migrations
                         principalColumn: "SpecCodeDefinitionId",
                         onDelete: ReferentialAction.Restrict);
                 });
+
+            migrationBuilder.InsertData(
+                table: "MachineTypes",
+                columns: new[] { "MachineTypeId", "Name" },
+                values: new object[] { 1, "Lathe" });
+
+            migrationBuilder.InsertData(
+                table: "MachineTypes",
+                columns: new[] { "MachineTypeId", "Name" },
+                values: new object[] { 2, "Machining Center" });
+
+            migrationBuilder.InsertData(
+                table: "MachineTypes",
+                columns: new[] { "MachineTypeId", "Name" },
+                values: new object[] { 3, "Grinder" });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "UserId", "IsActive", "LastLoginDate", "PasswordHash", "PasswordSalt", "Role", "UserName" },
+                values: new object[] { 1, true, null, "gHarxnybaF14pg0khiMv27IsdXuj2dmx0ytALdo5+aE=", "f9DAu0b2jcGAhuVKmgFYNw==", "Administrator", "admin" });
+
+            migrationBuilder.InsertData(
+                table: "ControlSystems",
+                columns: new[] { "ControlSystemId", "MachineTypeId", "Name" },
+                values: new object[] { 1, 1, "P300L" });
+
+            migrationBuilder.InsertData(
+                table: "ControlSystems",
+                columns: new[] { "ControlSystemId", "MachineTypeId", "Name" },
+                values: new object[] { 2, 1, "P300S" });
+
+            migrationBuilder.InsertData(
+                table: "ControlSystems",
+                columns: new[] { "ControlSystemId", "MachineTypeId", "Name" },
+                values: new object[] { 5, 1, "P200L" });
+
+            migrationBuilder.InsertData(
+                table: "ControlSystems",
+                columns: new[] { "ControlSystemId", "MachineTypeId", "Name" },
+                values: new object[] { 3, 2, "P300M" });
+
+            migrationBuilder.InsertData(
+                table: "ControlSystems",
+                columns: new[] { "ControlSystemId", "MachineTypeId", "Name" },
+                values: new object[] { 4, 2, "E100M" });
+
+            migrationBuilder.InsertData(
+                table: "ControlSystems",
+                columns: new[] { "ControlSystemId", "MachineTypeId", "Name" },
+                values: new object[] { 6, 2, "P200M" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_ControlSystems_MachineTypeId",
@@ -537,14 +587,14 @@ namespace RuleArchitect.Migrations
                 column: "SpecCodeDefinitionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SpecCodeDefinitions_MachineTypeId",
+                name: "IX_SpecCodeDefinitions_ControlSystemId",
                 table: "SpecCodeDefinitions",
-                column: "MachineTypeId");
+                column: "ControlSystemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_SpecCodeNoBitMachineType",
+                name: "IX_SpecCodeNoBitControlSystemCategory",
                 table: "SpecCodeDefinitions",
-                columns: new[] { "SpecCodeNo", "SpecCodeBit", "MachineTypeId" },
+                columns: new[] { "SpecCodeNo", "SpecCodeBit", "ControlSystemId", "Category" },
                 unique: true);
 
             migrationBuilder.CreateIndex(

@@ -84,6 +84,44 @@ namespace RuleArchitect.Migrations
                         .HasName("IX_ControlSystemName");
 
                     b.ToTable("ControlSystems");
+
+                    b.HasData(
+                        new
+                        {
+                            ControlSystemId = 1,
+                            MachineTypeId = 1,
+                            Name = "P300L"
+                        },
+                        new
+                        {
+                            ControlSystemId = 2,
+                            MachineTypeId = 1,
+                            Name = "P300S"
+                        },
+                        new
+                        {
+                            ControlSystemId = 3,
+                            MachineTypeId = 2,
+                            Name = "P300M"
+                        },
+                        new
+                        {
+                            ControlSystemId = 4,
+                            MachineTypeId = 2,
+                            Name = "E100M"
+                        },
+                        new
+                        {
+                            ControlSystemId = 5,
+                            MachineTypeId = 1,
+                            Name = "P200L"
+                        },
+                        new
+                        {
+                            ControlSystemId = 6,
+                            MachineTypeId = 2,
+                            Name = "P200M"
+                        });
                 });
 
             modelBuilder.Entity("RuleArchitect.Entities.MachineModel", b =>
@@ -129,6 +167,23 @@ namespace RuleArchitect.Migrations
                         .HasName("IX_MachineTypeName");
 
                     b.ToTable("MachineTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            MachineTypeId = 1,
+                            Name = "Lathe"
+                        },
+                        new
+                        {
+                            MachineTypeId = 2,
+                            Name = "Machining Center"
+                        },
+                        new
+                        {
+                            MachineTypeId = 3,
+                            Name = "Grinder"
+                        });
                 });
 
             modelBuilder.Entity("RuleArchitect.Entities.OptionNumberRegistry", b =>
@@ -558,9 +613,9 @@ namespace RuleArchitect.Migrations
 
                     b.HasIndex("ControlSystemId");
 
-                    b.HasIndex("SpecCodeNo", "SpecCodeBit", "ControlSystemId")
+                    b.HasIndex("SpecCodeNo", "SpecCodeBit", "ControlSystemId", "Category")
                         .IsUnique()
-                        .HasName("IX_SpecCodeNoBitControlSystem");
+                        .HasName("IX_SpecCodeNoBitControlSystemCategory");
 
                     b.ToTable("SpecCodeDefinitions");
                 });

@@ -7,7 +7,8 @@ using GenesisSentry.DTOs;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Windows;
-using System.Linq; // Required for .FirstOrDefault()
+using System.Linq;
+using MaterialDesignThemes.Wpf; // Required for .FirstOrDefault()
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
@@ -18,6 +19,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private readonly IAuthenticationStateProvider _authStateProvider;
         private readonly IServiceProvider _serviceProvider;
 
+        public SnackbarMessageQueue SnackbarMessageQueue { get; }
         private BaseViewModel _currentViewViewModel;
         public BaseViewModel CurrentViewViewModel
         {
@@ -67,10 +69,11 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         public ICommand LogoutCommand { get; }
 
-        public MainViewModel(IAuthenticationStateProvider authStateProvider, IServiceProvider serviceProvider)
+        public MainViewModel(IAuthenticationStateProvider authStateProvider, IServiceProvider serviceProvider, SnackbarMessageQueue snackbarMessageQueue)
         {
             _authStateProvider = authStateProvider;
             _serviceProvider = serviceProvider;
+            SnackbarMessageQueue = snackbarMessageQueue;
 
             NavigationItems = new ObservableCollection<NavigationItemViewModel>();
             CurrentUser = _authStateProvider.CurrentUser; // This will trigger BuildNavigationForRole

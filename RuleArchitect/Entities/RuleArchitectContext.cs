@@ -61,8 +61,8 @@ namespace RuleArchitect.Data
 
             modelBuilder.Entity<SpecCodeDefinition>(entity =>
             {
-                entity.HasIndex(scd => new { scd.SpecCodeNo, scd.SpecCodeBit, scd.ControlSystemId })
-                      .IsUnique().HasName("IX_SpecCodeNoBitControlSystem");
+                entity.HasIndex(scd => new { scd.SpecCodeNo, scd.SpecCodeBit, scd.ControlSystemId, scd.Category })
+                      .IsUnique().HasName("IX_SpecCodeNoBitControlSystemCategory");
                 entity.HasOne(scd => scd.ControlSystem)
                       .WithMany(cs => cs.SpecCodeDefinitions)
                       .HasForeignKey(scd => scd.ControlSystemId)
@@ -202,6 +202,24 @@ namespace RuleArchitect.Data
                       .IsRequired().OnDelete(DeleteBehavior.Restrict);
             });
 
+            // --- Seed Data for MachineType ---
+            modelBuilder.Entity<MachineType>().HasData(
+                new MachineType { MachineTypeId = 1, Name = "Lathe" },
+                new MachineType { MachineTypeId = 2, Name = "Machining Center" },
+                new MachineType { MachineTypeId = 3, Name = "Grinder" }
+                // Add more machine types as needed, ensuring MachineTypeId is unique
+            );
+
+            // --- Seed Data For ControlSystem ---
+            modelBuilder.Entity<ControlSystem>().HasData(
+                new ControlSystem { ControlSystemId = 1, Name = "P300L", MachineTypeId = 1 }, // Links to Lathe
+                new ControlSystem { ControlSystemId = 2, Name = "P300S", MachineTypeId = 1 }, // Links to Lathe
+                new ControlSystem { ControlSystemId = 3, Name = "P300M", MachineTypeId = 2 }, // Links to Machining Center
+                new ControlSystem { ControlSystemId = 4, Name = "E100M", MachineTypeId = 2 },
+                new ControlSystem { ControlSystemId = 5, Name = "P200L", MachineTypeId = 1 },
+                new ControlSystem { ControlSystemId = 6, Name = "P200M", MachineTypeId = 2 }
+                // Add more control systems as needed
+            );
             string adminSalt = "f9DAu0b2jcGAhuVKmgFYNw=="; // e.g., Convert.ToBase64String(new byte[16])
             string adminHash = "gHarxnybaF14pg0khiMv27IsdXuj2dmx0ytALdo5+aE="; // e.g., Hash of "DefaultAdminPassword123!" using the salt
 

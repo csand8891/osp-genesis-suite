@@ -1,86 +1,113 @@
-﻿// In RuleArchitect.DesktopClient/ViewModels/SoftwareOptionsViewModel.cs
+﻿// File: RuleArchitect.DesktopClient/ViewModels/SoftwareOptionsViewModel.cs
 using GenesisSentry.DTOs;
 using GenesisSentry.Interfaces;
-using HeraldKit.Interfaces;
-using Microsoft.Extensions.DependencyInjection; // Required for IServiceScopeFactory
+using HeraldKit.Interfaces; // For INotificationService
+using Microsoft.Extensions.DependencyInjection;
 using RuleArchitect.ApplicationLogic.DTOs;
 using RuleArchitect.ApplicationLogic.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
-using System; // For Exception and ArgumentNullException
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Input;
-// No need for System.Linq here if not used directly
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
     public class SoftwareOptionsViewModel : BaseViewModel
     {
-        private readonly IServiceScopeFactory _scopeFactory; // Use this to create scopes
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly IAuthenticationStateProvider _authStateProvider;
+        private readonly INotificationService _notificationService; // Added
+
         private bool _isLoading;
         private SoftwareOptionDto? _selectedSoftwareOption;
         private UserDto? _currentUser;
-
         private EditSoftwareOptionViewModel? _currentEditSoftwareOption;
-        public EditSoftwareOptionViewModel CurrentEditSoftwareOption
+        private bool _isDetailPaneVisible;
+        private bool _isAdding;
+
+        private string _searchText = string.Empty;
+        public string SearchText
+        {
+            get => _searchText;
+            set
+            {
+                if (SetProperty(ref _searchText, value))
+                {
+                    FilteredSoftwareOptionsView?.Refresh();
+                }
+            }
+        }
+        public ObservableCollection<ControlSystemLookupDto> AllControlSystemsForFilter { get; }
+        private int? _selectedFilterControlSystemId;
+        public int? SelectedFilterControlSystemId
+        {
+            get => _selectedFilterControlSystemId;
+            set
+            {
+                if (SetProperty(ref _selectedFilterControlSystemId, value))
+                {
+                    FilteredSoftwareOptionsView?.Refresh();
+                }
+            }
+        }
+
+        public EditSoftwareOptionViewModel? CurrentEditSoftwareOption
         {
             get => _currentEditSoftwareOption;
             set => SetProperty(ref _currentEditSoftwareOption, value);
         }
 
-        private bool _isDetailPaneVisible;
-        public GridLength SplitterColumnEffectiveWidth => IsDetailPaneVisible ? GridLength.Auto : GridLength.Auto;
+        public event EventHandler? DetailPaneVisibilityChanged;
         public bool IsDetailPaneVisible
         {
             get => _isDetailPaneVisible;
             set
             {
-                if (SetProperty(ref _isDetailPaneVisible, value)) // This calls OnPropertyChanged("IsDetailPaneVisible")
+                if (SetProperty(ref _isDetailPaneVisible, value))
                 {
-                    // This is the crucial line for the column width
-                    //OnPropertyChanged(nameof(DetailPaneWidth));
-                    //OnPropertyChanged(nameof(SplitterColumnEffectiveWidth));
+                    OnPropertyChanged(nameof(MasterPaneColumnWidth));
+                    OnPropertyChanged(nameof(SplitterActualColumnWidth));
+                    OnPropertyChanged(nameof(DetailPaneColumnWidth));
+                    OnPropertyChanged(nameof(SplitterVisibility));
+                    DetailPaneVisibilityChanged?.Invoke(this, EventArgs.Empty);
 
                     if (!_isDetailPaneVisible)
                     {
                         CurrentEditSoftwareOption = null;
                         IsAdding = false;
                     }
-                    UpdateCommandStates(); // Also good to update command states here
+                    UpdateCommandStates();
                 }
             }
         }
 
-        //public GridLength DetailPaneWidth => IsDetailPaneVisible ? new GridLength(1.2, GridUnitType.Star) : new GridLength(0,GridUnitType.Pixel);
-        public GridLength DetailPaneWidth => IsDetailPaneVisible ? new GridLength(1.2, GridUnitType.Star) : GridLength.Auto;
-        // The IsDetailPaneVisible setter still calls OnPropertyChanged(nameof(DetailPaneWidth))
-        // Choose a pixel width like 350, 400, 450 etc. that suits your content.
-        //public GridLength DetailPaneWidth => IsDetailPaneVisible ? new GridLength(1.2, GridUnitType.Star) : new GridLength(0, GridUnitType.Pixel); // Or GridUnitType.Auto
+        public GridLength MasterPaneColumnWidth => new GridLength(1, GridUnitType.Star);
+        public GridLength DetailPaneColumnWidth => IsDetailPaneVisible ? new GridLength(1.2, GridUnitType.Star) : new GridLength(0, GridUnitType.Pixel);
+        public GridLength SplitterActualColumnWidth => IsDetailPaneVisible ? GridLength.Auto : new GridLength(0);
+        public Visibility SplitterVisibility => IsDetailPaneVisible ? Visibility.Visible : Visibility.Collapsed;
 
         public ObservableCollection<SoftwareOptionDto> SoftwareOptions { get; private set; }
+        public ICollectionView FilteredSoftwareOptionsView { get; private set; }
 
         public SoftwareOptionDto? SelectedSoftwareOption
         {
             get => _selectedSoftwareOption;
             set
             {
-                if (SetProperty(ref _selectedSoftwareOption, value)) // SetProperty returns true if value actually changed
+                if (SetProperty(ref _selectedSoftwareOption, value))
                 {
                     UpdateCommandStates();
-                    // If the new value (now _selectedSoftwareOption) is null, and we are not in 'Add' mode, 
-                    // then hide the detail pane.
                     if (_selectedSoftwareOption == null && !IsAdding)
                     {
                         IsDetailPaneVisible = false;
                     }
-                    // If you want the detail pane to ALWAYS close when selection changes (and not adding),
-                    // you might simplify this further or handle it in the EditCommand logic.
-                    // The current PrepareEditSoftwareOption will show it.
                 }
             }
         }
@@ -89,21 +116,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
         {
             get => _isLoading;
             set => SetProperty(ref _isLoading, value, UpdateCommandStates);
-            //{
-            //    if (_isLoading != value)
-            //    {
-            //        _isLoading = value;
-            //        OnPropertyChanged();
-            //        // Also notify CanExecute changes for commands that depend on IsLoading
-            //        ((RelayCommand)LoadCommand).RaiseCanExecuteChanged();
-            //        ((RelayCommand?)AddCommand)?.RaiseCanExecuteChanged();
-            //        ((RelayCommand?)EditCommand)?.RaiseCanExecuteChanged();
-            //        ((RelayCommand?)DeleteCommand)?.RaiseCanExecuteChanged();
-            //    }
-            //}
         }
 
-        private bool _isAdding;
         public bool IsAdding
         {
             get => _isAdding;
@@ -114,69 +128,127 @@ namespace RuleArchitect.DesktopClient.ViewModels
         {
             get => _currentUser;
             set { SetProperty(ref _currentUser, value); }
-                
         }
 
         public ICommand LoadCommand { get; }
-        public ICommand? AddCommand { get; private set; }
-        public ICommand? EditCommand { get; private set; }
-        public ICommand? DeleteCommand { get; private set; }
-        public ICommand SaveCommand { get; private set; }
-        public ICommand CancelEditCommand { get; private set; }
+        public ICommand AddCommand { get; }
+        public ICommand EditCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand SaveCommand { get; }
+        public ICommand CancelEditCommand { get; }
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SoftwareOptionsViewModel"/> class.
-        /// This constructor is intended for use by the XAML designer.
-        /// </summary>
-        //public SoftwareOptionsViewModel()
-        //{
-        //    // This constructor is primarily for the XAML designer.
-        //    // _scopeFactory will be null. Operations requiring it won't work.
-        //    _scopeFactory = null!; // Should not be used if this constructor is hit at runtime in error
-        //    SoftwareOptions = new ObservableCollection<SoftwareOptionDto>();
+        public SoftwareOptionsViewModel() // Parameterless for XAML Designer
+        {
+            SoftwareOptions = new ObservableCollection<SoftwareOptionDto>();
+            AllControlSystemsForFilter = new ObservableCollection<ControlSystemLookupDto>();
+            FilteredSoftwareOptionsView = CollectionViewSource.GetDefaultView(SoftwareOptions);
+            if (DesignerProperties.GetIsInDesignMode(new DependencyObject()))
+            {
+                SoftwareOptions.Add(new SoftwareOptionDto { PrimaryName = "Design SO1" });
+                AllControlSystemsForFilter.Add(new ControlSystemLookupDto { Name = "Design CS1" });
+            }
+            LoadCommand = new RelayCommand(() => { });
+            AddCommand = new RelayCommand(() => { });
+            EditCommand = new RelayCommand(() => { });
+            DeleteCommand = new RelayCommand(() => { });
+            SaveCommand = new RelayCommand(() => { });
+            CancelEditCommand = new RelayCommand(() => { });
+        }
 
-        //    LoadCommand = new RelayCommand(async () => await LoadSoftwareOptionsAsync(), () => !IsLoading && _scopeFactory != null);
-        //    AddCommand = new RelayCommand(async () => await AddSoftwareOptionAsync(), () => !IsLoading && _scopeFactory != null);
-        //    EditCommand = new RelayCommand(async () => await EditSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading && _scopeFactory != null);
-        //    DeleteCommand = new RelayCommand(async () => await DeleteSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading && _scopeFactory != null);
-
-        //    if (DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject()))
-        //    {
-        //        SoftwareOptions.Add(new SoftwareOptionDto { SoftwareOptionId = 1, PrimaryName = "Sample Option 1 (Design)", Version = 1 });
-        //        SoftwareOptions.Add(new SoftwareOptionDto { SoftwareOptionId = 2, PrimaryName = "Sample Option 2 (Design)", Version = 2 });
-        //    }
-        //}
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SoftwareOptionsViewModel"/> class with dependencies.
-        /// </summary>
-        /// <param name="scopeFactory">The service scope factory for creating operational scopes.</param>
-        public SoftwareOptionsViewModel(IServiceScopeFactory scopeFactory, IAuthenticationStateProvider authStateProvider)
+        public SoftwareOptionsViewModel(
+            IServiceScopeFactory scopeFactory,
+            IAuthenticationStateProvider authStateProvider,
+            INotificationService notificationService) // Added INotificationService
         {
             _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
             _authStateProvider = authStateProvider ?? throw new ArgumentNullException(nameof(authStateProvider));
-            SoftwareOptions = new ObservableCollection<SoftwareOptionDto>();
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService)); // Store it
 
-            LoadCommand = new RelayCommand(async () => await LoadSoftwareOptionsAsync(), () => !IsLoading);
-            AddCommand = new RelayCommand(PrepareAddSoftwareOption, () => !IsLoading && !IsDetailPaneVisible); // Enable if not already adding/editing
+            SoftwareOptions = new ObservableCollection<SoftwareOptionDto>();
+            AllControlSystemsForFilter = new ObservableCollection<ControlSystemLookupDto>();
+            FilteredSoftwareOptionsView = CollectionViewSource.GetDefaultView(SoftwareOptions);
+            FilteredSoftwareOptionsView.Filter = ApplyFilterPredicate;
+
+            LoadCommand = new RelayCommand(async () => await LoadSoftwareOptionsAndFiltersAsync(), () => !IsLoading);
+            AddCommand = new RelayCommand(PrepareAddSoftwareOption, () => !IsLoading && !IsDetailPaneVisible);
             EditCommand = new RelayCommand(PrepareEditSoftwareOption, () => SelectedSoftwareOption != null && !IsLoading && !IsDetailPaneVisible);
             DeleteCommand = new RelayCommand(async () => await DeleteSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading && !IsDetailPaneVisible);
-
             SaveCommand = new RelayCommand(async () => await SaveSoftwareOptionAsync(), () => IsDetailPaneVisible && CurrentEditSoftwareOption != null && !IsLoading);
             CancelEditCommand = new RelayCommand(CancelEditOrAdd, () => IsDetailPaneVisible);
 
-
             CurrentUser = _authStateProvider.CurrentUser;
-            _authStateProvider.PropertyChanged += (sender, args) =>
-            {
-                if (args.PropertyName == nameof(IAuthenticationStateProvider.CurrentUser))
-                {
-                    CurrentUser = _authStateProvider.CurrentUser;
-                }
-            };
+            _authStateProvider.PropertyChanged += (sender, args) => { if (args.PropertyName == nameof(IAuthenticationStateProvider.CurrentUser)) CurrentUser = _authStateProvider.CurrentUser; };
         }
 
-        // Call this method in setters of IsLoading, SelectedSoftwareOption, IsDetailPaneVisible, etc.
+        private async Task LoadSoftwareOptionsAndFiltersAsync()
+        {
+            IsLoading = true;
+            IsDetailPaneVisible = false;
+            try
+            {
+                await LoadControlSystemsForFilterAsync();
+                await LoadSoftwareOptionsAsync();
+                Application.Current.Dispatcher.Invoke(() => FilteredSoftwareOptionsView?.Refresh());
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowError($"Failed to load initial data: {ex.Message}", "Load Error");
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
+        private async Task LoadControlSystemsForFilterAsync()
+        {
+            try
+            {
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+                    var controlSystems = await softwareOptionService.GetControlSystemLookupsAsync();
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        AllControlSystemsForFilter.Clear();
+                        if (controlSystems != null)
+                        {
+                            foreach (var cs in controlSystems.OrderBy(c => c.Name)) AllControlSystemsForFilter.Add(cs);
+                        }
+                    });
+                    OnPropertyChanged(nameof(AllControlSystemsForFilter));
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading control systems for filter: {ex.Message}");
+                _notificationService.ShowError($"Failed to load control systems for filter: {ex.Message}", "Filter Load Error");
+            }
+        }
+
+        private bool ApplyFilterPredicate(object item)
+        {
+            if (item is SoftwareOptionDto so)
+            {
+                bool matchesSearch = true;
+                if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    string lowerSearchText = SearchText.ToLowerInvariant();
+                    matchesSearch = (so.PrimaryName?.ToLowerInvariant().Contains(lowerSearchText) == true) ||
+                                    (so.AlternativeNames?.ToLowerInvariant().Contains(lowerSearchText) == true) ||
+                                    (so.ControlSystemName?.ToLowerInvariant().Contains(lowerSearchText) == true) ||
+                                    (so.PrimaryOptionNumberDisplay?.ToLowerInvariant().Contains(lowerSearchText) == true);
+                }
+                bool matchesControlSystem = true;
+                if (SelectedFilterControlSystemId.HasValue && SelectedFilterControlSystemId.Value > 0)
+                {
+                    matchesControlSystem = so.ControlSystemId == SelectedFilterControlSystemId.Value;
+                }
+                return matchesSearch && matchesControlSystem;
+            }
+            return false;
+        }
+
         private void UpdateCommandStates()
         {
             ((RelayCommand)LoadCommand).RaiseCanExecuteChanged();
@@ -187,180 +259,72 @@ namespace RuleArchitect.DesktopClient.ViewModels
             ((RelayCommand)CancelEditCommand).RaiseCanExecuteChanged();
         }
 
-        //private async Task LoadSoftwareOptionsAsync()
-        //{
-        //    if (IsLoading) return;
-        //    // Guard for design-time or if scopeFactory wasn't injected (shouldn't happen at runtime with DI)
-        //    if (_scopeFactory == null)
-        //    {
-        //        Console.WriteLine("IServiceScopeFactory is not available. Cannot load options.");
-        //        if (DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject()))
-        //        {
-        //            SoftwareOptions.Clear();
-        //            SoftwareOptions.Add(new SoftwareOptionDto { PrimaryName = "Design Mode: Scope factory unavailable" });
-        //        }
-        //        return;
-        //    }
-
-        //    IsLoading = true;
-        //    SoftwareOptions.Clear();
-
-        //    try
-        //    {
-        //        using (var scope = _scopeFactory.CreateScope()) // Create a new scope for this operation
-        //        {
-        //            var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
-        //            var options = await softwareOptionService.GetAllSoftwareOptionsAsync();
-
-        //            if (options != null)
-        //            {
-        //                foreach (var optionEntity in options)
-        //                {
-        //                    var dto = new SoftwareOptionDto
-        //                    {
-        //                        SoftwareOptionId = optionEntity.SoftwareOptionId,
-        //                        PrimaryName = optionEntity.PrimaryName,
-        //                        AlternativeNames = optionEntity.AlternativeNames,
-        //                        SourceFileName = optionEntity.SourceFileName,
-        //                        PrimaryOptionNumberDisplay = optionEntity.PrimaryOptionNumberDisplay,
-        //                        Notes = optionEntity.Notes,
-        //                        ControlSystemId = optionEntity.ControlSystemId.GetValueOrDefault(),
-        //                        ControlSystemName = optionEntity.ControlSystem?.Name,
-        //                        Version = optionEntity.Version,
-        //                        LastModifiedDate = optionEntity.LastModifiedDate,
-        //                        LastModifiedBy = optionEntity.LastModifiedBy
-        //                    };
-        //                    SoftwareOptions.Add(dto);
-        //                }
-        //            }
-        //        } // Scope (and DbContext + Service instance for this scope) is disposed here
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Console.WriteLine($"Error loading software options: {ex.Message}");
-        //        // Handle user-facing error display
-        //    }
-        //    finally
-        //    {
-        //        IsLoading = false;
-        //    }
-        //}
-
         private async Task LoadSoftwareOptionsAsync()
         {
-            if (IsLoading) return;
-            IsLoading = true;
-            IsDetailPaneVisible = false; // Hide detail pane during load
-            SoftwareOptions.Clear();
-
+            // This method is now part of LoadSoftwareOptionsAndFiltersAsync which handles IsLoading
+            // No need to set IsLoading or IsDetailPaneVisible here again.
+            var tempSoftwareOptions = new List<SoftwareOptionDto>();
             try
             {
                 using (var scope = _scopeFactory.CreateScope())
                 {
                     var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
                     var options = await softwareOptionService.GetAllSoftwareOptionsAsync();
-
                     if (options != null)
                     {
-                        foreach (var optionEntity in options.OrderBy(o => o.PrimaryName)) // Example ordering
+                        foreach (var optionEntity in options.OrderBy(o => o.PrimaryName))
                         {
-                            SoftwareOptions.Add(new SoftwareOptionDto // Map to DTO
-                            {
+                            tempSoftwareOptions.Add(new SoftwareOptionDto {
                                 SoftwareOptionId = optionEntity.SoftwareOptionId,
                                 PrimaryName = optionEntity.PrimaryName,
+                                ControlSystemId = optionEntity.ControlSystemId.GetValueOrDefault(),
+                                ControlSystemName = optionEntity.ControlSystem?.Name,
                                 AlternativeNames = optionEntity.AlternativeNames,
                                 SourceFileName = optionEntity.SourceFileName,
                                 PrimaryOptionNumberDisplay = optionEntity.PrimaryOptionNumberDisplay,
-                                Notes = optionEntity.Notes,
-                                ControlSystemId = optionEntity.ControlSystemId.GetValueOrDefault(),
-                                ControlSystemName = optionEntity.ControlSystem?.Name, // Assuming ControlSystem is loaded
+                                Notes = optionEntity.Notes,                            
                                 Version = optionEntity.Version,
                                 LastModifiedDate = optionEntity.LastModifiedDate,
-                                LastModifiedBy = optionEntity.LastModifiedBy
+                                LastModifiedBy = optionEntity.LastModifiedBy,
                             });
                         }
                     }
                 }
-                // Consider adding a notification via INotificationService
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    SoftwareOptions.Clear();
+                    foreach (var dto in tempSoftwareOptions) SoftwareOptions.Add(dto);
+                });
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error loading software options: {ex.Message}");
-                // Handle user-facing error display via INotificationService
-                using (var scope = _scopeFactory.CreateScope())
-                {
-                    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                    notificationService.ShowError($"Error loading software options: {ex.Message}", "Load Failed");
-                }
-            }
-            finally
-            {
-                IsLoading = false;
+                _notificationService.ShowError($"Error loading software options: {ex.Message}", "Load Failed");
             }
         }
-
-        // Similarly update AddSoftwareOptionAsync, EditSoftwareOptionAsync, DeleteSoftwareOptionAsync
-        // to use the _scopeFactory to resolve ISoftwareOptionService within a using(var scope = ...) block.
-
-        //private async Task AddSoftwareOptionAsync()
-        //{
-        //    if (_scopeFactory == null) return;
-        //    Console.WriteLine("AddSoftwareOptionAsync called - (Not Implemented with Scoping yet)");
-        //    // Example structure:
-        //    // using (var scope = _scopeFactory.CreateScope())
-        //    // {
-        //    //     var service = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
-        //    //     // ... use service to add option ...
-        //    // }
-        //    // await LoadSoftwareOptionsAsync(); // Refresh list
-        //    await Task.CompletedTask;
-        //}
 
         private void PrepareAddSoftwareOption()
         {
-            IsAdding = true; // Set flag
-            // Resolve EditSoftwareOptionViewModel using _scopeFactory to ensure its dependencies are injected if it had any
-            // For now, assuming EditSoftwareOptionViewModel can be newed up directly if it has no complex dependencies.
-            // If EditSoftwareOptionViewModel needs ISoftwareOptionService for lookups, it should be resolved via DI.
-            using (var serviceResolutionScope = _scopeFactory.CreateScope()) // Scope to resolve ISoftwareOptionService
-            {
-                CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(
-                    serviceResolutionScope.ServiceProvider.GetRequiredService<ISoftwareOptionService>(),
-                    _authStateProvider, // Already available in SoftwareOptionsViewModel
-                    _scopeFactory       // Pass the IServiceScopeFactory
-                );
-            }
+            IsAdding = true;
+            CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(
+                _authStateProvider,
+                _scopeFactory,
+                _notificationService
+            );
             IsDetailPaneVisible = true;
             UpdateCommandStates();
-            //Application.Current.Dispatcher.Invoke(() => ContentHostGrid.UpdateLayout());
         }
-        //private async Task EditSoftwareOptionAsync()
-        //{
-        //    if (_scopeFactory == null || SelectedSoftwareOption == null) return;
-        //    Console.WriteLine($"EditSoftwareOptionAsync called for {SelectedSoftwareOption.PrimaryName} - (Not Implemented with Scoping yet)");
-        //    await Task.CompletedTask;
-        //}
-        //private async Task DeleteSoftwareOptionAsync()
-        //{
-        //    if (_scopeFactory == null || SelectedSoftwareOption == null) return;
-        //    Console.WriteLine($"DeleteSoftwareOptionAsync called for {SelectedSoftwareOption.PrimaryName} - (Not Implemented with Scoping yet)");
-        //    await Task.CompletedTask;
-        //}
 
         private async void PrepareEditSoftwareOption()
         {
             if (SelectedSoftwareOption == null) return;
-            IsAdding = false; // Clear flag
-
-            using (var serviceResolutionScope = _scopeFactory.CreateScope()) // Scope to resolve ISoftwareOptionService
-            {
-                CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(
-                    serviceResolutionScope.ServiceProvider.GetRequiredService<ISoftwareOptionService>(),
-                    _authStateProvider,
-                    _scopeFactory // Pass the IServiceScopeFactory
-                );
-                await CurrentEditSoftwareOption.LoadSoftwareOptionAsync(SelectedSoftwareOption.SoftwareOptionId);
-            }
+            IsAdding = false;
+            CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(
+                _authStateProvider,
+                _scopeFactory,
+                _notificationService
+            );
+            await CurrentEditSoftwareOption.LoadSoftwareOptionAsync(SelectedSoftwareOption.SoftwareOptionId);
             IsDetailPaneVisible = true;
             UpdateCommandStates();
         }
@@ -368,106 +332,56 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private async Task SaveSoftwareOptionAsync()
         {
             if (CurrentEditSoftwareOption == null || IsLoading) return;
-            // ... existing validation ...
-
             IsLoading = true;
             try
             {
-                // CurrentEditSoftwareOption.ExecuteSaveAsync() now returns a bool
                 bool success = await CurrentEditSoftwareOption.ExecuteSaveAsync();
-
                 if (success)
                 {
-                    // Notify success (using INotificationService if available)
-                    Console.WriteLine("Software Option saved successfully by EditSoftwareOptionViewModel.");
-                    //_notificationService.ShowSuccess("Software Option saved successfully.", "Save Successful");
-
                     IsDetailPaneVisible = false;
-                    IsAdding = false; // Reset IsAdding flag
-                    await LoadSoftwareOptionsAsync(); // Refresh list
+                    IsAdding = false;
+                    await LoadSoftwareOptionsAndFiltersAsync();
                 }
-                else
-                {
-                    // Notify failure (using INotificationService if available)
-                    Console.WriteLine("Failed to save Software Option as reported by EditSoftwareOptionViewModel.");
-                    //_notificationService.ShowError("Failed to save Software Option.", "Save Failed");
-                }
-            
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving software option: {ex.ToString()}");
-                using (var scope = _scopeFactory.CreateScope())
-                {
-                    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                    notificationService.ShowError($"Error saving software option: {ex.Message}", "Save Error");
-                }
+                Console.WriteLine($"Error saving software option via main VM: {ex.ToString()}");
+                _notificationService.ShowError($"An unexpected critical error occurred during the save process: {ex.Message}", "Save Error");
             }
-            finally
-            {
-                IsLoading = false;
-            }
+            finally { IsLoading = false; }
         }
-
 
         private async Task DeleteSoftwareOptionAsync()
         {
             if (SelectedSoftwareOption == null || IsLoading) return;
-
-            // Confirmation Dialog (example)
-            if (MessageBox.Show($"Are you sure you want to delete '{SelectedSoftwareOption.PrimaryName}'?",
-                                "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
-            {
-                return;
-            }
-
+            if (MessageBox.Show($"Are you sure you want to delete '{SelectedSoftwareOption.PrimaryName}'?", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
+            { return; }
             IsLoading = true;
             try
             {
                 using (var scope = _scopeFactory.CreateScope())
                 {
                     var service = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
-                    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
                     bool success = await service.DeleteSoftwareOptionAsync(SelectedSoftwareOption.SoftwareOptionId);
                     if (success)
                     {
-                        notificationService.ShowSuccess($"Software Option '{SelectedSoftwareOption.PrimaryName}' deleted.", "Delete Successful");
-                        SoftwareOptions.Remove(SelectedSoftwareOption); // Remove from local collection
-                        SelectedSoftwareOption = null; // Clear selection
+                        _notificationService.ShowSuccess($"Software Option '{SelectedSoftwareOption.PrimaryName}' deleted.", "Delete Successful");
+                        var itemToRemove = SoftwareOptions.FirstOrDefault(so => so.SoftwareOptionId == SelectedSoftwareOption.SoftwareOptionId);
+                        if (itemToRemove != null) SoftwareOptions.Remove(itemToRemove);
                     }
-                    else
-                    {
-                        notificationService.ShowError("Failed to delete software option.", "Delete Failed");
-                    }
+                    else { _notificationService.ShowError("Failed to delete software option.", "Delete Failed"); }
                 }
             }
-            catch (Exception ex)
-            {
-                using (var scope = _scopeFactory.CreateScope())
-                {
-                    var notificationService = scope.ServiceProvider.GetRequiredService<INotificationService>();
-                    notificationService.ShowError($"Error deleting software option: {ex.Message}", "Delete Error");
-                }
-            }
-            finally
-            {
-                IsLoading = false;
-            }
+            catch (Exception ex) { _notificationService.ShowError($"Error deleting software option: {ex.Message}", "Delete Error"); }
+            finally { IsLoading = false; }
         }
 
         private void CancelEditOrAdd()
         {
             IsDetailPaneVisible = false;
             IsAdding = false;
-            CurrentEditSoftwareOption = null; // Clear the edit context
-            // SelectedSoftwareOption = null; // Optionally clear selection
+            CurrentEditSoftwareOption = null;
             UpdateCommandStates();
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

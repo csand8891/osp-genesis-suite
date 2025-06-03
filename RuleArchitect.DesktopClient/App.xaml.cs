@@ -1,18 +1,19 @@
 ﻿using GenesisOrderGateway.Interfaces; // For IGenesisOrderGateway
 using GenesisOrderGateway.Services;  // For PdfOrderGatewayService
+using GenesisSentry.DTOs;
 using GenesisSentry.Interfaces;
 using GenesisSentry.Services;
-using GenesisSentry.DTOs;
+using MaterialDesignThemes.Wpf;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using RuleArchitect.ApplicationLogic.Interfaces;
 using RuleArchitect.ApplicationLogic.Services;
 using RuleArchitect.Data;
+using RuleArchitect.DesktopClient.Services;
 using RuleArchitect.DesktopClient.ViewModels; // For LoginViewModel, MainViewModel, AdminDashboardViewModel, etc.
+using RuleArchitect.DesktopClient.Views;
 using System;
 using System.Windows;
-using RuleArchitect.DesktopClient.Services;
-using RuleArchitect.DesktopClient.Views;
 
 namespace RuleArchitect.DesktopClient
 {
@@ -57,6 +58,7 @@ namespace RuleArchitect.DesktopClient
             
             // HeraldKit Notification Service (example, replace with your actual implementation if you have one)
             services.AddSingleton<HeraldKit.Interfaces.INotificationService, WpfNotificationService>();
+            services.AddSingleton <SnackbarMessageQueue>(new SnackbarMessageQueue(TimeSpan.FromSeconds(3)));
 
 
             // --- ViewModels ---

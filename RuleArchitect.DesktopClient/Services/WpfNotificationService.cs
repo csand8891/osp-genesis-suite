@@ -1,42 +1,45 @@
 ﻿// File: RuleArchitect.DesktopClient/Services/WpfNotificationService.cs
-using HeraldKit.Interfaces; // Ensure this matches the namespace in your HeraldKit project
+using HeraldKit.Interfaces;
 using HeraldKit.Models;
+using MaterialDesignThemes.Wpf; // Add this
 using System;
-using System.Linq; // For .OfType<Window>().FirstOrDefault()
-using System.Windows;
+using System.Windows; // For Application.Current.Dispatcher if needed
 
-namespace RuleArchitect.DesktopClient.Services // Or your chosen namespace for client-side services
+namespace RuleArchitect.DesktopClient.Services
 {
-    public class WpfNotificationService : INotificationService // Implements the correct interface
+    public class WpfNotificationService : INotificationService
     {
-        private void ShowMessage(string message, string title, MessageBoxImage icon)
+        private readonly SnackbarMessageQueue _snackbarMessageQueue;
+
+        public WpfNotificationService(SnackbarMessageQueue snackbarMessageQueue) // Inject the queue
         {
+            _snackbarMessageQueue = snackbarMessageQueue ?? throw new ArgumentNullException(nameof(snackbarMessageQueue));
+        }
+
+        private void EnqueueMessage(string message, string? actionContent = null, Action<object?>? actionHandler = null, object? actionArgument = null, TimeSpan? duration = null, bool promote = false)
+        {
+            // Ensure execution on the UI thread if called from a background thread
             if (Application.Current?.Dispatcher == null || Application.Current.Dispatcher.CheckAccess())
             {
-                // If on UI thread or dispatcher is null (e.g. during shutdown tests)
-                DoShowMessage(message, title, icon);
+                _snackbarMessageQueue.Enqueue(message, actionContent, actionHandler, actionArgument, promote, true, duration);
             }
             else
             {
-                Application.Current.Dispatcher.Invoke(() => DoShowMessage(message, title, icon));
+                Application.Current.Dispatcher.Invoke(() =>
+                    _snackbarMessageQueue.Enqueue(message, actionContent, actionHandler, actionArgument, promote, true, duration));
             }
         }
 
-        private void DoShowMessage(string message, string title, MessageBoxImage icon)
+        public void ShowError(string message, string title = "Error", bool isCritical = false)
         {
-            Window owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(x => x.IsActive && x.IsVisible) ?? Application.Current?.MainWindow;
-            MessageBox.Show(owner ?? Application.Current?.MainWindow, message, title, MessageBoxButton.OK, icon);
+            // For critical errors, you might still want a MessageBox, or a Snackbar that stays longer / has different styling.
+            // For now, all will go to Snackbar.
+            EnqueueMessage($"{title}: {message}", duration: isCritical ? TimeSpan.FromSeconds(5) : (TimeSpan?)null);
         }
 
-
-        public void ShowError(string message, string title = null, bool isCritical = false)
+        public void ShowInformation(string message, string title = "Information", TimeSpan? duration = null)
         {
-            ShowMessage(message, title ?? "Error", MessageBoxImage.Error);
-        }
-
-        public void ShowInformation(string message, string title = null, TimeSpan? duration = null)
-        {
-            ShowMessage(message, title ?? "Information", MessageBoxImage.Information);
+            EnqueueMessage(string.IsNullOrEmpty(title) ? message : $"{title}: {message}", duration: duration);
         }
 
         public void ShowNotification(NotificationMessage notification)
@@ -44,25 +47,20 @@ namespace RuleArchitect.DesktopClient.Services // Or your chosen namespace for c
             if (notification == null) return;
 
             string effectiveTitle = notification.Title ?? notification.Type.ToString();
-            MessageBoxImage image = MessageBoxImage.None;
-            switch (notification.Type)
-            {
-                case NotificationType.Information: image = MessageBoxImage.Information; break;
-                case NotificationType.Success: image = MessageBoxImage.Information; break;
-                case NotificationType.Warning: image = MessageBoxImage.Warning; break;
-                case NotificationType.Error: image = MessageBoxImage.Error; break;
-            }
-            ShowMessage(notification.Message, effectiveTitle, image);
+            string fullMessage = string.IsNullOrEmpty(notification.Title) ? notification.Message : $"{notification.Title}: {notification.Message}";
+
+            // Simplified: Ignoring ActionText/Callback for this example, can be added.
+            EnqueueMessage(fullMessage, duration: notification.Duration, promote: notification.IsCritical);
         }
 
-        public void ShowSuccess(string message, string title = null, TimeSpan? duration = null)
+        public void ShowSuccess(string message, string title = "Success", TimeSpan? duration = null)
         {
-            ShowMessage(message, title ?? "Success", MessageBoxImage.Information);
+            EnqueueMessage(string.IsNullOrEmpty(title) ? message : $"{title}: {message}", duration: duration);
         }
 
-        public void ShowWarning(string message, string title = null, TimeSpan? duration = null)
+        public void ShowWarning(string message, string title = "Warning", TimeSpan? duration = null)
         {
-            ShowMessage(message, title ?? "Warning", MessageBoxImage.Warning);
+            EnqueueMessage(string.IsNullOrEmpty(title) ? message : $"{title}: {message}", duration: duration);
         }
     }
 }

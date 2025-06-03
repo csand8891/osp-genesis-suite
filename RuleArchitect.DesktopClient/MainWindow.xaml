@@ -8,6 +8,7 @@
         xmlns:views="clr-namespace:RuleArchitect.DesktopClient.Views" 
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         mc:Ignorable="d"
+        FontFamily="{materialDesign:MaterialDesignFont}"
         Title="OSP Genesis Suite" Height="720" Width="1280"
         WindowStartupLocation="CenterScreen"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}">
@@ -18,7 +19,10 @@
             <ColumnDefinition Width="Auto" MinWidth="220" MaxWidth="300"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-
+        <materialDesign:Snackbar
+            MessageQueue="{Binding SnackbarMessageQueue}"
+            HorizontalAlignment="Stretch" 
+            VerticalAlignment="Bottom" Margin="15"/>
         <Border Grid.Column="0" Background="{DynamicResource PrimaryHueMidBrush}"  BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,1,0">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,8">

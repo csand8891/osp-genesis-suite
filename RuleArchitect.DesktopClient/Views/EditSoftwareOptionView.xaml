@@ -6,7 +6,8 @@
              xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
              xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
+             FontFamily="{materialDesign:MaterialDesignFont}"
              d:DataContext="{d:DesignInstance Type=vm:EditSoftwareOptionViewModel, IsDesignTimeCreatable=True}"
              d:DesignHeight="800" d:DesignWidth="550">
     <UserControl.Resources>
@@ -51,7 +52,6 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" MinWidth="160"/>
@@ -60,36 +60,48 @@
 
             <TextBlock Grid.Row="0" Grid.ColumnSpan="2" 
                        Text="{Binding ViewTitle}" 
-                       Style="{StaticResource MaterialDesignHeadline5TextBlock}" Margin="0,0,0,20"/>
+                       Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,20"/>
 
             <Label Grid.Row="1" Grid.Column="0" Content="Primary Name:"/>
             <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding PrimaryName, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Enter primary name"/>
+
             <Label Grid.Row="2" Grid.Column="0" Content="Alternative Names:"/>
             <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding AlternativeNames, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., AltName1; AltName2"/>
+
             <Label Grid.Row="3" Grid.Column="0" Content="Source File Name:"/>
             <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding SourceFileName, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., rules.xlsx"/>
-            <Label Grid.Row="4" Grid.Column="0" Content="Primary Option Number:"/>
-            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding PrimaryOptionNumberDisplay, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., OPT-001"/>
-            <Label Grid.Row="5" Grid.Column="0" Content="Control System ID:"/>
-            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding ControlSystemId, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Numeric ID or lookup"/>
-            <Label Grid.Row="6" Grid.Column="0" Content="Notes:"/>
-            <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" MinLines="3" MaxLines="5" VerticalScrollBarVisibility="Auto" materialDesign:HintAssist.Hint="Additional notes"/>
-            <Label Grid.Row="7" Grid.Column="0" Content="Checked By:"/>
-            <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding CheckedBy, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="User who checked"/>
-            <Label Grid.Row="8" Grid.Column="0" Content="Checked Date:"/>
-            <DatePicker Grid.Row="8" Grid.Column="1" SelectedDate="{Binding CheckedDate, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Date of check"/>
-            <TextBlock Grid.Row="9" Grid.Column="0" Text="Version:" VerticalAlignment="Center"/>
-            <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding Version}" VerticalAlignment="Center" Margin="0,5,0,12"/>
-            <TextBlock Grid.Row="10" Grid.Column="0" Text="Last Modified:" VerticalAlignment="Center"/>
-            <StackPanel Grid.Row="10" Grid.Column="1" Orientation="Vertical" Margin="0,5,0,12">
+
+            <Label Grid.Row="4" Grid.Column="0" Content="Control System:"/>
+            <ComboBox Grid.Row="4" Grid.Column="1"
+                      ItemsSource="{Binding AvailableControlSystems}"
+                      SelectedValue="{Binding ControlSystemId, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Null}}"
+                      SelectedValuePath="ControlSystemId"
+                      DisplayMemberPath="Name"
+                      materialDesign:HintAssist.Hint="Select Control System"
+                      Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+
+            <Label Grid.Row="5" Grid.Column="0" Content="Notes:"/>
+            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" MinLines="3" MaxLines="5" VerticalScrollBarVisibility="Auto" materialDesign:HintAssist.Hint="Additional notes"/>
+
+            <Label Grid.Row="6" Grid.Column="0" Content="Checked By:"/>
+            <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding CheckedBy, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="User who checked"/>
+
+            <Label Grid.Row="7" Grid.Column="0" Content="Checked Date:"/>
+            <DatePicker Grid.Row="7" Grid.Column="1" SelectedDate="{Binding CheckedDate, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Date of check"/>
+
+            <TextBlock Grid.Row="8" Grid.Column="0" Text="Version:" VerticalAlignment="Center"/>
+            <TextBlock Grid.Row="8" Grid.Column="1" Text="{Binding Version}" VerticalAlignment="Center" Margin="0,5,0,12"/>
+
+            <TextBlock Grid.Row="9" Grid.Column="0" Text="Last Modified:" VerticalAlignment="Center"/>
+            <StackPanel Grid.Row="9" Grid.Column="1" Orientation="Vertical" Margin="0,5,0,12">
                 <TextBlock Text="{Binding LastModifiedDate, StringFormat='{}{0:g}'}"/>
                 <TextBlock Text="{Binding LastModifiedBy, StringFormat='by {0}'}" Foreground="{DynamicResource MaterialDesignBodyLight}"/>
             </StackPanel>
 
-            <Separator Grid.Row="11" Grid.ColumnSpan="2" Margin="0,15,0,5"/>
-            <TextBlock Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" Text="Option Numbers" 
+            <Separator Grid.Row="10" Grid.ColumnSpan="2" Margin="0,15,0,5"/>
+            <TextBlock Grid.Row="11" Grid.Column="0" Grid.ColumnSpan="2" Text="Option Numbers" 
                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,0,0,8"/>
-            <StackPanel Grid.Row="13" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,15">
+            <StackPanel Grid.Row="12" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,15">
                 <ItemsControl ItemsSource="{Binding OptionNumbers}" Margin="0,0,0,8">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate DataType="{x:Type vm:OptionNumberViewModel}">
@@ -120,21 +132,21 @@
                 </Button>
             </StackPanel>
 
-            <Separator Grid.Row="14" Grid.ColumnSpan="2" Margin="0,15,0,5"/>
-            <TextBlock Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="2" Text="Specification Codes" 
+            <Separator Grid.Row="13" Grid.ColumnSpan="2" Margin="0,15,0,5"/>
+            <TextBlock Grid.Row="14" Grid.Column="0" Grid.ColumnSpan="2" Text="Specification Codes" 
                        Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,0,0,8"/>
-            <Grid Grid.Row="16" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,15">
+            <Grid Grid.Row="15" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,15">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <DataGrid ItemsSource="{Binding SpecificationCodes}" 
-          SelectedItem="{Binding SelectedSpecificationCode}"
-          AutoGenerateColumns="False" CanUserAddRows="False" MaxHeight="250" 
-          IsReadOnly="True" HorizontalScrollBarVisibility="Disabled"
-          materialDesign:DataGridAssist.CellPadding="8,4,8,4" 
-          materialDesign:DataGridAssist.ColumnHeaderPadding="8,4">
+                          SelectedItem="{Binding SelectedSpecificationCode}"
+                          AutoGenerateColumns="False" CanUserAddRows="False" MaxHeight="250" 
+                          IsReadOnly="True" HorizontalScrollBarVisibility="Disabled"
+                          materialDesign:DataGridAssist.CellPadding="8,4,8,4" 
+                          materialDesign:DataGridAssist.ColumnHeaderPadding="8,4">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="*"/>
                         <DataGridTextColumn Header="Spec No" Binding="{Binding SpecCodeNo}" Width="*"/>
@@ -156,25 +168,23 @@
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-
                         <DataGridTemplateColumn Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Button Command="{Binding DataContext.EditSpecificationCodeCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" 
-                            CommandParameter="{Binding}" 
-                            Style="{StaticResource MaterialDesignToolButton}" Padding="2" ToolTip="Edit Spec Code">
+                                            CommandParameter="{Binding}" 
+                                            Style="{StaticResource MaterialDesignToolButton}" Padding="2" ToolTip="Edit Spec Code">
                                         <materialDesign:PackIcon Kind="PencilOutline"/>
                                     </Button>
                                 </DataTemplate>
                             </DataGridTemplateColumn.CellTemplate>
                         </DataGridTemplateColumn>
-
                         <DataGridTemplateColumn Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Button Command="{Binding DataContext.RemoveSpecificationCodeCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" 
-                            CommandParameter="{Binding}" 
-                            Style="{StaticResource MaterialDesignToolButton}" Padding="2" ToolTip="Remove Spec Code">
+                                            CommandParameter="{Binding}" 
+                                            Style="{StaticResource MaterialDesignToolButton}" Padding="2" ToolTip="Remove Spec Code">
                                         <materialDesign:PackIcon Kind="MinusCircleOutline" Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"/>
                                     </Button>
                                 </DataTemplate>
@@ -182,15 +192,6 @@
                         </DataGridTemplateColumn>
                     </DataGrid.Columns>
                 </DataGrid>
-
-                <Button Grid.Row="1" Command="{Binding AddSpecificationCodeCommand}" 
-        Style="{StaticResource MaterialDesignFlatButton}" 
-        HorizontalAlignment="Left" Margin="0,8,0,0">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center"/>
-                        <TextBlock Text="Add Specification Code" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
 
                 <Button Grid.Row="1" Command="{Binding AddSpecificationCodeCommand}" 
                         Style="{StaticResource MaterialDesignFlatButton}" 

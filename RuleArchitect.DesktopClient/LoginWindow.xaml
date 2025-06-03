@@ -7,6 +7,7 @@
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
         mc:Ignorable="d"
+        FontFamily="{materialDesign:MaterialDesignFont}"
         Title="Login - OSP Genesis Suite" Height="650" Width="950"
         WindowStartupLocation="CenterScreen"
         d:DataContext="{d:DesignInstance Type=vm:LoginViewModel, IsDesignTimeCreatable=True}">

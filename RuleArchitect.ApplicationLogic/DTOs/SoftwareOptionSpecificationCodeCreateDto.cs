@@ -24,7 +24,7 @@ namespace RuleArchitect.ApplicationLogic.DTOs
 
         [MaxLength(255)]
         public string? Description { get; set; }
-        public int SpecCodeDefinitionId { get; set; } // Foreign key to SpecCodeDefinitions
+        //public int SpecCodeDefinitionId { get; set; } // Foreign key to SpecCodeDefinitions
         public int? SoftwareOptionActivationRuleId { get; set; } // Foreign key to SoftwareOptionActivationRules (nullable)
         public string? SpecificInterpretation { get; set; } // Or string? if nullable types are enabled
     }

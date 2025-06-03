@@ -1,9 +1,10 @@
 ﻿// File: RuleArchitect.DesktopClient/ViewModels/EditSoftwareOptionViewModel.cs
 using GenesisSentry.Interfaces;
+using HeraldKit.Interfaces; // For INotificationService
 using RuleArchitect.ApplicationLogic.DTOs;
 using RuleArchitect.ApplicationLogic.Interfaces;
-using RuleArchitect.DesktopClient.Commands; // For RelayCommand
-using RuleArchitect.DesktopClient.Views;  // For EditSpecCodeDialog
+using RuleArchitect.DesktopClient.Commands;
+using RuleArchitect.DesktopClient.Views; // For EditSpecCodeDialog
 using RuleArchitect.Entities;
 using System;
 using System.Collections.Generic;
@@ -12,28 +13,30 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Windows; // For MessageBox, Window
+using System.Windows;
 using System.Windows.Input;
-using Microsoft.Extensions.DependencyInjection; // For IServiceProvider
+using Microsoft.Extensions.DependencyInjection; // For IServiceScopeFactory, IServiceProvider
+using Microsoft.EntityFrameworkCore; // For DbUpdateException
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
     public class EditSoftwareOptionViewModel : BaseViewModel
     {
-        private readonly ISoftwareOptionService _softwareOptionService;
         private readonly IAuthenticationStateProvider _authStateProvider;
-        private readonly IServiceScopeFactory _scopeFactory; // For resolving dialog views
+        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly INotificationService _notificationService;
 
-        // --- Existing private fields ---
         private int _softwareOptionId;
         private SoftwareOption? _originalSoftwareOption;
         private bool _isNewSoftwareOption;
         private bool _isLoading;
+
         private bool _isScalarModified;
         private bool _isOptionNumbersModified;
         private bool _isRequirementsModified;
         private bool _isSpecCodesModified;
         private bool _isActivationRulesModified;
+
         private string _primaryName = string.Empty;
         private string? _alternativeNames;
         private string? _sourceFileName;
@@ -53,7 +56,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         public ObservableCollection<ControlSystemLookupDto> AvailableControlSystems { get; }
         public ObservableCollection<ActivationRuleLookupDto> AvailableActivationRules { get; }
-
 
         public string ViewTitle => _isNewSoftwareOption
                                    ? "Create New Software Option"
@@ -88,16 +90,13 @@ namespace RuleArchitect.DesktopClient.ViewModels
             {
                 if (SetProperty(ref _controlSystemId, value, MarkScalarAsModified))
                 {
-                    // TODO: Potentially refresh or validate SpecificationCodes if ControlSystem changes
-                    // For now, this ensures the change is tracked.
+                    // Future: Logic if changing ControlSystem impacts existing SpecCodes
                 }
             }
         }
-
         public int Version { get => _version; private set => SetProperty(ref _version, value); }
         public DateTime LastModifiedDate { get => _lastModifiedDate; private set => SetProperty(ref _lastModifiedDate, value); }
         public string? LastModifiedBy { get => _lastModifiedBy; private set => SetProperty(ref _lastModifiedBy, value); }
-
         public int SoftwareOptionId
         {
             get => _softwareOptionId;
@@ -114,14 +113,13 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 if (SetProperty(ref _selectedSpecificationCode, value))
                 {
                     ((RelayCommand)RemoveSpecificationCodeCommand).RaiseCanExecuteChanged();
-                    // Corrected: RelayCommand is not generic in your implementation
                     ((RelayCommand)EditSpecificationCodeCommand).RaiseCanExecuteChanged();
                 }
             }
         }
 
         public ICommand AddSpecificationCodeCommand { get; }
-        public ICommand EditSpecificationCodeCommand { get; } // Changed from RelayCommand<T>
+        public ICommand EditSpecificationCodeCommand { get; }
         public ICommand RemoveSpecificationCodeCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand AddOptionNumberCommand { get; }
@@ -135,60 +133,51 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private RequirementViewModel? _selectedRequirement;
         public RequirementViewModel? SelectedRequirement { get => _selectedRequirement; set => SetProperty(ref _selectedRequirement, value, () => ((RelayCommand)RemoveRequirementCommand).RaiseCanExecuteChanged()); }
 
-        // Parameterless constructor for XAML Designer (XDG0010 fix)
-        public EditSoftwareOptionViewModel()
+        public EditSoftwareOptionViewModel() // Parameterless for Designer
         {
-            // Design-time only constructor
-            // Initialize collections to avoid NullReferenceExceptions in designer
+            _authStateProvider = null!; // Will not be used at design time
+            _scopeFactory = null!;      // Will not be used at design time
+            _notificationService = null!; // Will not be used at design time
+
             OptionNumbers = new ObservableCollection<OptionNumberViewModel>();
             Requirements = new ObservableCollection<RequirementViewModel>();
             SpecificationCodes = new ObservableCollection<SpecCodeViewModel>();
             ActivationRules = new ObservableCollection<ActivationRuleViewModel>();
             AvailableControlSystems = new ObservableCollection<ControlSystemLookupDto>();
             AvailableActivationRules = new ObservableCollection<ActivationRuleLookupDto>();
-
-            // Dummy data for designer
-            if (System.ComponentModel.DesignerProperties.GetIsInDesignMode(new System.Windows.DependencyObject()))
+            if (DesignerProperties.GetIsInDesignMode(new DependencyObject()))
             {
                 PrimaryName = "Sample Software Option (Design)";
-                ControlSystemId = 1;
-                AvailableControlSystems.Add(new ControlSystemLookupDto { ControlSystemId = 1, Name = "Design CS P300" });
-                AvailableActivationRules.Add(new ActivationRuleLookupDto { Id = 1, DisplayName = "Design Rule 1" });
-                SpecificationCodes.Add(new SpecCodeViewModel { Category = "CAT D", SpecCodeNo = "S001", SpecCodeBit = "B01", Description = "Design Spec Code" });
+                AvailableControlSystems.Add(new ControlSystemLookupDto { ControlSystemId = 1, Name = "Design CS" });
+                AvailableActivationRules.Add(new ActivationRuleLookupDto { Id = 1, DisplayName = "Design Rule" });
+                SpecificationCodes.Add(new SpecCodeViewModel { Category = "D_CAT", SpecCodeNo = "D_S001", SpecCodeBit = "D_B01" });
             }
         }
 
-
         public EditSoftwareOptionViewModel(
-            ISoftwareOptionService softwareOptionService,
             IAuthenticationStateProvider authStateProvider,
-            IServiceScopeFactory scopeFactory) // Added IServiceProvider
+            IServiceScopeFactory scopeFactory,
+            INotificationService notificationService)
         {
-            _softwareOptionService = softwareOptionService ?? throw new ArgumentNullException(nameof(softwareOptionService));
             _authStateProvider = authStateProvider ?? throw new ArgumentNullException(nameof(authStateProvider));
             _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
 
             _isNewSoftwareOption = true;
-
             OptionNumbers = new ObservableCollection<OptionNumberViewModel>();
             Requirements = new ObservableCollection<RequirementViewModel>();
             SpecificationCodes = new ObservableCollection<SpecCodeViewModel>();
             ActivationRules = new ObservableCollection<ActivationRuleViewModel>();
-
             AvailableControlSystems = new ObservableCollection<ControlSystemLookupDto>();
             AvailableActivationRules = new ObservableCollection<ActivationRuleLookupDto>();
 
             SubscribeToCollectionChanges();
-
             SaveCommand = new RelayCommand(async () => await ExecuteSaveAsync(), () => !IsLoading);
-
             AddOptionNumberCommand = new RelayCommand(ExecuteAddOptionNumber);
             RemoveOptionNumberCommand = new RelayCommand(ExecuteRemoveOptionNumber, () => SelectedOptionNumber != null);
             AddRequirementCommand = new RelayCommand(ExecuteAddRequirement);
             RemoveRequirementCommand = new RelayCommand(ExecuteRemoveRequirement, () => SelectedRequirement != null);
-
             AddSpecificationCodeCommand = new RelayCommand(ExecuteShowSpecCodeDialogForAdd);
-            // Corrected: RelayCommand is not generic. Parameter will be object.
             EditSpecificationCodeCommand = new RelayCommand(param => ExecuteShowSpecCodeDialogForEdit(param as SpecCodeViewModel), param => param is SpecCodeViewModel);
             RemoveSpecificationCodeCommand = new RelayCommand(ExecuteRemoveSpecificationCode, () => SelectedSpecificationCode != null);
 
@@ -198,30 +187,29 @@ namespace RuleArchitect.DesktopClient.ViewModels
             LastModifiedBy = _authStateProvider.CurrentUser?.UserName ?? "System";
             ResetDirtyFlags();
             OnPropertyChanged(nameof(ViewTitle));
-
             _ = LoadInitialLookupsAsync();
         }
 
-        // This inner DTO class was for placeholder, move to ApplicationLogic.DTOs if used by service
-        // public class SpecCodeDefinitionLookupDto { public int Id { get; set; } public string DisplayName { get; set; } }
-        public class ActivationRuleLookupDto { public int Id { get; set; } public string DisplayName { get; set; } } // Should be populated from service
-
+        public class ActivationRuleLookupDto { public int Id { get; set; } public string DisplayName { get; set; } }
 
         private async Task LoadInitialLookupsAsync()
         {
-            // ... (implementation as before, ensure AvailableActivationRules are loaded properly)
-            // For now, keeping dummy data for ActivationRuleLookupDto for simplicity if service method isn't ready
             IsLoading = true;
             try
             {
-                var controlSystems = await _softwareOptionService.GetControlSystemLookupsAsync();
-                Application.Current.Dispatcher.Invoke(() => { // Ensure UI updates on UI thread
-                    AvailableControlSystems.Clear();
-                    foreach (var cs in controlSystems) AvailableControlSystems.Add(cs);
-                });
-
-                // Placeholder for actual ActivationRule loading logic
-                if (!AvailableActivationRules.Any())
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+                    var controlSystems = await softwareOptionService.GetControlSystemLookupsAsync();
+                    Application.Current.Dispatcher.Invoke(() => {
+                        AvailableControlSystems.Clear();
+                        if (controlSystems != null)
+                        {
+                            foreach (var cs in controlSystems) AvailableControlSystems.Add(cs);
+                        }
+                    });
+                }
+                if (!AvailableActivationRules.Any()) // Replace with actual service call if needed
                 {
                     AvailableActivationRules.Add(new ActivationRuleLookupDto { Id = 1, DisplayName = "AR001 - Test Rule 1" });
                     AvailableActivationRules.Add(new ActivationRuleLookupDto { Id = 2, DisplayName = "AR002 - Test Rule 2" });
@@ -229,7 +217,11 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 OnPropertyChanged(nameof(AvailableControlSystems));
                 OnPropertyChanged(nameof(AvailableActivationRules));
             }
-            catch (Exception ex) { Console.WriteLine($"Error loading initial lookups: {ex.Message}"); }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading initial lookups: {ex.Message}");
+                _notificationService.ShowError($"Error loading lookups: {ex.Message}", "Load Error");
+            }
             finally { IsLoading = false; }
         }
 
@@ -237,16 +229,21 @@ namespace RuleArchitect.DesktopClient.ViewModels
         {
             IsLoading = true;
             _isNewSoftwareOption = false;
-            if (!AvailableControlSystems.Any() || !AvailableActivationRules.Any()) // Ensure lookups are loaded
+            if (!AvailableControlSystems.Any()) // Ensure basic lookups are loaded
             {
                 await LoadInitialLookupsAsync();
             }
-
             try
             {
-                _originalSoftwareOption = await _softwareOptionService.GetSoftwareOptionByIdAsync(softwareOptionIdToLoad);
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+                    _originalSoftwareOption = await softwareOptionService.GetSoftwareOptionByIdAsync(softwareOptionIdToLoad);
+                }
+
                 if (_originalSoftwareOption == null)
                 {
+                    _notificationService.ShowError($"Software Option with ID {softwareOptionIdToLoad} not found.", "Load Error");
                     PrimaryName = "ERROR: Not Found"; OnPropertyChanged(nameof(ViewTitle)); IsLoading = false; return;
                 }
 
@@ -265,10 +262,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
                 OptionNumbers.Clear();
                 _originalSoftwareOption.OptionNumberRegistries?.ToList().ForEach(onr => OptionNumbers.Add(new OptionNumberViewModel { OriginalId = onr.OptionNumberRegistryId, OptionNumber = onr.OptionNumber, ItemChangedCallback = MarkOptionNumbersAsModified }));
-
                 Requirements.Clear();
-                _originalSoftwareOption.Requirements?.ToList().ForEach(r => Requirements.Add(new RequirementViewModel { OriginalId = r.RequirementId, RequirementType = r.RequirementType, Condition = r.Condition, GeneralRequiredValue = r.GeneralRequiredValue, RequiredSoftwareOptionId = r.RequiredSoftwareOptionId, RequiredSpecCodeDefinitionId = r.RequiredSpecCodeDefinitionId, OspFileName = r.OspFileName, OspFileVersion = r.OspFileVersion, Notes = r.Notes, ItemChangedCallback = MarkRequirementsAsModified }));
-
+                _originalSoftwareOption.Requirements?.ToList().ForEach(r => Requirements.Add(new RequirementViewModel { OriginalId = r.RequirementId, RequirementType = r.RequirementType, Condition = r.Condition, GeneralRequiredValue = r.GeneralRequiredValue ?? string.Empty, RequiredSoftwareOptionId = r.RequiredSoftwareOptionId, RequiredSpecCodeDefinitionId = r.RequiredSpecCodeDefinitionId, OspFileName = r.OspFileName, OspFileVersion = r.OspFileVersion, Notes = r.Notes, ItemChangedCallback = MarkRequirementsAsModified }));
                 SpecificationCodes.Clear();
                 _originalSoftwareOption.SoftwareOptionSpecificationCodes?.ToList().ForEach(sosc =>
                 {
@@ -280,17 +275,15 @@ namespace RuleArchitect.DesktopClient.ViewModels
                         SpecCodeNo = sosc.SpecCodeDefinition?.SpecCodeNo ?? string.Empty,
                         SpecCodeBit = sosc.SpecCodeDefinition?.SpecCodeBit ?? string.Empty,
                         Description = sosc.SpecCodeDefinition?.Description,
-                        IsDescriptionReadOnly = (sosc.SpecCodeDefinitionId > 0), // Readonly if loaded from existing
+                        IsDescriptionReadOnly = (sosc.SpecCodeDefinitionId > 0),
                         SoftwareOptionActivationRuleId = sosc.SoftwareOptionActivationRuleId,
                         SpecificInterpretation = sosc.SpecificInterpretation,
-                        ActivationRuleName = AvailableActivationRules.FirstOrDefault(ar => ar.Id == sosc.SoftwareOptionActivationRuleId)?.DisplayName
-                                             ?? sosc.SoftwareOptionActivationRule?.RuleName, // Fallback
+                        ActivationRuleName = AvailableActivationRules.FirstOrDefault(ar => ar.Id == sosc.SoftwareOptionActivationRuleId)?.DisplayName ?? sosc.SoftwareOptionActivationRule?.RuleName,
                         ItemChangedCallback = MarkSpecCodesAsModified
                     };
-                    vm.SpecCodeDisplayName = $"{vm.Category} - {vm.SpecCodeNo}/{vm.SpecCodeBit}"; // Update display name
+                    vm.SpecCodeDisplayName = $"{vm.Category} - {vm.SpecCodeNo}/{vm.SpecCodeBit}";
                     SpecificationCodes.Add(vm);
                 });
-
                 ActivationRules.Clear();
                 _originalSoftwareOption.SoftwareOptionActivationRules?.ToList().ForEach(ar => ActivationRules.Add(new ActivationRuleViewModel { OriginalId = ar.SoftwareOptionActivationRuleId, RuleName = ar.RuleName, ActivationSetting = ar.ActivationSetting, Notes = ar.Notes, ItemChangedCallback = MarkActivationRulesAsModified }));
 
@@ -300,6 +293,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             catch (Exception ex)
             {
                 Console.WriteLine($"Error loading Software Option: {ex.ToString()}");
+                _notificationService.ShowError($"Error loading option: {ex.Message}", "Load Error");
                 PrimaryName = "ERROR: Load Failed"; OnPropertyChanged(nameof(ViewTitle));
             }
             finally { IsLoading = false; }
@@ -309,18 +303,19 @@ namespace RuleArchitect.DesktopClient.ViewModels
         {
             if (!ControlSystemId.HasValue || ControlSystemId.Value <= 0)
             {
-                MessageBox.Show("Please select a Control System for the Software Option first.", "Control System Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _notificationService.ShowWarning("Please select a Control System for the Software Option first.", "Control System Required");
                 return;
             }
+            string currentControlSystemName = AvailableControlSystems.FirstOrDefault(cs => cs.ControlSystemId == ControlSystemId.Value)?.Name ?? "Unknown";
             var newSpecCodeInstance = new SpecCodeViewModel { IsDescriptionReadOnly = false };
-            var dialogViewModel = new EditSpecCodeDialogViewModel(
-        _softwareOptionService,
-        newSpecCodeInstance, // The actual SpecCodeViewModel being added
-        ControlSystemId.Value,
-        AvailableActivationRules
-    );
 
-            // Now call ShowSpecCodeDialog with the dialogViewModel
+            var dialogViewModel = new EditSpecCodeDialogViewModel(
+                _scopeFactory, // Pass the factory
+                newSpecCodeInstance,
+                currentControlSystemName,
+                ControlSystemId.Value,
+                AvailableActivationRules
+            );
             ShowSpecCodeDialog("Add Specification Code", dialogViewModel, true);
         }
 
@@ -329,23 +324,23 @@ namespace RuleArchitect.DesktopClient.ViewModels
             if (specCodeToEdit == null) return;
             if (!ControlSystemId.HasValue || ControlSystemId.Value <= 0)
             {
-                MessageBox.Show("The parent Software Option's Control System is not set.", "Control System Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _notificationService.ShowWarning("The parent Software Option's Control System is not set.", "Control System Required");
                 return;
             }
-            var dialogViewModel = new EditSpecCodeDialogViewModel(
-        _softwareOptionService,
-        specCodeToEdit, // The actual SpecCodeViewModel being edited
-        ControlSystemId.Value,
-        AvailableActivationRules
-    );
+            string currentControlSystemName = AvailableControlSystems.FirstOrDefault(cs => cs.ControlSystemId == ControlSystemId.Value)?.Name ?? "Unknown";
 
-            // Now call ShowSpecCodeDialog with the dialogViewModel
+            var dialogViewModel = new EditSpecCodeDialogViewModel(
+                _scopeFactory, // Pass the factory
+                specCodeToEdit,
+                currentControlSystemName,
+                ControlSystemId.Value,
+                AvailableActivationRules
+            );
             ShowSpecCodeDialog("Edit Specification Code", dialogViewModel, false);
         }
 
         private void ShowSpecCodeDialog(string title, EditSpecCodeDialogViewModel dialogViewModel, bool isAddingNew)
         {
-            // Use the _scopeFactory to create a new scope just for resolving the dialog view
             using (var dialogScope = _scopeFactory.CreateScope())
             {
                 var dialogView = dialogScope.ServiceProvider.GetRequiredService<Views.EditSpecCodeDialog>();
@@ -365,62 +360,136 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
                 SpecCodeViewModel? finalItem = null;
                 Action<SpecCodeViewModel?>? dialogClosedHandler = null;
-                dialogClosedHandler = (itemFromDialog) =>
-                {
+                dialogClosedHandler = (itemFromDialog) => {
                     finalItem = itemFromDialog;
                     if (dialogViewModel != null && dialogClosedHandler != null)
-                    {
                         dialogViewModel.DialogClosed -= dialogClosedHandler;
-                    }
-                    // The window itself should be closed by its ViewModel setting DialogResult,
-                    // or by its own OK/Cancel buttons.
-                    // This handler is primarily for processing the returned data.
                 };
                 dialogViewModel.DialogClosed += dialogClosedHandler;
 
-                // In EditSpecCodeDialogViewModel's Save/Cancel commands:
-                // Save: DialogClosed?.Invoke(SpecCodeToEdit); this.CloseDialogWindowAction?.Invoke(true);
-                // Cancel: DialogClosed?.Invoke(null); this.CloseDialogWindowAction?.Invoke(false);
-                // Add: public Action<bool?> CloseDialogWindowAction { get; set; } to EditSpecCodeDialogViewModel
-                // Then set it here:
                 dialogViewModel.CloseDialogWindowAction = (result) => {
                     dialogWindow.DialogResult = result;
                     dialogWindow.Close();
                 };
 
-
-                bool? resultState = dialogWindow.ShowDialog(); // This is blocking
+                bool? resultState = dialogWindow.ShowDialog();
 
                 if (resultState == true && finalItem != null)
                 {
-                    finalItem.ItemChangedCallback = MarkSpecCodesAsModified; // Make sure this callback exists
+                    finalItem.ItemChangedCallback = MarkSpecCodesAsModified;
                     if (isAddingNew)
                     {
                         SpecificationCodes.Add(finalItem);
                         SelectedSpecificationCode = finalItem;
-                    }
-                    else
-                    {
-                        // Item was edited by reference.
-                        // If SpecCodeViewModel properties raise PropertyChanged, DataGrid should update.
                     }
                     MarkSpecCodesAsModified();
                 }
             }
         }
 
-        // --- (Rest of the methods: ExecuteRemoveSpecificationCode, ResetDirtyFlags, ExecuteSaveAsync, 
-        //      OptionNumber and Requirement handlers are assumed to be mostly correct from your previous file) ---
-        // Make sure ExecuteSaveAsync correctly maps the new SpecCodeViewModel properties to SoftwareOptionSpecificationCodeCreateDto
-
-        private void ExecuteRemoveSpecificationCode()
+        public async Task<bool> ExecuteSaveAsync()
         {
-            if (SelectedSpecificationCode != null)
+            if (string.IsNullOrWhiteSpace(PrimaryName))
+            { _notificationService.ShowWarning("Primary Name is required.", "Validation Error"); return false; }
+            if (!ControlSystemId.HasValue || ControlSystemId.Value <= 0)
+            { _notificationService.ShowWarning("Control System is required.", "Validation Error"); return false; }
+
+            IsLoading = true;
+            string currentUser = _authStateProvider.CurrentUser?.UserName ?? "System";
+            try
             {
-                SpecificationCodes.Remove(SelectedSpecificationCode);
-                MarkSpecCodesAsModified();
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+                    var specCodeCreateDtos = this.SpecificationCodes.Select(vm => new SoftwareOptionSpecificationCodeCreateDto
+                    {
+                        Category = vm.Category,
+                        SpecCodeNo = vm.SpecCodeNo,
+                        SpecCodeBit = vm.SpecCodeBit,
+                        Description = vm.Description,
+                        SoftwareOptionActivationRuleId = vm.SoftwareOptionActivationRuleId,
+                        SpecificInterpretation = vm.SpecificInterpretation
+                    }).ToList();
+
+                    if (_isNewSoftwareOption)
+                    {
+                        var createDto = new CreateSoftwareOptionCommandDto
+                        {
+                            PrimaryName = this.PrimaryName,
+                            AlternativeNames = this.AlternativeNames,
+                            SourceFileName = this.SourceFileName,
+                            PrimaryOptionNumberDisplay = this.PrimaryOptionNumberDisplay,
+                            Notes = this.Notes,
+                            ControlSystemId = this.ControlSystemId,
+                            OptionNumbers = this.OptionNumbers.Select(vm => new OptionNumberRegistryCreateDto { OptionNumber = vm.OptionNumber }).ToList(),
+                            Requirements = this.Requirements.Select(vm => new RequirementCreateDto { RequirementType = vm.RequirementType, Condition = vm.Condition, GeneralRequiredValue = vm.GeneralRequiredValue ?? string.Empty, RequiredSoftwareOptionId = vm.RequiredSoftwareOptionId, RequiredSpecCodeDefinitionId = vm.RequiredSpecCodeDefinitionId, OspFileName = vm.OspFileName, OspFileVersion = vm.OspFileVersion, Notes = vm.Notes }).ToList(),
+                            SpecificationCodes = specCodeCreateDtos,
+                            ActivationRules = this.ActivationRules.Select(vm => new SoftwareOptionActivationRuleCreateDto { RuleName = vm.RuleName, ActivationSetting = vm.ActivationSetting, Notes = vm.Notes }).ToList()
+                        };
+                        var createdOption = await softwareOptionService.CreateSoftwareOptionAsync(createDto, currentUser);
+                        if (createdOption != null)
+                        {
+                            await LoadSoftwareOptionAsync(createdOption.SoftwareOptionId);
+                            _isNewSoftwareOption = false; ResetDirtyFlags();
+                            _notificationService.ShowSuccess($"Software Option '{createdOption.PrimaryName}' created successfully.", "Save Successful");
+                            IsLoading = false; return true;
+                        }
+                        else { _notificationService.ShowError("Failed to create Software Option.", "Save Failed"); IsLoading = false; return false; }
+                    }
+                    else
+                    {
+                        if (_originalSoftwareOption == null) { _notificationService.ShowError("Original option data is missing for update.", "Save Error"); IsLoading = false; return false; }
+                        if (!_isScalarModified && !_isOptionNumbersModified && !_isRequirementsModified && !_isSpecCodesModified && !_isActivationRulesModified)
+                        { _notificationService.ShowInformation("No changes detected to save.", "Save Information"); IsLoading = false; return true; }
+
+                        var updateDto = new UpdateSoftwareOptionCommandDto
+                        {
+                            SoftwareOptionId = this.SoftwareOptionId,
+                            PrimaryName = this.PrimaryName,
+                            AlternativeNames = this.AlternativeNames,
+                            SourceFileName = this.SourceFileName,
+                            PrimaryOptionNumberDisplay = this.PrimaryOptionNumberDisplay,
+                            Notes = this.Notes,
+                            CheckedBy = this.CheckedBy,
+                            CheckedDate = this.CheckedDate,
+                            ControlSystemId = this.ControlSystemId,
+                            OptionNumbers = _isOptionNumbersModified ? this.OptionNumbers.Select(vm => new OptionNumberRegistryCreateDto { OptionNumber = vm.OptionNumber }).ToList() : null,
+                            Requirements = _isRequirementsModified ? this.Requirements.Select(vm => new RequirementCreateDto { RequirementType = vm.RequirementType, Condition = vm.Condition, GeneralRequiredValue = vm.GeneralRequiredValue ?? string.Empty, RequiredSoftwareOptionId = vm.RequiredSoftwareOptionId, RequiredSpecCodeDefinitionId = vm.RequiredSpecCodeDefinitionId, OspFileName = vm.OspFileName, OspFileVersion = vm.OspFileVersion, Notes = vm.Notes }).ToList() : null,
+                            SpecificationCodes = _isSpecCodesModified ? specCodeCreateDtos : null,
+                            ActivationRules = _isActivationRulesModified ? this.ActivationRules.Select(vm => new SoftwareOptionActivationRuleCreateDto { RuleName = vm.RuleName, ActivationSetting = vm.ActivationSetting, Notes = vm.Notes }).ToList() : null
+                        };
+                        var updatedOption = await softwareOptionService.UpdateSoftwareOptionAsync(updateDto, currentUser);
+                        if (updatedOption != null)
+                        {
+                            await LoadSoftwareOptionAsync(this.SoftwareOptionId);
+                            _notificationService.ShowSuccess($"Software Option '{updatedOption.PrimaryName}' updated successfully.", "Save Successful");
+                            IsLoading = false; return true;
+                        }
+                        else { _notificationService.ShowError("Failed to update Software Option.", "Save Failed"); IsLoading = false; return false; }
+                    }
+                }
+            }
+            catch (DbUpdateException dbEx)
+            {
+                Console.WriteLine($"Database error saving Software Option: {dbEx.ToString()}");
+                if (dbEx.InnerException is Microsoft.Data.Sqlite.SqliteException sqliteEx && sqliteEx.SqliteErrorCode == 19)
+                {
+                    _notificationService.ShowError($"Failed to save: A record with the same unique key (e.g., Spec Code No, Bit, Control System, Category) already exists. Details: {sqliteEx.Message}", "Save Error - Unique Constraint");
+                }
+                else
+                {
+                    _notificationService.ShowError($"Error saving to database: {dbEx.GetBaseException().Message}", "Database Save Error");
+                }
+                IsLoading = false; return false;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving Software Option: {ex.ToString()}");
+                _notificationService.ShowError($"An unexpected error occurred while saving: {ex.Message}", "Save Error");
+                IsLoading = false; return false;
             }
         }
+
         private void SubscribeToCollectionChanges()
         {
             OptionNumbers.CollectionChanged += (s, e) => MarkCollectionAsModified(ref _isOptionNumbersModified);
@@ -443,136 +512,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
             _isRequirementsModified = false;
             _isSpecCodesModified = false;
             _isActivationRulesModified = false;
-        }
-
-        public async Task<bool> ExecuteSaveAsync()
-        {
-            if (string.IsNullOrWhiteSpace(PrimaryName))
-            {
-                MessageBox.Show("Primary Name is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return false;
-            }
-            if (!ControlSystemId.HasValue || ControlSystemId.Value <= 0)
-            {
-                MessageBox.Show("Control System is required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return false;
-            }
-
-            IsLoading = true;
-            string currentUser = _authStateProvider.CurrentUser?.UserName ?? "System";
-
-            try
-            {
-                var specCodeCreateDtos = this.SpecificationCodes.Select(vm => new SoftwareOptionSpecificationCodeCreateDto
-                {
-                    Category = vm.Category, // From SpecCodeViewModel
-                    SpecCodeNo = vm.SpecCodeNo, // From SpecCodeViewModel
-                    SpecCodeBit = vm.SpecCodeBit, // From SpecCodeViewModel
-                    Description = vm.Description, // From SpecCodeViewModel
-                    SoftwareOptionActivationRuleId = vm.SoftwareOptionActivationRuleId,
-                    SpecificInterpretation = vm.SpecificInterpretation
-                    // The service will handle finding/creating SpecCodeDefinition based on Category, No, Bit, Desc and ControlSystemId
-                }).ToList();
-
-                if (_isNewSoftwareOption)
-                {
-                    var createDto = new CreateSoftwareOptionCommandDto
-                    {
-                        PrimaryName = this.PrimaryName,
-                        AlternativeNames = this.AlternativeNames,
-                        SourceFileName = this.SourceFileName,
-                        PrimaryOptionNumberDisplay = this.PrimaryOptionNumberDisplay,
-                        Notes = this.Notes,
-                        ControlSystemId = this.ControlSystemId, // Ensured not null by check above
-                        OptionNumbers = this.OptionNumbers.Select(vm => new OptionNumberRegistryCreateDto { OptionNumber = vm.OptionNumber }).ToList(),
-                        Requirements = this.Requirements.Select(vm => new RequirementCreateDto
-                        {
-                            RequirementType = vm.RequirementType,
-                            Condition = vm.Condition,
-                            GeneralRequiredValue = vm.GeneralRequiredValue,
-                            RequiredSoftwareOptionId = vm.RequiredSoftwareOptionId,
-                            RequiredSpecCodeDefinitionId = vm.RequiredSpecCodeDefinitionId,
-                            OspFileName = vm.OspFileName,
-                            OspFileVersion = vm.OspFileVersion,
-                            Notes = vm.Notes
-                        }).ToList(),
-                        SpecificationCodes = specCodeCreateDtos, // Use the new mapping
-                        ActivationRules = this.ActivationRules.Select(vm => new SoftwareOptionActivationRuleCreateDto
-                        {
-                            RuleName = vm.RuleName,
-                            ActivationSetting = vm.ActivationSetting,
-                            Notes = vm.Notes
-                        }).ToList()
-                    };
-
-                    var createdOption = await _softwareOptionService.CreateSoftwareOptionAsync(createDto, currentUser);
-                    if (createdOption != null)
-                    {
-                        await LoadSoftwareOptionAsync(createdOption.SoftwareOptionId);
-                        _isNewSoftwareOption = false;
-                        ResetDirtyFlags();
-                        IsLoading = false;
-                        return true;
-                    }
-                    else { /* Handle create failure */ IsLoading = false; return false; }
-                }
-                else
-                {
-                    if (_originalSoftwareOption == null) { MessageBox.Show("Original option data is missing.", "Error"); IsLoading = false; return false; }
-                    if (!_isScalarModified && !_isOptionNumbersModified && !_isRequirementsModified && !_isSpecCodesModified && !_isActivationRulesModified)
-                    {
-                        IsLoading = false; return true;
-                    }
-
-                    var updateDto = new UpdateSoftwareOptionCommandDto
-                    {
-                        SoftwareOptionId = this.SoftwareOptionId,
-                        PrimaryName = this.PrimaryName,
-                        AlternativeNames = this.AlternativeNames,
-                        SourceFileName = this.SourceFileName,
-                        PrimaryOptionNumberDisplay = this.PrimaryOptionNumberDisplay,
-                        Notes = this.Notes,
-                        CheckedBy = this.CheckedBy,
-                        CheckedDate = this.CheckedDate,
-                        ControlSystemId = this.ControlSystemId, // Ensured not null by check above
-                        OptionNumbers = _isOptionNumbersModified ? this.OptionNumbers.Select(vm => new OptionNumberRegistryCreateDto { OptionNumber = vm.OptionNumber }).ToList() : null,
-                        Requirements = _isRequirementsModified ? this.Requirements.Select(vm => new RequirementCreateDto
-                        {
-                            RequirementType = vm.RequirementType,
-                            Condition = vm.Condition,
-                            GeneralRequiredValue = vm.GeneralRequiredValue,
-                            RequiredSoftwareOptionId = vm.RequiredSoftwareOptionId,
-                            RequiredSpecCodeDefinitionId = vm.RequiredSpecCodeDefinitionId,
-                            OspFileName = vm.OspFileName,
-                            OspFileVersion = vm.OspFileVersion,
-                            Notes = vm.Notes
-                        }).ToList() : null,
-                        SpecificationCodes = _isSpecCodesModified ? specCodeCreateDtos : null, // Use new mapping
-                        ActivationRules = _isActivationRulesModified ? this.ActivationRules.Select(vm => new SoftwareOptionActivationRuleCreateDto
-                        {
-                            RuleName = vm.RuleName,
-                            ActivationSetting = vm.ActivationSetting,
-                            Notes = vm.Notes
-                        }).ToList() : null
-                    };
-
-                    var updatedOption = await _softwareOptionService.UpdateSoftwareOptionAsync(updateDto, currentUser);
-                    if (updatedOption != null)
-                    {
-                        await LoadSoftwareOptionAsync(this.SoftwareOptionId);
-                        IsLoading = false;
-                        return true;
-                    }
-                    else { /* Handle update failure */ IsLoading = false; return false; }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error saving Software Option: {ex.ToString()}");
-                MessageBox.Show($"Error saving: {ex.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                IsLoading = false;
-                return false;
-            }
         }
         private void ExecuteAddOptionNumber()
         {
@@ -604,6 +543,14 @@ namespace RuleArchitect.DesktopClient.ViewModels
             {
                 Requirements.Remove(SelectedRequirement);
                 MarkRequirementsAsModified();
+            }
+        }
+        private void ExecuteRemoveSpecificationCode()
+        {
+            if (SelectedSpecificationCode != null)
+            {
+                SpecificationCodes.Remove(SelectedSpecificationCode);
+                MarkSpecCodesAsModified();
             }
         }
     }
