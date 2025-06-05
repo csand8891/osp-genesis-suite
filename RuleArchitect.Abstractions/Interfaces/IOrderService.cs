@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using RuleArchitect.ApplicationLogic.DTOs; // Assuming OrderDetailDto, CreateOrderDto, UpdateOrderDto are here
 using RuleArchitect.Entities; // For OrderStatus enum
 
-namespace RuleArchitect.ApplicationLogic.Interfaces
+namespace RuleArchitect.Abstractions.Interfaces
 {
     /// <summary>
     /// Defines the contract for services managing orders and their lifecycle within the application.

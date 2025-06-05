@@ -33,6 +33,7 @@
                     <converters:TrueFalseToCustomStringConverter x:Key="TrueFalseToCustomStringConverter"
                                                      TrueString="New User"
                                                      FalseString="Edit User" />
+                    <converters:RequirementTypeToVisibilityConverter x:Key="GlobalReqTypeToVis"/>
                 </ResourceDictionary>
 
             </ResourceDictionary.MergedDictionaries>

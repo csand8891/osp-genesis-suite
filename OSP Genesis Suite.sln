@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenesisOrderGateway", "Gene
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GenesisOrderGateway.Tests", "GenesisOrderGateway.Tests\GenesisOrderGateway.Tests.csproj", "{7071FB09-9362-4948-B5AD-7711341694D6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuleArchitect.Abstractions", "RuleArchitect.Abstractions\RuleArchitect.Abstractions.csproj", "{47BECF7C-B8A0-4641-BABF-98F55EAF7C95}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -66,6 +68,10 @@ Global
 		{7071FB09-9362-4948-B5AD-7711341694D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7071FB09-9362-4948-B5AD-7711341694D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7071FB09-9362-4948-B5AD-7711341694D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47BECF7C-B8A0-4641-BABF-98F55EAF7C95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47BECF7C-B8A0-4641-BABF-98F55EAF7C95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47BECF7C-B8A0-4641-BABF-98F55EAF7C95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47BECF7C-B8A0-4641-BABF-98F55EAF7C95}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

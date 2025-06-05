@@ -25,6 +25,7 @@ namespace RuleArchitect.Data
         public virtual DbSet<Order> Orders { get; set; } = null!;
         public virtual DbSet<OrderItem> OrderItems { get; set; } = null!;
         public virtual DbSet<MachineModel> MachineModels { get; set; } = null!; // <-- NEW DbSet
+        public virtual DbSet<UserActivityLog> UserActivityLogs { get; set; } = null!;
 
         public RuleArchitectContext() { }
 
@@ -191,6 +192,24 @@ namespace RuleArchitect.Data
                       .WithOne(oi => oi.Order)
                       .HasForeignKey(oi => oi.OrderId)
                       .IsRequired().OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<UserActivityLog>(entity =>
+            {
+                entity.HasOne(ual => ual.User)
+                      .WithMany()
+                      .HasForeignKey(ual => ual.UserId)
+                      .IsRequired().OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(e => e.Timestamp).HasName("IX_UserActivityLog_Timestamp");
+                entity.HasIndex(e => e.UserId).HasName("IX_UserActivityLog_UserId");
+                entity.HasIndex(e => e.ActivityType).HasName("IX_UserActivityLog_ActivityType");
+
+                entity.HasIndex(e => new { e.TargetEntityType, e.TargetEntityId })
+                      .HasName("IX_UserActivityLog_TargetEntityType_TargetEntity");
+                entity.HasIndex(e => new { e.UserId, e.Timestamp })
+                      .HasName("IX_UserActivityLog_User_Timestamp");
+
             });
 
             modelBuilder.Entity<OrderItem>(entity =>

@@ -45,6 +45,7 @@ namespace RuleArchitect.DesktopClient
             // RuleArchitect ApplicationLogic Services
             services.AddScoped<ISoftwareOptionService, SoftwareOptionService>();
             services.AddScoped<IOrderService, OrderService>();
+            services.AddScoped<IUserActivityLogService, UserActivityLogService>();
             // To be created: services.AddScoped<IUserService, UserService>();
 
             // GenesisSentry Services

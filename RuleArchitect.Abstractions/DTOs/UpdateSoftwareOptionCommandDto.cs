@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations; // For potential validation attributes
 
-namespace RuleArchitect.ApplicationLogic.DTOs
+namespace RuleArchitect.Abstractions.DTOs
 {
     /// <summary>
     /// Data Transfer Object for updating an existing SoftwareOption.

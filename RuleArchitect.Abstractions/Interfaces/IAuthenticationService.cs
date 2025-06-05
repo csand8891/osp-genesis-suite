@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using GenesisSentry.DTOs;
 
-namespace GenesisSentry.Interfaces
+namespace RuleArchitect.Abstractions.Interfaces
 {
     public interface IAuthenticationService
     {

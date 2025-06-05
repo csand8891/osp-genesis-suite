@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks; // Added for Task<T>
 
-namespace RuleArchitect.ApplicationLogic.Interfaces
+namespace RuleArchitect.Abstractions.Interfaces
 {
     public interface ISoftwareOptionService
     {

@@ -20,6 +20,24 @@ using Microsoft.EntityFrameworkCore; // For DbUpdateException
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
+    // Simple DTOs for lookup collections if not already defined elsewhere
+    // You might already have suitable DTOs in ApplicationLogic.DTOs
+    public class SoftwareOptionLookupDto
+    {
+        public int SoftwareOptionId { get; set; }
+        public string? PrimaryName { get; set; }
+        // Add ControlSystemId if needed for filtering within RequirementViewModel or service calls
+        public int? ControlSystemId { get; set; }
+    }
+
+    public class SpecCodeDefinitionLookupDto
+    {
+        public int SpecCodeDefinitionId { get; set; }
+        public string? DisplayName { get; set; } // e.g., "NC1 - S001/B01: Description"
+        public int ControlSystemId { get; set; } // To ensure it matches the SO's CS
+    }
+
+
     public class EditSoftwareOptionViewModel : BaseViewModel
     {
         private readonly IAuthenticationStateProvider _authStateProvider;
@@ -57,6 +75,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public ObservableCollection<ControlSystemLookupDto> AvailableControlSystems { get; }
         public ObservableCollection<ActivationRuleLookupDto> AvailableActivationRules { get; }
 
+        // *** NEW: Lookup collections for Requirements ***
+        public ObservableCollection<SoftwareOptionLookupDto> AvailableSoftwareOptionsForRequirements { get; }
+        public ObservableCollection<SpecCodeDefinitionLookupDto> AvailableSpecCodesForRequirements { get; }
+        // *** END NEW ***
+
+
         public string ViewTitle => _isNewSoftwareOption
                                    ? "Create New Software Option"
                                    : $"Edit Software Option (Name: {PrimaryName})";
@@ -90,7 +114,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
             {
                 if (SetProperty(ref _controlSystemId, value, MarkScalarAsModified))
                 {
-                    // Future: Logic if changing ControlSystem impacts existing SpecCodes
+                    // When ControlSystemId changes, we might need to reload/filter
+                    // AvailableSpecCodesForRequirements if they are control system specific.
+                    _ = LoadSpecCodeDefinitionsForRequirementsAsync();
                 }
             }
         }
@@ -118,6 +144,20 @@ namespace RuleArchitect.DesktopClient.ViewModels
             }
         }
 
+        // *** NEW: SelectedItem for Requirements (if needed for an Edit button outside ItemsControl) ***
+        private RequirementViewModel? _selectedRequirement;
+        public RequirementViewModel? SelectedRequirement
+        {
+            get => _selectedRequirement;
+            set => SetProperty(ref _selectedRequirement, value, () =>
+            {
+                ((RelayCommand)RemoveRequirementCommand).RaiseCanExecuteChanged();
+                // If you add an EditRequirementCommand that operates on SelectedRequirement:
+                // ((RelayCommand)EditRequirementCommand).RaiseCanExecuteChanged();
+            });
+        }
+        // *** END NEW ***
+
         public ICommand AddSpecificationCodeCommand { get; }
         public ICommand EditSpecificationCodeCommand { get; }
         public ICommand RemoveSpecificationCodeCommand { get; }
@@ -130,14 +170,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private OptionNumberViewModel? _selectedOptionNumber;
         public OptionNumberViewModel? SelectedOptionNumber { get => _selectedOptionNumber; set => SetProperty(ref _selectedOptionNumber, value, () => ((RelayCommand)RemoveOptionNumberCommand).RaiseCanExecuteChanged()); }
 
-        private RequirementViewModel? _selectedRequirement;
-        public RequirementViewModel? SelectedRequirement { get => _selectedRequirement; set => SetProperty(ref _selectedRequirement, value, () => ((RelayCommand)RemoveRequirementCommand).RaiseCanExecuteChanged()); }
 
         public EditSoftwareOptionViewModel() // Parameterless for Designer
         {
-            _authStateProvider = null!; // Will not be used at design time
-            _scopeFactory = null!;      // Will not be used at design time
-            _notificationService = null!; // Will not be used at design time
+            _authStateProvider = null!;
+            _scopeFactory = null!;
+            _notificationService = null!;
 
             OptionNumbers = new ObservableCollection<OptionNumberViewModel>();
             Requirements = new ObservableCollection<RequirementViewModel>();
@@ -145,12 +183,23 @@ namespace RuleArchitect.DesktopClient.ViewModels
             ActivationRules = new ObservableCollection<ActivationRuleViewModel>();
             AvailableControlSystems = new ObservableCollection<ControlSystemLookupDto>();
             AvailableActivationRules = new ObservableCollection<ActivationRuleLookupDto>();
+
+            // *** NEW: Initialize new collections ***
+            AvailableSoftwareOptionsForRequirements = new ObservableCollection<SoftwareOptionLookupDto>();
+            AvailableSpecCodesForRequirements = new ObservableCollection<SpecCodeDefinitionLookupDto>();
+            // *** END NEW ***
+
             if (DesignerProperties.GetIsInDesignMode(new DependencyObject()))
             {
                 PrimaryName = "Sample Software Option (Design)";
                 AvailableControlSystems.Add(new ControlSystemLookupDto { ControlSystemId = 1, Name = "Design CS" });
                 AvailableActivationRules.Add(new ActivationRuleLookupDto { Id = 1, DisplayName = "Design Rule" });
                 SpecificationCodes.Add(new SpecCodeViewModel { Category = "D_CAT", SpecCodeNo = "D_S001", SpecCodeBit = "D_B01" });
+                // Add design-time data for new lookups
+                AvailableSoftwareOptionsForRequirements.Add(new SoftwareOptionLookupDto { SoftwareOptionId = 1, PrimaryName = "Design SO Req" });
+                AvailableSpecCodesForRequirements.Add(new SpecCodeDefinitionLookupDto { SpecCodeDefinitionId = 1, DisplayName = "Design SpecCode Req" });
+                Requirements.Add(new RequirementViewModel { RequirementType = "General Text", GeneralRequiredValue = "Design time requirement" });
+
             }
         }
 
@@ -171,12 +220,19 @@ namespace RuleArchitect.DesktopClient.ViewModels
             AvailableControlSystems = new ObservableCollection<ControlSystemLookupDto>();
             AvailableActivationRules = new ObservableCollection<ActivationRuleLookupDto>();
 
+            // *** NEW: Initialize new collections ***
+            AvailableSoftwareOptionsForRequirements = new ObservableCollection<SoftwareOptionLookupDto>();
+            AvailableSpecCodesForRequirements = new ObservableCollection<SpecCodeDefinitionLookupDto>();
+            // *** END NEW ***
+
             SubscribeToCollectionChanges();
             SaveCommand = new RelayCommand(async () => await ExecuteSaveAsync(), () => !IsLoading);
             AddOptionNumberCommand = new RelayCommand(ExecuteAddOptionNumber);
             RemoveOptionNumberCommand = new RelayCommand(ExecuteRemoveOptionNumber, () => SelectedOptionNumber != null);
+
             AddRequirementCommand = new RelayCommand(ExecuteAddRequirement);
-            RemoveRequirementCommand = new RelayCommand(ExecuteRemoveRequirement, () => SelectedRequirement != null);
+            RemoveRequirementCommand = new RelayCommand(ExecuteRemoveRequirement, () => SelectedRequirement != null); // Now uses SelectedRequirement
+
             AddSpecificationCodeCommand = new RelayCommand(ExecuteShowSpecCodeDialogForAdd);
             EditSpecificationCodeCommand = new RelayCommand(param => ExecuteShowSpecCodeDialogForEdit(param as SpecCodeViewModel), param => param is SpecCodeViewModel);
             RemoveSpecificationCodeCommand = new RelayCommand(ExecuteRemoveSpecificationCode, () => SelectedSpecificationCode != null);
@@ -187,10 +243,10 @@ namespace RuleArchitect.DesktopClient.ViewModels
             LastModifiedBy = _authStateProvider.CurrentUser?.UserName ?? "System";
             ResetDirtyFlags();
             OnPropertyChanged(nameof(ViewTitle));
-            _ = LoadInitialLookupsAsync();
+            _ = LoadInitialLookupsAsync(); // Keep this
         }
 
-        public class ActivationRuleLookupDto { public int Id { get; set; } public string DisplayName { get; set; } }
+        public class ActivationRuleLookupDto { public int Id { get; set; } public string? DisplayName { get; set; } }
 
         private async Task LoadInitialLookupsAsync()
         {
@@ -200,22 +256,49 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 using (var scope = _scopeFactory.CreateScope())
                 {
                     var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+
+                    // Load Control Systems
                     var controlSystems = await softwareOptionService.GetControlSystemLookupsAsync();
                     Application.Current.Dispatcher.Invoke(() => {
                         AvailableControlSystems.Clear();
-                        if (controlSystems != null)
-                        {
-                            foreach (var cs in controlSystems) AvailableControlSystems.Add(cs);
-                        }
+                        if (controlSystems != null) foreach (var cs in controlSystems) AvailableControlSystems.Add(cs);
+                        OnPropertyChanged(nameof(AvailableControlSystems));
                     });
+
+                    // *** NEW: Load Software Options for Requirements lookup ***
+                    var allSoftwareOptions = await softwareOptionService.GetAllSoftwareOptionsAsync();
+                    Application.Current.Dispatcher.Invoke(() => {
+                        AvailableSoftwareOptionsForRequirements.Clear();
+                        if (allSoftwareOptions != null)
+                        {
+                            foreach (var so in allSoftwareOptions.OrderBy(s => s.PrimaryName))
+                            {
+                                AvailableSoftwareOptionsForRequirements.Add(new SoftwareOptionLookupDto
+                                {
+                                    SoftwareOptionId = so.SoftwareOptionId,
+                                    PrimaryName = so.PrimaryName,
+                                    ControlSystemId = so.ControlSystemId // Include if useful for filtering
+                                });
+                            }
+                        }
+                        OnPropertyChanged(nameof(AvailableSoftwareOptionsForRequirements));
+                    });
+                    // *** END NEW ***
+
+                    // Load Spec Code Definitions (will be filtered by ControlSystemId later if needed)
+                    // This is now handled by LoadSpecCodeDefinitionsForRequirementsAsync, called when ControlSystemId changes.
+                    // However, you might want an initial load if ControlSystemId is already set.
+                    await LoadSpecCodeDefinitionsForRequirementsAsync();
+
+
+                    // Dummy Activation Rules (replace with actual service call if available)
+                    if (!AvailableActivationRules.Any())
+                    {
+                        AvailableActivationRules.Add(new ActivationRuleLookupDto { Id = 1, DisplayName = "AR001 - Test Rule 1" });
+                        AvailableActivationRules.Add(new ActivationRuleLookupDto { Id = 2, DisplayName = "AR002 - Test Rule 2" });
+                        OnPropertyChanged(nameof(AvailableActivationRules));
+                    }
                 }
-                if (!AvailableActivationRules.Any()) // Replace with actual service call if needed
-                {
-                    AvailableActivationRules.Add(new ActivationRuleLookupDto { Id = 1, DisplayName = "AR001 - Test Rule 1" });
-                    AvailableActivationRules.Add(new ActivationRuleLookupDto { Id = 2, DisplayName = "AR002 - Test Rule 2" });
-                }
-                OnPropertyChanged(nameof(AvailableControlSystems));
-                OnPropertyChanged(nameof(AvailableActivationRules));
             }
             catch (Exception ex)
             {
@@ -225,14 +308,68 @@ namespace RuleArchitect.DesktopClient.ViewModels
             finally { IsLoading = false; }
         }
 
+        // *** NEW: Method to load/filter SpecCodeDefinitions for requirements based on ControlSystemId ***
+        private async Task LoadSpecCodeDefinitionsForRequirementsAsync()
+        {
+            if (!ControlSystemId.HasValue || ControlSystemId.Value <= 0)
+            {
+                Application.Current.Dispatcher.Invoke(() => {
+                    AvailableSpecCodesForRequirements.Clear();
+                    OnPropertyChanged(nameof(AvailableSpecCodesForRequirements));
+                });
+                return;
+            }
+
+            // Consider adding a loading indicator specific to this part if it's slow
+            try
+            {
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+                    var specCodes = await softwareOptionService.GetSpecCodeDefinitionsForControlSystemAsync(ControlSystemId.Value);
+
+                    Application.Current.Dispatcher.Invoke(() => {
+                        AvailableSpecCodesForRequirements.Clear();
+                        if (specCodes != null)
+                        {
+                            foreach (var scd in specCodes.OrderBy(s => s.Category).ThenBy(s => s.SpecCodeNo).ThenBy(s => s.SpecCodeBit))
+                            {
+                                AvailableSpecCodesForRequirements.Add(new SpecCodeDefinitionLookupDto
+                                {
+                                    SpecCodeDefinitionId = scd.SpecCodeDefinitionId,
+                                    DisplayName = $"{scd.Category} - {scd.SpecCodeNo}/{scd.SpecCodeBit}: {scd.Description?.Substring(0, Math.Min(scd.Description.Length, 30)) ?? ""}{(scd.Description?.Length > 30 ? "..." : "")}",
+                                    ControlSystemId = scd.ControlSystemId
+                                });
+                            }
+                        }
+                        OnPropertyChanged(nameof(AvailableSpecCodesForRequirements));
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading spec code definitions for requirements: {ex.Message}");
+                _notificationService.ShowError($"Error loading spec code definitions for requirements: {ex.Message}", "Load Error");
+                Application.Current.Dispatcher.Invoke(() => {
+                    AvailableSpecCodesForRequirements.Clear();
+                    OnPropertyChanged(nameof(AvailableSpecCodesForRequirements));
+                });
+            }
+        }
+        // *** END NEW ***
+
+
         public async Task LoadSoftwareOptionAsync(int softwareOptionIdToLoad)
         {
             IsLoading = true;
             _isNewSoftwareOption = false;
-            if (!AvailableControlSystems.Any()) // Ensure basic lookups are loaded
+
+            // Ensure base lookups are loaded first, especially Control Systems
+            if (!AvailableControlSystems.Any() || !AvailableSoftwareOptionsForRequirements.Any())
             {
-                await LoadInitialLookupsAsync();
+                await LoadInitialLookupsAsync(); // This will also call LoadSpecCodeDefinitionsForRequirementsAsync if CS ID is set
             }
+
             try
             {
                 using (var scope = _scopeFactory.CreateScope())
@@ -255,6 +392,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 Notes = _originalSoftwareOption.Notes;
                 CheckedBy = _originalSoftwareOption.CheckedBy;
                 CheckedDate = _originalSoftwareOption.CheckedDate;
+                // Setting ControlSystemId here will trigger LoadSpecCodeDefinitionsForRequirementsAsync
                 ControlSystemId = _originalSoftwareOption.ControlSystemId;
                 Version = _originalSoftwareOption.Version;
                 LastModifiedDate = _originalSoftwareOption.LastModifiedDate;
@@ -262,8 +400,40 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
                 OptionNumbers.Clear();
                 _originalSoftwareOption.OptionNumberRegistries?.ToList().ForEach(onr => OptionNumbers.Add(new OptionNumberViewModel { OriginalId = onr.OptionNumberRegistryId, OptionNumber = onr.OptionNumber, ItemChangedCallback = MarkOptionNumbersAsModified }));
+
                 Requirements.Clear();
-                _originalSoftwareOption.Requirements?.ToList().ForEach(r => Requirements.Add(new RequirementViewModel { OriginalId = r.RequirementId, RequirementType = r.RequirementType, Condition = r.Condition, GeneralRequiredValue = r.GeneralRequiredValue ?? string.Empty, RequiredSoftwareOptionId = r.RequiredSoftwareOptionId, RequiredSpecCodeDefinitionId = r.RequiredSpecCodeDefinitionId, OspFileName = r.OspFileName, OspFileVersion = r.OspFileVersion, Notes = r.Notes, ItemChangedCallback = MarkRequirementsAsModified }));
+                if (_originalSoftwareOption.Requirements != null)
+                {
+                    foreach (var r in _originalSoftwareOption.Requirements)
+                    {
+                        var reqVm = new RequirementViewModel
+                        {
+                            OriginalId = r.RequirementId,
+                            RequirementType = r.RequirementType,
+                            Condition = r.Condition,
+                            GeneralRequiredValue = r.GeneralRequiredValue ?? string.Empty,
+                            RequiredSoftwareOptionId = r.RequiredSoftwareOptionId,
+                            RequiredSpecCodeDefinitionId = r.RequiredSpecCodeDefinitionId,
+                            OspFileName = r.OspFileName,
+                            OspFileVersion = r.OspFileVersion,
+                            Notes = r.Notes,
+                            ItemChangedCallback = MarkRequirementsAsModified
+                        };
+                        // Populate display names
+                        if (r.RequiredSoftwareOptionId.HasValue)
+                        {
+                            reqVm.RequiredSoftwareOptionName = AvailableSoftwareOptionsForRequirements
+                                .FirstOrDefault(so => so.SoftwareOptionId == r.RequiredSoftwareOptionId.Value)?.PrimaryName;
+                        }
+                        if (r.RequiredSpecCodeDefinitionId.HasValue)
+                        {
+                            reqVm.RequiredSpecCodeName = AvailableSpecCodesForRequirements
+                               .FirstOrDefault(sc => sc.SpecCodeDefinitionId == r.RequiredSpecCodeDefinitionId.Value)?.DisplayName;
+                        }
+                        Requirements.Add(reqVm);
+                    }
+                }
+
                 SpecificationCodes.Clear();
                 _originalSoftwareOption.SoftwareOptionSpecificationCodes?.ToList().ForEach(sosc =>
                 {
@@ -284,6 +454,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     vm.SpecCodeDisplayName = $"{vm.Category} - {vm.SpecCodeNo}/{vm.SpecCodeBit}";
                     SpecificationCodes.Add(vm);
                 });
+
                 ActivationRules.Clear();
                 _originalSoftwareOption.SoftwareOptionActivationRules?.ToList().ForEach(ar => ActivationRules.Add(new ActivationRuleViewModel { OriginalId = ar.SoftwareOptionActivationRuleId, RuleName = ar.RuleName, ActivationSetting = ar.ActivationSetting, Notes = ar.Notes, ItemChangedCallback = MarkActivationRulesAsModified }));
 
@@ -310,7 +481,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             var newSpecCodeInstance = new SpecCodeViewModel { IsDescriptionReadOnly = false };
 
             var dialogViewModel = new EditSpecCodeDialogViewModel(
-                _scopeFactory, // Pass the factory
+                _scopeFactory,
                 newSpecCodeInstance,
                 currentControlSystemName,
                 ControlSystemId.Value,
@@ -330,7 +501,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             string currentControlSystemName = AvailableControlSystems.FirstOrDefault(cs => cs.ControlSystemId == ControlSystemId.Value)?.Name ?? "Unknown";
 
             var dialogViewModel = new EditSpecCodeDialogViewModel(
-                _scopeFactory, // Pass the factory
+                _scopeFactory,
                 specCodeToEdit,
                 currentControlSystemName,
                 ControlSystemId.Value,
@@ -382,6 +553,24 @@ namespace RuleArchitect.DesktopClient.ViewModels
                         SpecificationCodes.Add(finalItem);
                         SelectedSpecificationCode = finalItem;
                     }
+                    else // Editing existing, ensure UI updates if properties were changed
+                    {
+                        // The finalItem IS the instance from the collection, so direct changes
+                        // in the dialog should already be reflected if bound two-way.
+                        // If not, or if a copy was edited, replace item here.
+                        // Forcing a refresh if needed:
+                        var existingItem = SpecificationCodes.FirstOrDefault(sc => sc.OriginalId == finalItem.OriginalId && finalItem.OriginalId != 0);
+                        if (existingItem != null && existingItem != finalItem)
+                        {
+                            int index = SpecificationCodes.IndexOf(existingItem);
+                            SpecificationCodes[index] = finalItem; // Replace
+                        }
+                        else if (existingItem == null && !isAddingNew && finalItem.OriginalId != 0)
+                        {
+                            //This case should ideally not happen if editing an existing item.
+                            //It means the item was removed from the list while dialog was open.
+                        }
+                    }
                     MarkSpecCodesAsModified();
                 }
             }
@@ -406,9 +595,10 @@ namespace RuleArchitect.DesktopClient.ViewModels
                         Category = vm.Category,
                         SpecCodeNo = vm.SpecCodeNo,
                         SpecCodeBit = vm.SpecCodeBit,
-                        Description = vm.Description,
+                        Description = vm.Description, // This will be used if SpecCodeDefinition is new
                         SoftwareOptionActivationRuleId = vm.SoftwareOptionActivationRuleId,
                         SpecificInterpretation = vm.SpecificInterpretation
+                        // Note: SpecCodeDefinitionId is resolved by the service based on Category,No,Bit,ControlSystem
                     }).ToList();
 
                     if (_isNewSoftwareOption)
@@ -461,7 +651,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                         var updatedOption = await softwareOptionService.UpdateSoftwareOptionAsync(updateDto, currentUser);
                         if (updatedOption != null)
                         {
-                            await LoadSoftwareOptionAsync(this.SoftwareOptionId);
+                            await LoadSoftwareOptionAsync(this.SoftwareOptionId); // Reload to get fresh data and reset dirty flags via Load
                             _notificationService.ShowSuccess($"Software Option '{updatedOption.PrimaryName}' updated successfully.", "Save Successful");
                             IsLoading = false; return true;
                         }
@@ -472,7 +662,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             catch (DbUpdateException dbEx)
             {
                 Console.WriteLine($"Database error saving Software Option: {dbEx.ToString()}");
-                if (dbEx.InnerException is Microsoft.Data.Sqlite.SqliteException sqliteEx && sqliteEx.SqliteErrorCode == 19)
+                if (dbEx.InnerException is Microsoft.Data.Sqlite.SqliteException sqliteEx && sqliteEx.SqliteErrorCode == 19) // Specific for SQLite unique constraint
                 {
                     _notificationService.ShowError($"Failed to save: A record with the same unique key (e.g., Spec Code No, Bit, Control System, Category) already exists. Details: {sqliteEx.Message}", "Save Error - Unique Constraint");
                 }
@@ -516,9 +706,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private void ExecuteAddOptionNumber()
         {
             var newOptionNumber = new OptionNumberViewModel { OptionNumber = "New #" };
-            newOptionNumber.ItemChangedCallback = MarkOptionNumbersAsModified;
+            newOptionNumber.ItemChangedCallback = MarkOptionNumbersAsModified; // Ensure new items also trigger dirty flag
             OptionNumbers.Add(newOptionNumber);
-            MarkOptionNumbersAsModified();
+            // MarkOptionNumbersAsModified(); // CollectionChanged already does this
         }
 
         private void ExecuteRemoveOptionNumber()
@@ -526,15 +716,17 @@ namespace RuleArchitect.DesktopClient.ViewModels
             if (SelectedOptionNumber != null)
             {
                 OptionNumbers.Remove(SelectedOptionNumber);
-                MarkOptionNumbersAsModified();
+                // MarkOptionNumbersAsModified(); // CollectionChanged already does this
             }
         }
         private void ExecuteAddRequirement()
         {
             var newReqVm = new RequirementViewModel();
-            newReqVm.ItemChangedCallback = MarkRequirementsAsModified;
+            // Set a default RequirementType if desired
+            newReqVm.RequirementType = RequirementViewModel.AvailableRequirementTypes.FirstOrDefault() ?? string.Empty;
+            newReqVm.ItemChangedCallback = MarkRequirementsAsModified; // Ensure new items also trigger dirty flag
             Requirements.Add(newReqVm);
-            MarkRequirementsAsModified();
+            // MarkRequirementsAsModified(); // CollectionChanged already does this
         }
 
         private void ExecuteRemoveRequirement()
@@ -542,7 +734,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             if (SelectedRequirement != null)
             {
                 Requirements.Remove(SelectedRequirement);
-                MarkRequirementsAsModified();
+                // MarkRequirementsAsModified(); // CollectionChanged already does this
             }
         }
         private void ExecuteRemoveSpecificationCode()
@@ -550,7 +742,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             if (SelectedSpecificationCode != null)
             {
                 SpecificationCodes.Remove(SelectedSpecificationCode);
-                MarkSpecCodesAsModified();
+                // MarkSpecCodesAsModified(); // CollectionChanged already does this
             }
         }
     }

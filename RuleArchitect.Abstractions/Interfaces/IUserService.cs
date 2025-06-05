@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace GenesisSentry.Interfaces
+namespace RuleArchitect.Abstractions.Interfaces
 {
     public interface IUserService
     {

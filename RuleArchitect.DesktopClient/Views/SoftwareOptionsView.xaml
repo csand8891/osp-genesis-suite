@@ -50,21 +50,21 @@
                     <Button Command="{Binding LoadCommand}" ToolTip="Refresh Software Options" Style="{StaticResource MaterialDesignToolButton}">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center"/>
-                            <TextBlock Text="Load" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <!--<TextBlock Text="Load" Margin="8,0,0,0" VerticalAlignment="Center"/>-->
                         </StackPanel>
                     </Button>
                     <Separator/>
                     <Button Command="{Binding AddCommand}" ToolTip="Add New Software Option" Style="{StaticResource MaterialDesignToolButton}">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="PlusBoxOutline" VerticalAlignment="Center"/>
-                            <TextBlock Text="Add" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="PlusOutline" VerticalAlignment="Center"/>
+                            <!--<TextBlock Text="Add" Margin="8,0,0,0" VerticalAlignment="Center"/>-->
                         </StackPanel>
                     </Button>
                     <Button Command="{Binding EditCommand}" ToolTip="Edit Selected Software Option"
                             IsEnabled="{Binding SelectedSoftwareOption, Converter={StaticResource NullToFalseConverter}}" Style="{StaticResource MaterialDesignToolButton}">
                         <StackPanel Orientation="Horizontal">
                             <materialDesign:PackIcon Kind="PencilOutline" VerticalAlignment="Center"/>
-                            <TextBlock Text="Edit" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <!--<TextBlock Text="Edit" Margin="8,0,0,0" VerticalAlignment="Center"/>-->
                         </StackPanel>
                     </Button>
                     <Button Command="{Binding DeleteCommand}" ToolTip="Delete Selected Software Option"
@@ -72,8 +72,8 @@
                             Style="{StaticResource MaterialDesignToolButton}"
                             Foreground="{DynamicResource MaterialDesignValidationErrorBrush}">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="DeleteOutline" VerticalAlignment="Center"/>
-                            <TextBlock Text="Delete" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="TrashCanOutline" VerticalAlignment="Center"/>
+                            <!--<TextBlock Text="Delete" Margin="8,0,0,0" VerticalAlignment="Center"/>-->
                         </StackPanel>
                     </Button>
                 </ToolBar>

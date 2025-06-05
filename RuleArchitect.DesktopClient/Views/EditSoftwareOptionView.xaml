@@ -9,7 +9,7 @@
              mc:Ignorable="d"
              FontFamily="{materialDesign:MaterialDesignFont}"
              d:DataContext="{d:DesignInstance Type=vm:EditSoftwareOptionViewModel, IsDesignTimeCreatable=True}"
-             d:DesignHeight="800" d:DesignWidth="550">
+             d:DesignHeight="1000" d:DesignWidth="550">
     <UserControl.Resources>
         <Style TargetType="Label" BasedOn="{StaticResource MaterialDesignLabel}">
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -36,6 +36,9 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,24,0">
         <Grid>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
@@ -203,6 +206,104 @@
                 </Button>
             </Grid>
 
+            <Separator Grid.Row="16" Grid.ColumnSpan="2" Margin="0,15,0,5"/>
+            <TextBlock Grid.Row="17" Grid.Column="0" Grid.ColumnSpan="2" Text="Requirements" 
+                       Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Margin="0,0,0,8"/>
+
+            <Grid Grid.Row="18" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,0,15">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="400" Grid.Row="0">
+                    <ItemsControl ItemsSource="{Binding Requirements}" 
+                                  Margin="0,0,0,8">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:RequirementViewModel}">
+                                <Border BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1" Padding="8" Margin="0,5">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" MinWidth="150"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="10" VerticalAlignment="Top" Margin="5,0,0,0"
+                                                Command="{Binding DataContext.RemoveRequirementCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
+                                                CommandParameter="{Binding}" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Remove Requirement">
+                                            <materialDesign:PackIcon Kind="MinusCircleOutline" Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"/>
+                                        </Button>
+
+                                        <Label Grid.Row="0" Grid.Column="0" Content="Requirement Type:"/>
+                                        <ComboBox Grid.Row="0" Grid.Column="1" Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                                                  ItemsSource="{Binding Source={x:Static vm:RequirementViewModel.AvailableRequirementTypes}}" 
+                                                  SelectedItem="{Binding RequirementType, UpdateSourceTrigger=PropertyChanged}"
+                                                  materialDesign:HintAssist.Hint="Select type"/>
+
+                                        <Label Grid.Row="1" Grid.Column="0" Content="Condition:"/>
+                                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Condition, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., If Option X is enabled"/>
+
+                                        <Label Grid.Row="2" Grid.Column="0" Content="Required Value:"/>
+                                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding GeneralRequiredValue, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="General value / Text"/>
+
+                                        <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Vertical"
+                                                    Visibility="{Binding RequirementType, Converter={StaticResource GlobalReqTypeToVis}, ConverterParameter='Software Option'}">
+                                            <Label Content="Required Software Option:"/>
+                                            <ComboBox ItemsSource="{Binding DataContext.AvailableSoftwareOptionsForRequirements, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
+                                                      SelectedValue="{Binding RequiredSoftwareOptionId, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Null}}"
+                                                      SelectedValuePath="SoftwareOptionId" 
+                                                      DisplayMemberPath="PrimaryName"
+                                                      materialDesign:HintAssist.Hint="Select required SO"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Vertical"
+                                                    Visibility="{Binding RequirementType, Converter={StaticResource GlobalReqTypeToVis}, ConverterParameter='Spec Code Definition'}">
+                                            <Label Content="Required Spec Code:"/>
+                                            <ComboBox ItemsSource="{Binding DataContext.AvailableSpecCodesForRequirements, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
+                                                      SelectedValue="{Binding RequiredSpecCodeDefinitionId, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Null}}"
+                                                      SelectedValuePath="SpecCodeDefinitionId" 
+                                                      DisplayMemberPath="DisplayName"
+                                                      materialDesign:HintAssist.Hint="Select required Spec Code"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Vertical"
+                                                    Visibility="{Binding RequirementType, Converter={StaticResource GlobalReqTypeToVis}, ConverterParameter='OSP File Version'}">
+                                            <Label Content="OSP File Name:"/>
+                                            <TextBox Text="{Binding OspFileName, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., MYFILE.OSP"/>
+                                            <Label Content="OSP File Version:"/>
+                                            <TextBox Text="{Binding OspFileVersion, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., 1.02"/>
+                                        </StackPanel>
+
+                                        <Label Grid.Row="7" Grid.Column="0" Content="Notes:"/>
+                                        <TextBox Grid.Row="7" Grid.Column="1" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" MinLines="2" materialDesign:HintAssist.Hint="Notes for this requirement"/>
+
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <Button Grid.Row="1" Command="{Binding AddRequirementCommand}" 
+                        Style="{StaticResource MaterialDesignFlatButton}" 
+                        HorizontalAlignment="Left" Margin="0,8,0,0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center"/>
+                        <TextBlock Text="Add Requirement" Margin="4,0,0,0"/>
+                    </StackPanel>
+                </Button>
+            </Grid>
         </Grid>
     </ScrollViewer>
 </UserControl>

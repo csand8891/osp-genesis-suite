@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Collections.Generic;
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
@@ -29,6 +30,11 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public string? OspFileName { get => _ospFileName; set => SetProperty(ref _ospFileName, value); }
         public string? OspFileVersion { get => _ospFileVersion; set => SetProperty(ref _ospFileVersion, value); }
         public string? Notes { get => _notes; set => SetProperty(ref _notes, value); }
+
+        public static List<string> AvailableRequirementTypes { get; } = new List<string>
+        {
+            "Software Option", "Spec Code", "OSP File Version", "General Text"
+        };
 
         // --- Properties for Display (You might load these via services or get them from parent VM's lookup lists) ---
         private string? _requiredSoftwareOptionName;

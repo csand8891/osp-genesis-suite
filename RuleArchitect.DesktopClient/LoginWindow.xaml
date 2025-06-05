@@ -52,13 +52,15 @@
 
         <Border Grid.Column="0" Background="{DynamicResource PrimaryHueMidBrush}">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32">
-                <materialDesign:PackIcon Kind="HexagonMultipleOutline" Height="120" Width="120"
-                                         Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
-                                         HorizontalAlignment="Center"/>
+                <Image Source="/genesis-suite-outline-icon-256x256.ico" 
+                   Height="256" 
+                   Width="256" 
+                   HorizontalAlignment="Center"
+                   RenderOptions.BitmapScalingMode="Fant" />
                 <TextBlock Text="OSP Genesis Suite"
                            Style="{StaticResource MaterialDesignHeadline4TextBlock}"
                            Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
-                           TextAlignment="Center" Margin="0,24,0,0"/>
+                           TextAlignment="Center" Margin="0,8,0,0"/>
                 <TextBlock Text="Orchestrating OSP Software Production, from Order to Machine"
                            Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
                            Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"

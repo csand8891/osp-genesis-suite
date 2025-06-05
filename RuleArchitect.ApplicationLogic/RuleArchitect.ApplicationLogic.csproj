@@ -120,28 +120,19 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
-    <Compile Include="DTOs\ControlSystemLookupDto.cs" />
     <Compile Include="DTOs\CreateOrderDto.cs" />
     <Compile Include="DTOs\CreateOrderItemDto.cs" />
-    <Compile Include="DTOs\CreateSoftwareOptionCommandDto.cs" />
-    <Compile Include="DTOs\OptionNumberRegistryCreateDto.cs" />
     <Compile Include="DTOs\OrderDetailDto.cs" />
     <Compile Include="DTOs\OrderFilterDto.cs" />
     <Compile Include="DTOs\OrderItemDto.cs" />
     <Compile Include="DTOs\OrderSummaryDto.cs" />
     <Compile Include="DTOs\OrderWorkflowActionDto.cs" />
-    <Compile Include="DTOs\RequirementCreateDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionActivationRuleCreateDto.cs" />
     <Compile Include="DTOs\SoftwareOptionDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionSpecificationCodeCreateDto.cs" />
-    <Compile Include="DTOs\SpecCodeDefinitionDetailDto.cs" />
     <Compile Include="DTOs\UpdateOrderDto.cs" />
-    <Compile Include="DTOs\UpdateSoftwareOptionCommandDto.cs" />
-    <Compile Include="Interfaces\IOrderService.cs" />
-    <Compile Include="Interfaces\ISoftwareOptionService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\OrderService.cs" />
     <Compile Include="Services\SoftwareOptionService.cs" />
+    <Compile Include="Services\UserActivityLogService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -160,10 +151,17 @@
       <Project>{bfb69c3c-c16c-42d9-a39f-45fb1d56f778}</Project>
       <Name>HeraldKit</Name>
     </ProjectReference>
+    <ProjectReference Include="..\RuleArchitect.Abstractions\RuleArchitect.Abstractions.csproj">
+      <Project>{47becf7c-b8a0-4641-babf-98f55eaf7c95}</Project>
+      <Name>RuleArchitect.Abstractions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RuleArchitect\RuleArchitect.csproj">
       <Project>{2e91c9c5-cbcd-03a1-fb79-b886b552cd87}</Project>
       <Name>RuleArchitect</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Interfaces\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
