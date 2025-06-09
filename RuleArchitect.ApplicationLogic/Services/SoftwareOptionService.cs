@@ -1,220 +1,101 @@
-﻿using RuleArchitect.ApplicationLogic.DTOs;
-using RuleArchitect.ApplicationLogic.Interfaces;
-using RuleArchitect.Entities;
+﻿using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.Data;
+using RuleArchitect.Entities;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace RuleArchitect.ApplicationLogic.Services
 {
-    /// <summary>
-    /// Service for managing Software Options, including creation, retrieval, updates, and deletion.
-    /// Implements ISoftwareOptionService.
-    /// </summary>
     public class SoftwareOptionService : ISoftwareOptionService
     {
-        private readonly RuleArchitectContext _context; // Stores the injected DbContext
+        private readonly RuleArchitectContext _context;
 
-        /// <summary>
-        /// Initializes a new instance of the SoftwareOptionService.
-        /// </summary>
-        /// <param name="context">The database context, injected via DI.</param>
         public SoftwareOptionService(RuleArchitectContext context)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context)); //
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        /// <summary>
-        /// Retrieves all software options.
-        /// </summary>
-        /// <returns>A list of all SoftwareOption entities.</returns>
-        public async Task<List<SoftwareOption>> GetAllSoftwareOptionsAsync()
+        public async Task<List<SoftwareOptionDto>> GetAllSoftwareOptionsAsync()
         {
             return await _context.SoftwareOptions
-                                .Include(so => so.ControlSystem)
-                                .ToListAsync(); //
+                .AsNoTracking()
+                .Include(so => so.ControlSystem)
+                .Select(so => MapEntityToDto(so))
+                .ToListAsync();
         }
 
-        /// <summary>
-        /// Retrieves a specific software option by its ID, including related data.
-        /// </summary>
-        /// <param name="softwareOptionId">The ID of the software option to retrieve.</param>
-        /// <returns>The SoftwareOption entity with its related data, or null if not found.</returns>
-        public async Task<SoftwareOption?> GetSoftwareOptionByIdAsync(int softwareOptionId)
+        public async Task<SoftwareOptionDetailDto?> GetSoftwareOptionByIdAsync(int softwareOptionId)
         {
-            return await _context.SoftwareOptions
-                                .Include(so => so.ControlSystem) //
-                                .Include(so => so.OptionNumberRegistries) //
-                                .Include(so => so.Requirements) //
-                                    .ThenInclude(r => r.RequiredSoftwareOption) //
-                                .Include(so => so.Requirements) //
-                                    .ThenInclude(r => r.RequiredSpecCodeDefinition) //
-                                .Include(so => so.SoftwareOptionSpecificationCodes) //
-                                    .ThenInclude(sosc => sosc.SpecCodeDefinition) //
-                                .Include(so => so.SoftwareOptionSpecificationCodes) //
-                                    .ThenInclude(sosc => sosc.SoftwareOptionActivationRule) //
-                                .Include(so => so.SoftwareOptionActivationRules) //
-                                .Include(so => so.ParameterMappings) //
-                                .FirstOrDefaultAsync(so => so.SoftwareOptionId == softwareOptionId); //
+            var entity = await _context.SoftwareOptions
+                .AsNoTracking()
+                .Include(so => so.ControlSystem)
+                .Include(so => so.OptionNumberRegistries)
+                .Include(so => so.Requirements)
+                .Include(so => so.SoftwareOptionActivationRules)
+                .Include(so => so.SoftwareOptionSpecificationCodes)
+                    .ThenInclude(sosc => sosc.SpecCodeDefinition)
+                .FirstOrDefaultAsync(so => so.SoftwareOptionId == softwareOptionId);
+
+            if (entity == null)
+            {
+                return null;
+            }
+
+            return MapEntityToDetailDto(entity);
         }
 
-        /// <summary>
-        /// Creates a new software option based on the provided command DTO.
-        /// </summary>
-        /// <param name="command">The DTO with data for the new option.</param>
-        /// <param name="currentUser">The identifier for the user creating the option.</param>
-        /// <returns>The newly created SoftwareOption entity.</returns>
-        public async Task<SoftwareOption> CreateSoftwareOptionAsync(CreateSoftwareOptionCommandDto command, string currentUser)
+        public async Task<SoftwareOptionDto?> CreateSoftwareOptionAsync(CreateSoftwareOptionCommandDto command, string currentUser)
         {
-            if (command == null)
-                throw new ArgumentNullException(nameof(command));
-            if (string.IsNullOrWhiteSpace(command.PrimaryName))
-                throw new ArgumentException("PrimaryName is required.", nameof(command.PrimaryName));
-            if (!command.ControlSystemId.HasValue || command.ControlSystemId.Value <= 0)
-                throw new ArgumentException("Valid ControlSystemId is required.", nameof(command.ControlSystemId));
+            if (command == null) throw new ArgumentNullException(nameof(command));
+            if (string.IsNullOrWhiteSpace(command.PrimaryName)) throw new ArgumentException("PrimaryName is required.", nameof(command.PrimaryName));
+            if (!command.ControlSystemId.HasValue || command.ControlSystemId.Value <= 0) throw new ArgumentException("Valid ControlSystemId is required.", nameof(command.ControlSystemId));
 
-            var newSoftwareOption = new SoftwareOption
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                PrimaryName = command.PrimaryName,
-                AlternativeNames = command.AlternativeNames,
-                SourceFileName = command.SourceFileName,
-                PrimaryOptionNumberDisplay = command.PrimaryOptionNumberDisplay, // Ensure this is still intended
-                Notes = command.Notes,
-                ControlSystemId = command.ControlSystemId.Value,
-                Version = 1,
-                LastModifiedDate = DateTime.UtcNow,
-                LastModifiedBy = currentUser
-            };
-
-            _context.SoftwareOptions.Add(newSoftwareOption);
-            // Save here to get newSoftwareOption.SoftwareOptionId, crucial for related entities
-            await _context.SaveChangesAsync();
-
-            // Option Numbers
-            if (command.OptionNumbers != null)
-            {
-                foreach (var onrDto in command.OptionNumbers)
+                try
                 {
-                    _context.OptionNumberRegistries.Add(new OptionNumberRegistry { SoftwareOptionId = newSoftwareOption.SoftwareOptionId, OptionNumber = onrDto.OptionNumber });
-                }
-            }
-
-            // Requirements
-            if (command.Requirements != null)
-            {
-                foreach (var reqDto in command.Requirements)
-                {
-                    _context.Requirements.Add(new Requirement
+                    var newSoftwareOption = new SoftwareOption
                     {
-                        SoftwareOptionId = newSoftwareOption.SoftwareOptionId,
-                        RequirementType = reqDto.RequirementType,
-                        Condition = reqDto.Condition,
-                        GeneralRequiredValue = reqDto.GeneralRequiredValue ?? string.Empty,
-                        RequiredSoftwareOptionId = reqDto.RequiredSoftwareOptionId,
-                        RequiredSpecCodeDefinitionId = reqDto.RequiredSpecCodeDefinitionId,
-                        OspFileName = reqDto.OspFileName,
-                        OspFileVersion = reqDto.OspFileVersion,
-                        Notes = reqDto.Notes
-                    });
-                }
-            }
-
-            // SoftwareOptionActivationRules
-            if (command.ActivationRules != null)
-            {
-                foreach (var ruleDto in command.ActivationRules)
-                {
-                    _context.SoftwareOptionActivationRules.Add(new SoftwareOptionActivationRule
-                    {
-                        SoftwareOptionId = newSoftwareOption.SoftwareOptionId,
-                        RuleName = ruleDto.RuleName,
-                        ActivationSetting = ruleDto.ActivationSetting,
-                        Notes = ruleDto.Notes
-                    });
-                }
-            }
-
-            // ** UPDATED LOGIC for SpecificationCodes **
-            if (command.SpecificationCodes != null && command.SpecificationCodes.Any())
-            {
-                foreach (var soscDto in command.SpecificationCodes)
-                {
-                    // Find or Create SpecCodeDefinition
-                    SpecCodeDefinition? specDef = await _context.SpecCodeDefinitions
-                        .FirstOrDefaultAsync(scd =>
-                            scd.ControlSystemId == newSoftwareOption.ControlSystemId.Value && // Use parent SO's ControlSystemId
-                            scd.Category == soscDto.Category &&
-                            scd.SpecCodeNo == soscDto.SpecCodeNo &&
-                            scd.SpecCodeBit == soscDto.SpecCodeBit);
-
-                    if (specDef == null) // Create new if not found
-                    {
-                        specDef = new SpecCodeDefinition
-                        {
-                            ControlSystemId = newSoftwareOption.ControlSystemId.Value,
-                            Category = soscDto.Category,
-                            SpecCodeNo = soscDto.SpecCodeNo,
-                            SpecCodeBit = soscDto.SpecCodeBit,
-                            Description = soscDto.Description
-                        };
-                        _context.SpecCodeDefinitions.Add(specDef);
-                        // EF Core will handle inserting this and getting its ID for the FK below
-                        // when the final SaveChangesAsync is called.
-                    }
-                    else if (specDef.Description != soscDto.Description && soscDto.Description != null)
-                    {
-                        // Optionally update description if it's different and provided in DTO
-                        specDef.Description = soscDto.Description;
-                    }
-
-                    var newSosc = new SoftwareOptionSpecificationCode
-                    {
-                        SoftwareOption = newSoftwareOption, // Link to the parent SoftwareOption entity
-                        SpecCodeDefinition = specDef,      // Link to the found or newly added SpecCodeDefinition entity
-                        SoftwareOptionActivationRuleId = soscDto.SoftwareOptionActivationRuleId,
-                        SpecificInterpretation = soscDto.SpecificInterpretation
+                        PrimaryName = command.PrimaryName,
+                        AlternativeNames = command.AlternativeNames,
+                        SourceFileName = command.SourceFileName,
+                        PrimaryOptionNumberDisplay = command.PrimaryOptionNumberDisplay,
+                        Notes = command.Notes,
+                        ControlSystemId = command.ControlSystemId.Value,
+                        Version = 1,
+                        LastModifiedDate = DateTime.UtcNow,
+                        LastModifiedBy = currentUser
                     };
-                    _context.SoftwareOptionSpecificationCodes.Add(newSosc);
+
+                    _context.SoftwareOptions.Add(newSoftwareOption);
+                    await _context.SaveChangesAsync();
+
+                    await ProcessOptionNumbersAsync(newSoftwareOption, command.OptionNumbers);
+                    await ProcessRequirementsAsync(newSoftwareOption, command.Requirements);
+                    await ProcessActivationRulesAsync(newSoftwareOption, command.ActivationRules);
+                    await ProcessSpecificationCodesAsync(newSoftwareOption, command.SpecificationCodes);
+
+                    _context.SoftwareOptionHistories.Add(CreateHistoryFromOption(newSoftwareOption));
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return await GetSoftwareOptionByIdAsync(newSoftwareOption.SoftwareOptionId);
+                }
+                catch (Exception)
+                {
+                    await transaction.RollbackAsync();
+                    throw;
                 }
             }
-
-            // Create the initial history record
-            var initialHistory = new SoftwareOptionHistory
-            {
-                SoftwareOptionId = newSoftwareOption.SoftwareOptionId,
-                Version = newSoftwareOption.Version,
-                PrimaryName = newSoftwareOption.PrimaryName,
-                AlternativeNames = newSoftwareOption.AlternativeNames,
-                SourceFileName = newSoftwareOption.SourceFileName,
-                PrimaryOptionNumberDisplay = newSoftwareOption.PrimaryOptionNumberDisplay,
-                Notes = newSoftwareOption.Notes,
-                ControlSystemId = newSoftwareOption.ControlSystemId,
-                CheckedBy = newSoftwareOption.CheckedBy,
-                CheckedDate = newSoftwareOption.CheckedDate,
-                ChangeTimestamp = newSoftwareOption.LastModifiedDate,
-                ChangedBy = newSoftwareOption.LastModifiedBy
-            };
-            _context.SoftwareOptionHistories.Add(initialHistory);
-
-            await _context.SaveChangesAsync(); // Save all related entities and history
-
-            return newSoftwareOption;
         }
 
-        /// <summary>
-        /// Updates an existing software option based on the provided command DTO,
-        /// handling partial updates for collections and ensuring versioning.
-        /// </summary>
-        /// <param name="command">The DTO with data for the update.</param>
-        /// <param name="currentUser">The identifier for the user performing the update.</param>
-        /// <returns>The updated SoftwareOption entity, or null if not found.</returns>
-        public async Task<SoftwareOption?> UpdateSoftwareOptionAsync(UpdateSoftwareOptionCommandDto command, string currentUser)
+        public async Task<SoftwareOptionDto?> UpdateSoftwareOptionAsync(UpdateSoftwareOptionCommandDto command, string currentUser)
         {
-            // Wrap in a transaction for atomicity if multiple SaveChangesAsync calls or complex logic
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
@@ -222,190 +103,103 @@ namespace RuleArchitect.ApplicationLogic.Services
                     var softwareOptionToUpdate = await _context.SoftwareOptions
                         .Include(so => so.OptionNumberRegistries)
                         .Include(so => so.Requirements)
-                            .ThenInclude(r => r.RequiredSpecCodeDefinition) // For full Requirement mapping
-                        .Include(so => so.SoftwareOptionSpecificationCodes)
-                            .ThenInclude(sosc => sosc.SpecCodeDefinition) // For full SpecCode mapping
                         .Include(so => so.SoftwareOptionActivationRules)
+                        .Include(so => so.SoftwareOptionSpecificationCodes)
                         .FirstOrDefaultAsync(so => so.SoftwareOptionId == command.SoftwareOptionId);
 
-                    if (softwareOptionToUpdate == null)
-                    {
-                        await transaction.RollbackAsync();
-                        return null;
-                    }
+                    if (softwareOptionToUpdate == null) return null;
 
-                    bool anyPropertyChanged = false;
-                    void UpdateProperty<T>(T currentValue, T newValue, Action<T> setter)
-                    {
-                        if (!EqualityComparer<T>.Default.Equals(currentValue, newValue))
-                        {
-                            setter(newValue);
-                            anyPropertyChanged = true;
-                        }
-                    }
+                    bool isModified = false;
+                    if (softwareOptionToUpdate.PrimaryName != command.PrimaryName) { softwareOptionToUpdate.PrimaryName = command.PrimaryName; isModified = true; }
+                    if (softwareOptionToUpdate.AlternativeNames != command.AlternativeNames) { softwareOptionToUpdate.AlternativeNames = command.AlternativeNames; isModified = true; }
+                    if (softwareOptionToUpdate.SourceFileName != command.SourceFileName) { softwareOptionToUpdate.SourceFileName = command.SourceFileName; isModified = true; }
+                    if (softwareOptionToUpdate.PrimaryOptionNumberDisplay != command.PrimaryOptionNumberDisplay) { softwareOptionToUpdate.PrimaryOptionNumberDisplay = command.PrimaryOptionNumberDisplay; isModified = true; }
+                    if (softwareOptionToUpdate.Notes != command.Notes) { softwareOptionToUpdate.Notes = command.Notes; isModified = true; }
+                    if (softwareOptionToUpdate.ControlSystemId != command.ControlSystemId) { softwareOptionToUpdate.ControlSystemId = command.ControlSystemId; isModified = true; }
+                    if (softwareOptionToUpdate.CheckedBy != command.CheckedBy) { softwareOptionToUpdate.CheckedBy = command.CheckedBy; isModified = true; }
+                    if (softwareOptionToUpdate.CheckedDate != command.CheckedDate) { softwareOptionToUpdate.CheckedDate = command.CheckedDate; isModified = true; }
 
-                    UpdateProperty(softwareOptionToUpdate.PrimaryName, command.PrimaryName, v => softwareOptionToUpdate.PrimaryName = v);
-                    // ... (map other scalar properties as in your file) ...
-                    UpdateProperty(softwareOptionToUpdate.AlternativeNames, command.AlternativeNames, v => softwareOptionToUpdate.AlternativeNames = v);
-                    UpdateProperty(softwareOptionToUpdate.SourceFileName, command.SourceFileName, v => softwareOptionToUpdate.SourceFileName = v);
-                    UpdateProperty(softwareOptionToUpdate.PrimaryOptionNumberDisplay, command.PrimaryOptionNumberDisplay, v => softwareOptionToUpdate.PrimaryOptionNumberDisplay = v);
-                    UpdateProperty(softwareOptionToUpdate.Notes, command.Notes, v => softwareOptionToUpdate.Notes = v);
-                    UpdateProperty(softwareOptionToUpdate.ControlSystemId, command.ControlSystemId, v => softwareOptionToUpdate.ControlSystemId = v);
-                    UpdateProperty(softwareOptionToUpdate.CheckedBy, command.CheckedBy, v => softwareOptionToUpdate.CheckedBy = v);
-                    UpdateProperty(softwareOptionToUpdate.CheckedDate, command.CheckedDate, v => softwareOptionToUpdate.CheckedDate = v);
+                    if (command.OptionNumbers != null) { await ProcessOptionNumbersAsync(softwareOptionToUpdate, command.OptionNumbers); isModified = true; }
+                    if (command.Requirements != null) { await ProcessRequirementsAsync(softwareOptionToUpdate, command.Requirements); isModified = true; }
+                    if (command.ActivationRules != null) { await ProcessActivationRulesAsync(softwareOptionToUpdate, command.ActivationRules); isModified = true; }
+                    if (command.SpecificationCodes != null) { await ProcessSpecificationCodesAsync(softwareOptionToUpdate, command.SpecificationCodes); isModified = true; }
 
-
-                    // Handle collections (replace entire collection if DTO provides it)
-                    if (command.OptionNumbers != null) { /* ... remove old, add new ... */ anyPropertyChanged = true; }
-                    if (command.Requirements != null) { /* ... remove old, add new ... */ anyPropertyChanged = true; }
-                    if (command.ActivationRules != null) { /* ... remove old, add new ... */ anyPropertyChanged = true; }
-
-                    // ** UPDATED LOGIC for SpecificationCodes during Update **
-                    if (command.SpecificationCodes != null)
-                    {
-                        _context.SoftwareOptionSpecificationCodes.RemoveRange(softwareOptionToUpdate.SoftwareOptionSpecificationCodes);
-                        // softwareOptionToUpdate.SoftwareOptionSpecificationCodes.Clear(); // Not needed if RemoveRange detaches
-
-                        var newSoscEntities = new List<SoftwareOptionSpecificationCode>();
-                        foreach (var soscDto in command.SpecificationCodes)
-                        {
-                            SpecCodeDefinition? specDef = await _context.SpecCodeDefinitions
-                               .FirstOrDefaultAsync(scd =>
-                                   scd.ControlSystemId == softwareOptionToUpdate.ControlSystemId && // Use parent SO's ControlSystemId
-                                   scd.Category == soscDto.Category &&
-                                   scd.SpecCodeNo == soscDto.SpecCodeNo &&
-                                   scd.SpecCodeBit == soscDto.SpecCodeBit);
-
-                            if (specDef == null)
-                            {
-                                specDef = new SpecCodeDefinition
-                                {
-                                    ControlSystemId = softwareOptionToUpdate.ControlSystemId.Value,
-                                    Category = soscDto.Category,
-                                    SpecCodeNo = soscDto.SpecCodeNo,
-                                    SpecCodeBit = soscDto.SpecCodeBit,
-                                    Description = soscDto.Description
-                                };
-                                _context.SpecCodeDefinitions.Add(specDef);
-                            }
-                            else if (specDef.Description != soscDto.Description && soscDto.Description != null)
-                            {
-                                specDef.Description = soscDto.Description;
-                            }
-
-                            newSoscEntities.Add(new SoftwareOptionSpecificationCode
-                            {
-                                SoftwareOption = softwareOptionToUpdate,
-                                SpecCodeDefinition = specDef,
-                                SoftwareOptionActivationRuleId = soscDto.SoftwareOptionActivationRuleId,
-                                SpecificInterpretation = soscDto.SpecificInterpretation
-                            });
-                        }
-                        _context.SoftwareOptionSpecificationCodes.AddRange(newSoscEntities);
-                        anyPropertyChanged = true;
-                    }
-
-
-                    if (anyPropertyChanged)
+                    if (isModified)
                     {
                         softwareOptionToUpdate.Version += 1;
                         softwareOptionToUpdate.LastModifiedDate = DateTime.UtcNow;
                         softwareOptionToUpdate.LastModifiedBy = currentUser;
-                        // _context.SoftwareOptions.Update(softwareOptionToUpdate); // Only needed if entity wasn't tracked
 
-                        _context.SoftwareOptionHistories.Add(new SoftwareOptionHistory { /* map from softwareOptionToUpdate */ });
+                        _context.SoftwareOptionHistories.Add(CreateHistoryFromOption(softwareOptionToUpdate));
                         await _context.SaveChangesAsync();
                     }
 
                     await transaction.CommitAsync();
-                    return softwareOptionToUpdate;
+                    return await GetSoftwareOptionByIdAsync(softwareOptionToUpdate.SoftwareOptionId);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     await transaction.RollbackAsync();
-                    Console.WriteLine($"An error occurred during UpdateSoftwareOptionAsync: {ex.ToString()}");
                     throw;
                 }
             }
         }
 
-        /// <summary>
-        /// Retrieves the history of changes for a specific software option.
-        /// </summary>
-        /// <param name="softwareOptionId">The ID of the software option.</param>
-        /// <returns>A list of SoftwareOptionHistory entities, ordered by version descending.</returns>
-        public async Task<List<SoftwareOptionHistory>> GetSoftwareOptionHistoryAsync(int softwareOptionId)
+        public async Task<List<SoftwareOptionHistoryDto>> GetSoftwareOptionHistoryAsync(int softwareOptionId)
         {
             return await _context.SoftwareOptionHistories
-                                 .Where(h => h.SoftwareOptionId == softwareOptionId) //
-                                 .OrderByDescending(h => h.Version) //
-                                 .ToListAsync(); //
+                .AsNoTracking()
+                .Where(h => h.SoftwareOptionId == softwareOptionId)
+                .OrderByDescending(h => h.Version)
+                .Select(h => new SoftwareOptionHistoryDto
+                {
+                    SoftwareOptionHistoryId = h.SoftwareOptionHistoryId,
+                    SoftwareOptionId = h.SoftwareOptionId,
+                    Version = h.Version,
+                    PrimaryName = h.PrimaryName,
+                    AlternativeNames = h.AlternativeNames,
+                    SourceFileName = h.SourceFileName,
+                    Notes = h.Notes,
+                    ControlSystemId = h.ControlSystemId,
+                    ChangeTimestamp = h.ChangeTimestamp,
+                    ChangedBy = h.ChangedBy
+                })
+                .ToListAsync();
         }
 
-        /// <summary>
-        /// Deletes a software option by its ID.
-        /// </summary>
-        /// <param name="softwareOptionId">The ID of the software option to delete.</param>
-        /// <returns>True if deletion was successful, false otherwise (e.g., not found or DB error).</returns>
         public async Task<bool> DeleteSoftwareOptionAsync(int softwareOptionId)
         {
-            try
-            {
-                var softwareOptionToDelete = await _context.SoftwareOptions
-                    .FirstOrDefaultAsync(so => so.SoftwareOptionId == softwareOptionId); //
+            var softwareOptionToDelete = await _context.SoftwareOptions
+                .FirstOrDefaultAsync(so => so.SoftwareOptionId == softwareOptionId);
 
-                if (softwareOptionToDelete == null)
-                {
-                    return false; //
-                }
+            if (softwareOptionToDelete == null) return false;
 
-                _context.SoftwareOptions.Remove(softwareOptionToDelete); //
-                await _context.SaveChangesAsync(); //
-                return true;
-            }
-            catch (DbUpdateException dbEx)
-            {
-                Console.WriteLine($"Database error during DeleteSoftwareOptionAsync (check FK constraints): {dbEx.ToString()}");
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An error occurred during DeleteSoftwareOptionAsync: {ex.ToString()}"); //
-                return false;
-            }
+            _context.SoftwareOptions.Remove(softwareOptionToDelete);
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public async Task<List<ControlSystemLookupDto>> GetControlSystemLookupsAsync()
         {
             return await _context.ControlSystems
-                .AsNoTracking()
-                .Select(cs => new ControlSystemLookupDto
-                {
-                    ControlSystemId = cs.ControlSystemId,
-                    Name = cs.Name
-                    // If you add MachineTypeName to DTO:
-                    // MachineTypeName = cs.MachineType.Name // Requires .Include(cs => cs.MachineType)
-                })
-                .OrderBy(cs => cs.Name) // Optional: Order by name
-                .ToListAsync();
+               .AsNoTracking()
+               .Select(cs => new ControlSystemLookupDto { ControlSystemId = cs.ControlSystemId, Name = cs.Name })
+               .OrderBy(cs => cs.Name)
+               .ToListAsync();
         }
 
         public async Task<List<SpecCodeDefinitionDetailDto>> GetSpecCodeDefinitionsForControlSystemAsync(int controlSystemId)
         {
-            if (controlSystemId <= 0)
-            {
-                return new List<SpecCodeDefinitionDetailDto>(); // Or throw ArgumentOutOfRangeException
-            }
+            if (controlSystemId <= 0) return new List<SpecCodeDefinitionDetailDto>();
 
             return await _context.SpecCodeDefinitions
                 .AsNoTracking()
-                .Include(scd => scd.ControlSystem) // Include ControlSystem to get its name
                 .Where(scd => scd.ControlSystemId == controlSystemId)
                 .Select(scd => new SpecCodeDefinitionDetailDto
                 {
                     SpecCodeDefinitionId = scd.SpecCodeDefinitionId,
                     ControlSystemId = scd.ControlSystemId,
-                    ControlSystemName = scd.ControlSystem.Name, // Assumes ControlSystem entity is loaded
+                    ControlSystemName = scd.ControlSystem.Name,
                     Category = scd.Category,
                     SpecCodeNo = scd.SpecCodeNo,
                     SpecCodeBit = scd.SpecCodeBit,
@@ -421,34 +215,129 @@ namespace RuleArchitect.ApplicationLogic.Services
         {
             if (controlSystemId <= 0 || string.IsNullOrWhiteSpace(category) || string.IsNullOrWhiteSpace(specCodeNo) || string.IsNullOrWhiteSpace(specCodeBit))
             {
-                // Or throw ArgumentException for invalid parameters
                 return null;
             }
 
             var specCodeDefinition = await _context.SpecCodeDefinitions
                 .AsNoTracking()
-                .Include(scd => scd.ControlSystem) // Include ControlSystem to get its name
                 .FirstOrDefaultAsync(scd =>
                     scd.ControlSystemId == controlSystemId &&
                     scd.Category == category &&
                     scd.SpecCodeNo == specCodeNo &&
                     scd.SpecCodeBit == specCodeBit);
 
-            if (specCodeDefinition == null)
-            {
-                return null;
-            }
+            if (specCodeDefinition == null) return null;
 
             return new SpecCodeDefinitionDetailDto
             {
                 SpecCodeDefinitionId = specCodeDefinition.SpecCodeDefinitionId,
                 ControlSystemId = specCodeDefinition.ControlSystemId,
-                ControlSystemName = specCodeDefinition.ControlSystem.Name, // Assumes ControlSystem entity is loaded
+                ControlSystemName = (await _context.ControlSystems.FindAsync(specCodeDefinition.ControlSystemId))?.Name,
                 Category = specCodeDefinition.Category,
                 SpecCodeNo = specCodeDefinition.SpecCodeNo,
                 SpecCodeBit = specCodeDefinition.SpecCodeBit,
                 Description = specCodeDefinition.Description
             };
         }
+
+        #region Private Helper Methods
+
+        private SoftwareOptionDto MapEntityToDto(SoftwareOption entity)
+        {
+            return new SoftwareOptionDto
+            {
+                SoftwareOptionId = entity.SoftwareOptionId,
+                PrimaryName = entity.PrimaryName,
+                AlternativeNames = entity.AlternativeNames,
+                SourceFileName = entity.SourceFileName,
+                PrimaryOptionNumberDisplay = entity.PrimaryOptionNumberDisplay,
+                Notes = entity.Notes,
+                ControlSystemId = entity.ControlSystemId.GetValueOrDefault(),
+                ControlSystemName = entity.ControlSystem?.Name,
+                Version = entity.Version,
+                LastModifiedDate = entity.LastModifiedDate,
+                LastModifiedBy = entity.LastModifiedBy
+            };
+        }
+
+        private SoftwareOptionDetailDto MapEntityToDetailDto(SoftwareOption entity)
+        {
+            return new SoftwareOptionDetailDto
+            {
+                SoftwareOptionId = entity.SoftwareOptionId,
+                PrimaryName = entity.PrimaryName,
+                AlternativeNames = entity.AlternativeNames,
+                SourceFileName = entity.SourceFileName,
+                PrimaryOptionNumberDisplay = entity.PrimaryOptionNumberDisplay,
+                Notes = entity.Notes,
+                ControlSystemId = entity.ControlSystemId.GetValueOrDefault(),
+                ControlSystemName = entity.ControlSystem?.Name,
+                Version = entity.Version,
+                LastModifiedDate = entity.LastModifiedDate,
+                LastModifiedBy = entity.LastModifiedBy,
+                OptionNumbers = entity.OptionNumberRegistries.Select(onr => new OptionNumberRegistryCreateDto { OptionNumber = onr.OptionNumber }).ToList(),
+                Requirements = entity.Requirements.Select(r => new RequirementCreateDto { RequirementType = r.RequirementType, Condition = r.Condition, GeneralRequiredValue = r.GeneralRequiredValue, RequiredSoftwareOptionId = r.RequiredSoftwareOptionId, RequiredSpecCodeDefinitionId = r.RequiredSpecCodeDefinitionId, OspFileName = r.OspFileName, OspFileVersion = r.OspFileVersion, Notes = r.Notes }).ToList(),
+                ActivationRules = entity.SoftwareOptionActivationRules.Select(ar => new SoftwareOptionActivationRuleCreateDto { RuleName = ar.RuleName, ActivationSetting = ar.ActivationSetting, Notes = ar.Notes }).ToList(),
+                SpecificationCodes = entity.SoftwareOptionSpecificationCodes.Select(sosc => new SoftwareOptionSpecificationCodeCreateDto { Category = sosc.SpecCodeDefinition.Category, SpecCodeNo = sosc.SpecCodeDefinition.SpecCodeNo, SpecCodeBit = sosc.SpecCodeDefinition.SpecCodeBit, Description = sosc.SpecCodeDefinition.Description, SoftwareOptionActivationRuleId = sosc.SoftwareOptionActivationRuleId, SpecificInterpretation = sosc.SpecificInterpretation }).ToList()
+            };
+        }
+
+        private SoftwareOptionHistory CreateHistoryFromOption(SoftwareOption option)
+        {
+            return new SoftwareOptionHistory { SoftwareOptionId = option.SoftwareOptionId, Version = option.Version, PrimaryName = option.PrimaryName, AlternativeNames = option.AlternativeNames, SourceFileName = option.SourceFileName, PrimaryOptionNumberDisplay = option.PrimaryOptionNumberDisplay, Notes = option.Notes, CheckedBy = option.CheckedBy, CheckedDate = option.CheckedDate, ControlSystemId = option.ControlSystemId, ChangeTimestamp = option.LastModifiedDate, ChangedBy = option.LastModifiedBy };
+        }
+
+        private async Task ProcessOptionNumbersAsync(SoftwareOption option, List<OptionNumberRegistryCreateDto> dtos)
+        {
+            option.OptionNumberRegistries ??= new List<OptionNumberRegistry>();
+            _context.OptionNumberRegistries.RemoveRange(option.OptionNumberRegistries);
+            if (dtos != null)
+            {
+                foreach (var dto in dtos) option.OptionNumberRegistries.Add(new OptionNumberRegistry { OptionNumber = dto.OptionNumber });
+            }
+        }
+
+        private async Task ProcessRequirementsAsync(SoftwareOption option, List<RequirementCreateDto> dtos)
+        {
+            option.Requirements ??= new List<Requirement>();
+            _context.Requirements.RemoveRange(option.Requirements);
+            if (dtos != null)
+            {
+                foreach (var dto in dtos) option.Requirements.Add(new Requirement { RequirementType = dto.RequirementType, Condition = dto.Condition, GeneralRequiredValue = dto.GeneralRequiredValue ?? string.Empty, RequiredSoftwareOptionId = dto.RequiredSoftwareOptionId, RequiredSpecCodeDefinitionId = dto.RequiredSpecCodeDefinitionId, OspFileName = dto.OspFileName, OspFileVersion = dto.OspFileVersion, Notes = dto.Notes });
+            }
+        }
+
+        private async Task ProcessActivationRulesAsync(SoftwareOption option, List<SoftwareOptionActivationRuleCreateDto> dtos)
+        {
+            option.SoftwareOptionActivationRules ??= new List<SoftwareOptionActivationRule>();
+            _context.SoftwareOptionActivationRules.RemoveRange(option.SoftwareOptionActivationRules);
+            if (dtos != null)
+            {
+                foreach (var dto in dtos) option.SoftwareOptionActivationRules.Add(new SoftwareOptionActivationRule { RuleName = dto.RuleName, ActivationSetting = dto.ActivationSetting, Notes = dto.Notes });
+            }
+        }
+
+        private async Task ProcessSpecificationCodesAsync(SoftwareOption option, List<SoftwareOptionSpecificationCodeCreateDto> dtos)
+        {
+            option.SoftwareOptionSpecificationCodes ??= new List<SoftwareOptionSpecificationCode>();
+            _context.SoftwareOptionSpecificationCodes.RemoveRange(option.SoftwareOptionSpecificationCodes);
+            if (dtos != null)
+            {
+                foreach (var dto in dtos)
+                {
+                    if (!option.ControlSystemId.HasValue) throw new InvalidOperationException("Cannot process specification codes for a Software Option with no Control System assigned.");
+
+                    SpecCodeDefinition? specDef = await _context.SpecCodeDefinitions.FirstOrDefaultAsync(scd => scd.ControlSystemId == option.ControlSystemId.Value && scd.Category == dto.Category && scd.SpecCodeNo == dto.SpecCodeNo && scd.SpecCodeBit == dto.SpecCodeBit);
+                    if (specDef == null)
+                    {
+                        specDef = new SpecCodeDefinition { ControlSystemId = option.ControlSystemId.Value, Category = dto.Category, SpecCodeNo = dto.SpecCodeNo, SpecCodeBit = dto.SpecCodeBit, Description = dto.Description };
+                        _context.SpecCodeDefinitions.Add(specDef);
+                    }
+
+                    option.SoftwareOptionSpecificationCodes.Add(new SoftwareOptionSpecificationCode { SpecCodeDefinition = specDef, SoftwareOptionActivationRuleId = dto.SoftwareOptionActivationRuleId, SpecificInterpretation = dto.SpecificInterpretation });
+                }
+            }
+        }
+        #endregion
     }
 }

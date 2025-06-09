@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GenesisSentry.DTOs;
-using GenesisSentry.Interfaces;
+using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.Interfaces;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 

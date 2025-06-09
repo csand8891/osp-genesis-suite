@@ -1,10 +1,10 @@
 ﻿// In RuleArchitect.ApplicationLogic/DTOs/UpdateOrderDto.cs
-using RuleArchitect.Entities; // For OrderStatus
+using RuleArchitect.Abstractions.Enums; // For OrderStatus
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace RuleArchitect.ApplicationLogic.DTOs
+namespace RuleArchitect.Abstractions.DTOs
 {
     /// <summary>
     /// Data Transfer Object for updating an existing order.

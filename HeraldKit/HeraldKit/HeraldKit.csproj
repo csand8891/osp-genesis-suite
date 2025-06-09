@@ -42,12 +42,20 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Implementations\InMemoryNotificationStore.cs" />
-    <Compile Include="Interfaces\INotificationService.cs" />
-    <Compile Include="Interfaces\INotificationStore.cs" />
-    <Compile Include="Models\NotificationMessage.cs" />
-    <Compile Include="Models\StoreChangeAction.cs" />
-    <Compile Include="Models\StoreChangedEventArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Interfaces\" />
+    <Folder Include="Models\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\RuleArchitect.Abstractions\RuleArchitect.Abstractions.csproj">
+      <Project>{47becf7c-b8a0-4641-babf-98f55eaf7c95}</Project>
+      <Name>RuleArchitect.Abstractions</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

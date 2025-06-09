@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using GenesisSentry.DTOs;
+using RuleArchitect.Abstractions.DTOs;
 using GenesisSentry.Entities;
 using GenesisSentry.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using RuleArchitect.Abstractions.Interfaces;
 
 namespace GenesisSentry.Services
 {

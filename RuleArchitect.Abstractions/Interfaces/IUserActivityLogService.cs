@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using RuleArchitect.ApplicationLogic.DTOs;
-using RuleArchitect.Entities;
+using RuleArchitect.Abstractions.DTOs;
 
 
 namespace RuleArchitect.Abstractions.Interfaces

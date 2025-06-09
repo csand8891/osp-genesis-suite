@@ -1,5 +1,5 @@
 ﻿// File: RuleArchitect.DesktopClient/ViewModels/UserEditViewModel.cs
-using GenesisSentry.DTOs;
+using RuleArchitect.Abstractions.DTOs;
 using RuleArchitect.DesktopClient.Commands;
 using System;
 using System.Collections.Generic;

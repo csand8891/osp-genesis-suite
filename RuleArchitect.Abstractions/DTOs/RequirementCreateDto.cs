@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 // In RuleArchitect.ApplicationLogic/DTOs/SoftwareOption/RequirementCreateDto.cs
-namespace RuleArchitect.ApplicationLogic.DTOs
+namespace RuleArchitect.Abstractions.DTOs
 {
     public class RequirementCreateDto
     {

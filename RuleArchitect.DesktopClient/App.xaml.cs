@@ -1,12 +1,12 @@
 ﻿using GenesisOrderGateway.Interfaces; // For IGenesisOrderGateway
 using GenesisOrderGateway.Services;  // For PdfOrderGatewayService
-using GenesisSentry.DTOs;
+using RuleArchitect.Abstractions.DTOs;
 using GenesisSentry.Interfaces;
 using GenesisSentry.Services;
 using MaterialDesignThemes.Wpf;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using RuleArchitect.ApplicationLogic.Interfaces;
+using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.ApplicationLogic.Services;
 using RuleArchitect.Data;
 using RuleArchitect.DesktopClient.Services;

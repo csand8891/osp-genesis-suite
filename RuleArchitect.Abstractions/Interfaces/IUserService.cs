@@ -1,4 +1,4 @@
-﻿using GenesisSentry.DTOs; // If you return UserDto
+﻿using RuleArchitect.Abstractions.DTOs; // If you return UserDto
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

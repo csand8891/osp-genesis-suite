@@ -1,5 +1,5 @@
 ﻿// In RuleArchitect.DesktopClient/ViewModels/LoginViewModel.cs
-using GenesisSentry.Interfaces;
+using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
 using System;
 using System.ComponentModel;

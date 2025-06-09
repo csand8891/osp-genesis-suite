@@ -2,8 +2,8 @@
 using RuleArchitect.DesktopClient.Commands;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
-using GenesisSentry.Interfaces;
-using GenesisSentry.DTOs;
+using RuleArchitect.Abstractions.Interfaces;
+using RuleArchitect.Abstractions.DTOs;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Windows;

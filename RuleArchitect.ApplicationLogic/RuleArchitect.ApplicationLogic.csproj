@@ -120,15 +120,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
-    <Compile Include="DTOs\CreateOrderDto.cs" />
-    <Compile Include="DTOs\CreateOrderItemDto.cs" />
-    <Compile Include="DTOs\OrderDetailDto.cs" />
-    <Compile Include="DTOs\OrderFilterDto.cs" />
-    <Compile Include="DTOs\OrderItemDto.cs" />
-    <Compile Include="DTOs\OrderSummaryDto.cs" />
-    <Compile Include="DTOs\OrderWorkflowActionDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionDto.cs" />
-    <Compile Include="DTOs\UpdateOrderDto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\OrderService.cs" />
     <Compile Include="Services\SoftwareOptionService.cs" />
@@ -161,6 +152,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="DTOs\" />
     <Folder Include="Interfaces\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

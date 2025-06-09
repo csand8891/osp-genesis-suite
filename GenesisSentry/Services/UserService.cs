@@ -1,10 +1,11 @@
-﻿using GenesisSentry.Interfaces;
+﻿using RuleArchitect.Abstractions.Interfaces;
+using GenesisSentry.Interfaces;
 using GenesisSentry.Entities; // For UserEntity
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using GenesisSentry.DTOs;
+using RuleArchitect.Abstractions.DTOs;
 using System.Collections.Generic;
 
 namespace GenesisSentry.Services

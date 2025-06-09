@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using HeraldKit.Models;
+using RuleArchitect.Abstractions.DTOs;
 using HeraldKit.Implementations;
 using System;
 using FluentAssertions;

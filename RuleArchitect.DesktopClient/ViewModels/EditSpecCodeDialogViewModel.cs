@@ -1,7 +1,7 @@
 ﻿// In RuleArchitect.DesktopClient/ViewModels/EditSpecCodeDialogViewModel.cs
 using Microsoft.Extensions.DependencyInjection;
-using RuleArchitect.ApplicationLogic.DTOs;
-using RuleArchitect.ApplicationLogic.Interfaces;
+using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
 using System;
 using System.Collections.ObjectModel;

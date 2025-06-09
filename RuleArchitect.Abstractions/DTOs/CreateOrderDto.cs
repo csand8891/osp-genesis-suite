@@ -1,10 +1,10 @@
 ﻿// In RuleArchitect.ApplicationLogic/DTOs/CreateOrderDto.cs
-using RuleArchitect.Entities; // For OrderStatus, if you want to allow setting initial status
+using RuleArchitect.Abstractions.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace RuleArchitect.ApplicationLogic.DTOs
+namespace RuleArchitect.Abstractions.DTOs
 {
     /// <summary>
     /// Data Transfer Object for creating a new order.

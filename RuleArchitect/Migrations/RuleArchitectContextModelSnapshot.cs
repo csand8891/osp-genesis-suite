@@ -622,7 +622,7 @@ namespace RuleArchitect.Migrations
 
             modelBuilder.Entity("RuleArchitect.Entities.UserActivityLog", b =>
                 {
-                    b.Property<long>("UserActivtyLogId")
+                    b.Property<long>("UserActivityLogId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
@@ -664,7 +664,7 @@ namespace RuleArchitect.Migrations
                         .HasColumnType("TEXT")
                         .HasMaxLength(100);
 
-                    b.HasKey("UserActivtyLogId");
+                    b.HasKey("UserActivityLogId");
 
                     b.HasIndex("ActivityType")
                         .HasName("IX_UserActivityLog_ActivityType");

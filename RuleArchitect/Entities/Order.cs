@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using RuleArchitect.Abstractions.Enums;
 using GenesisSentry.Entities; // For UserEntity
 using RuleArchitect.Entities; // For ControlSystem, MachineModel, OrderItem, OrderStatus
 

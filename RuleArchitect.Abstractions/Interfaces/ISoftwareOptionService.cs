@@ -1,5 +1,4 @@
-﻿using RuleArchitect.ApplicationLogic.DTOs;
-using RuleArchitect.Entities; // Assuming SoftwareOption and SoftwareOptionHistory are EF Core entities
+﻿using RuleArchitect.Abstractions.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +14,7 @@ namespace RuleArchitect.Abstractions.Interfaces
         /// </summary>
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result contains a list of software options.</returns>
-        Task<List<SoftwareOption>> GetAllSoftwareOptionsAsync();
+        Task<List<SoftwareOptionDto>> GetAllSoftwareOptionsAsync();
 
         /// <summary>
         /// Gets a specific software option by its ID asynchronously.
@@ -23,7 +22,7 @@ namespace RuleArchitect.Abstractions.Interfaces
         /// <param name="softwareOptionId">The ID of the software option.</param>
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result contains the software option, or null if not found.</returns>
-        Task<SoftwareOption?> GetSoftwareOptionByIdAsync(int softwareOptionId);
+        Task<SoftwareOptionDetailDto?> GetSoftwareOptionByIdAsync(int softwareOptionId);
 
         /// <summary>
         /// Creates a new software option asynchronously using the provided command DTO.
@@ -32,7 +31,7 @@ namespace RuleArchitect.Abstractions.Interfaces
         /// <param name="currentUser">The identifier for the user performing the action.</param>
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result contains the created software option.</returns>
-        Task<SoftwareOption> CreateSoftwareOptionAsync(CreateSoftwareOptionCommandDto command, string currentUser);
+        Task<SoftwareOptionDto> CreateSoftwareOptionAsync(CreateSoftwareOptionCommandDto command, string currentUser);
 
         /// <summary>
         /// Updates an existing software option asynchronously using the provided command DTO.
@@ -41,7 +40,7 @@ namespace RuleArchitect.Abstractions.Interfaces
         /// <param name="currentUser">The identifier for the user performing the action.</param>
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result contains the updated software option.</returns>
-        Task<SoftwareOption?> UpdateSoftwareOptionAsync(UpdateSoftwareOptionCommandDto command, string currentUser);
+        Task<SoftwareOptionDto?> UpdateSoftwareOptionAsync(UpdateSoftwareOptionCommandDto command, string currentUser);
 
         /// <summary>
         /// Gets the history for a specific software option by its ID asynchronously.
@@ -49,7 +48,7 @@ namespace RuleArchitect.Abstractions.Interfaces
         /// <param name="softwareOptionId">The ID of the software option.</param>
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result contains a list of software option history records.</returns>
-        Task<List<SoftwareOptionHistory>> GetSoftwareOptionHistoryAsync(int softwareOptionId);
+        Task<List<SoftwareOptionHistoryDto>> GetSoftwareOptionHistoryAsync(int softwareOptionId);
 
         /// <summary>
         /// Deletes a software option by its ID asynchronously.

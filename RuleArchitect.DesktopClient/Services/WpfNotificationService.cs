@@ -1,6 +1,6 @@
 ﻿// File: RuleArchitect.DesktopClient/Services/WpfNotificationService.cs
 using HeraldKit.Interfaces;
-using HeraldKit.Models;
+using RuleArchitect.Abstractions.DTOs;
 using MaterialDesignThemes.Wpf; // Add this
 using System;
 using System.Windows; // For Application.Current.Dispatcher if needed

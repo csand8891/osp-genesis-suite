@@ -13,7 +13,7 @@ namespace RuleArchitect.Entities
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public long UserActivtyLogId { get; set; }
+        public long UserActivityLogId { get; set; }
 
         [Required]
         public int UserId { get; set; }

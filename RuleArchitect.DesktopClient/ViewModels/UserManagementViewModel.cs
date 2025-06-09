@@ -1,6 +1,6 @@
 ﻿// File: RuleArchitect.DesktopClient/ViewModels/UserManagementViewModel.cs
-using GenesisSentry.DTOs;
-using GenesisSentry.Interfaces;
+using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.Interfaces;
 using HeraldKit.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
 using System;

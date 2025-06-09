@@ -1,10 +1,11 @@
 ﻿// File: RuleArchitect.ApplicationLogic/Services/OrderService.cs
 using Microsoft.EntityFrameworkCore;
-using RuleArchitect.ApplicationLogic.DTOs;
-using RuleArchitect.ApplicationLogic.Interfaces;
+using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.Data; // For RuleArchitectContext
 using RuleArchitect.Entities;
 using HeraldKit.Interfaces; // For INotificationService
+using RuleArchitect.Abstractions.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;

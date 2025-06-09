@@ -83,6 +83,10 @@
       <Project>{75d80bce-9528-4ac3-ab69-8f81718a9756}</Project>
       <Name>GenesisOrderGateway</Name>
     </ProjectReference>
+    <ProjectReference Include="..\RuleArchitect.Abstractions\RuleArchitect.Abstractions.csproj">
+      <Project>{47becf7c-b8a0-4641-babf-98f55eaf7c95}</Project>
+      <Name>RuleArchitect.Abstractions</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

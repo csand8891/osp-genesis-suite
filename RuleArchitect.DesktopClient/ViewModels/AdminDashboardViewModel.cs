@@ -1,6 +1,6 @@
 ﻿// Ensure this is the content of RuleArchitect.DesktopClient/ViewModels/AdminDashboardViewModel.cs
 
-using RuleArchitect.ApplicationLogic.Interfaces;
+using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
 using System;
 using System.Threading.Tasks;

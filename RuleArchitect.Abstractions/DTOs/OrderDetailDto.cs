@@ -1,10 +1,10 @@
 ﻿// In RuleArchitect.ApplicationLogic/DTOs/OrderDetailDto.cs
-using RuleArchitect.Entities; // For OrderStatus
+using RuleArchitect.Abstractions.Enums; // For OrderStatus
 using System;
 using System.Collections.Generic;
-using RuleArchitect.ApplicationLogic.DTOs;
+using RuleArchitect.Abstractions.DTOs;
 
-namespace RuleArchitect.ApplicationLogic.DTOs
+namespace RuleArchitect.Abstractions.DTOs
 {
     /// <summary>
     /// Data Transfer Object representing the detailed view of an order.

@@ -1,6 +1,6 @@
 ﻿// Suggested location: GenesisOrderGateway.Tests/Services/PdfOrderGatewayServiceTests.cs
 using FluentAssertions;
-using GenesisOrderGateway.DTOs;   // To access ParsedOrderDto
+using RuleArchitect.Abstractions.DTOs;   // To access ParsedOrderDto
 using GenesisOrderGateway.Services; // To access PdfOrderGatewayService
 using NUnit.Framework;
 using System;

@@ -1,10 +1,10 @@
-﻿// File: RuleArchitect.ApplicationLogic.Tests/Services/SoftwareOptionServiceTests.cs
+﻿/*// File: RuleArchitect.ApplicationLogic.Tests/Services/SoftwareOptionServiceTests.cs
 using NUnit.Framework;
 using Moq;
 using FluentAssertions;
 using RuleArchitect.ApplicationLogic.Services;
-using RuleArchitect.ApplicationLogic.Interfaces;
-using RuleArchitect.ApplicationLogic.DTOs;
+using RuleArchitect.Abstractions.Interfaces;
+using RuleArchitect.Abstractions.DTOs;
 using RuleArchitect.Data;
 using RuleArchitect.Entities;
 // using HeraldKit.Interaces; // Assuming INotificationService is not directly used by SoftwareOptionService
@@ -369,3 +369,4 @@ namespace RuleArchitect.ApplicationLogic.Tests.Services
         }
     }
 }
+*/

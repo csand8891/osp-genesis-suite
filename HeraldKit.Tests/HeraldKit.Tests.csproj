@@ -93,6 +93,10 @@
       <Project>{bfb69c3c-c16c-42d9-a39f-45fb1d56f778}</Project>
       <Name>HeraldKit</Name>
     </ProjectReference>
+    <ProjectReference Include="..\RuleArchitect.Abstractions\RuleArchitect.Abstractions.csproj">
+      <Project>{47becf7c-b8a0-4641-babf-98f55eaf7c95}</Project>
+      <Name>RuleArchitect.Abstractions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RuleArchitect.ApplicationLogic\RuleArchitect.ApplicationLogic.csproj">
       <Project>{0d7f746d-e1bf-4fbf-b7fb-95295e91218f}</Project>
       <Name>RuleArchitect.ApplicationLogic</Name>

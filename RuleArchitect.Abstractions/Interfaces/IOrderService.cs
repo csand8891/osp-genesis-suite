@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic; // For IEnumerable
 using System.Threading.Tasks;
-using RuleArchitect.ApplicationLogic.DTOs; // Assuming OrderDetailDto, CreateOrderDto, UpdateOrderDto are here
-using RuleArchitect.Entities; // For OrderStatus enum
+using RuleArchitect.Abstractions.DTOs; // Assuming OrderDetailDto, CreateOrderDto, UpdateOrderDto are here
+using RuleArchitect.Abstractions.Enums; // For OrderStatus enum
 
 namespace RuleArchitect.Abstractions.Interfaces
 {
