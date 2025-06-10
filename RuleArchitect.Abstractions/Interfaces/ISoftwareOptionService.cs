@@ -1,4 +1,5 @@
-﻿using RuleArchitect.Abstractions.DTOs;
+﻿using RuleArchitect.Abstractions.DTOs.SoftwareOption;
+using RuleArchitect.Abstractions.DTOs.Lookups;
 using System;
 using System.Collections.Generic;
 using System.Linq;

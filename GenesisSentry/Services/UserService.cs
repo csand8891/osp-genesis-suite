@@ -2,7 +2,7 @@
 using GenesisSentry.Entities;
 using GenesisSentry.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Auth;
 using RuleArchitect.Abstractions.Interfaces; // Added for IUserActivityLogService
 using System;
 using System.Collections.Generic;

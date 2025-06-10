@@ -1,7 +1,9 @@
 ﻿
 using HeraldKit.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.SoftwareOption;
+using RuleArchitect.Abstractions.DTOs.Auth;
+using RuleArchitect.Abstractions.DTOs.Lookups;
 using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
 using System;

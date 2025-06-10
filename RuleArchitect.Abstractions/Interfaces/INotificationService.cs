@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Notification;
 
 namespace HeraldKit.Interfaces
 {

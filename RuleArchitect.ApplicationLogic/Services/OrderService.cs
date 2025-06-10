@@ -1,6 +1,6 @@
 ﻿// File: RuleArchitect.ApplicationLogic/Services/OrderService.cs
 using Microsoft.EntityFrameworkCore;
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Order;
 using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.Data; // For RuleArchitectContext
 using RuleArchitect.Entities;

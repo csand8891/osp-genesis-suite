@@ -1,5 +1,5 @@
 ﻿using HeraldKit.Interfaces; // Ensure you have the 's' if your folder/namespace is 'Interaces'
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Notification;
 using RuleArchitect.Abstractions.Interfaces;
 using System;
 using System.Collections.Generic;

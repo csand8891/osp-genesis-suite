@@ -1,4 +1,4 @@
-﻿using RuleArchitect.Abstractions.DTOs;
+﻿using RuleArchitect.Abstractions.DTOs.Order;
 using GenesisOrderGateway.Interfaces;
 using System;
 using System.IO;

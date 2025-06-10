@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Auth;
 using RuleArchitect.Abstractions.Interfaces;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;

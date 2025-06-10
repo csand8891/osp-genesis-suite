@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.Threading.Tasks;
-using RuleArchitect.Abstractions.DTOs; // We'll create this next
+using RuleArchitect.Abstractions.DTOs.Order; // We'll create this next
 
 namespace GenesisOrderGateway.Interfaces
 {

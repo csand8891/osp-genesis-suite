@@ -1,4 +1,4 @@
-﻿using RuleArchitect.Abstractions.DTOs; // If you return UserDto
+﻿using RuleArchitect.Abstractions.DTOs.Auth; // If you return UserDto
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

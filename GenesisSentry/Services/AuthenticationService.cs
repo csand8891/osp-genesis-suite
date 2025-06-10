@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Auth;
 using GenesisSentry.Entities;
 using GenesisSentry.Interfaces;
 using Microsoft.EntityFrameworkCore;

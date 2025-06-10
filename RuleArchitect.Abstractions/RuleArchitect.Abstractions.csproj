@@ -114,37 +114,37 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
-    <Compile Include="DTOs\ActivationRuleLookupDto.cs" />
-    <Compile Include="DTOs\ActivityLogFilterDto.cs" />
-    <Compile Include="DTOs\AuthenticationResult.cs" />
-    <Compile Include="DTOs\ControlSystemLookupDto.cs" />
-    <Compile Include="DTOs\CreateOrderDto.cs" />
-    <Compile Include="DTOs\CreateOrderItemDto.cs" />
-    <Compile Include="DTOs\CreateSoftwareOptionCommandDto.cs" />
-    <Compile Include="DTOs\NotificationMessage.cs" />
-    <Compile Include="DTOs\OptionNumberRegistryCreateDto.cs" />
-    <Compile Include="DTOs\OrderDetailDto.cs" />
-    <Compile Include="DTOs\OrderFilterDto.cs" />
-    <Compile Include="DTOs\OrderItemDto.cs" />
-    <Compile Include="DTOs\OrderSummaryDto.cs" />
-    <Compile Include="DTOs\OrderWorkflowActionDto.cs" />
-    <Compile Include="DTOs\ParsedOrderDto.cs" />
-    <Compile Include="DTOs\RequirementCreateDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionActivationRuleCreateDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionDetailDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionHistoryDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionLookupDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionSpecificationCodeCreateDto.cs" />
-    <Compile Include="DTOs\SpecCodeDefinitionDetailDto.cs" />
-    <Compile Include="DTOs\SpecCodeDefinitionLookupDto.cs" />
-    <Compile Include="DTOs\StoreChangeAction.cs" />
-    <Compile Include="DTOs\StoreChangedEventArgs.cs" />
-    <Compile Include="DTOs\UpdateOrderDto.cs" />
-    <Compile Include="DTOs\UpdateSoftwareOptionCommandDto.cs" />
-    <Compile Include="DTOs\UpdateUserDto.cs" />
-    <Compile Include="DTOs\UserActivityLogDto.cs" />
-    <Compile Include="DTOs\UserDto.cs" />
+    <Compile Include="DTOs\Lookups\ActivationRuleLookupDto.cs" />
+    <Compile Include="DTOs\Activity\ActivityLogFilterDto.cs" />
+    <Compile Include="DTOs\Auth\AuthenticationResult.cs" />
+    <Compile Include="DTOs\Lookups\ControlSystemLookupDto.cs" />
+    <Compile Include="DTOs\Order\CreateOrderDto.cs" />
+    <Compile Include="DTOs\Order\CreateOrderItemDto.cs" />
+    <Compile Include="DTOs\SoftwareOption\CreateSoftwareOptionCommandDto.cs" />
+    <Compile Include="DTOs\Notification\NotificationMessage.cs" />
+    <Compile Include="DTOs\SoftwareOption\OptionNumberRegistryCreateDto.cs" />
+    <Compile Include="DTOs\Order\OrderDetailDto.cs" />
+    <Compile Include="DTOs\Order\OrderFilterDto.cs" />
+    <Compile Include="DTOs\Order\OrderItemDto.cs" />
+    <Compile Include="DTOs\Order\OrderSummaryDto.cs" />
+    <Compile Include="DTOs\Order\OrderWorkflowActionDto.cs" />
+    <Compile Include="DTOs\Order\ParsedOrderDto.cs" />
+    <Compile Include="DTOs\SoftwareOption\RequirementCreateDto.cs" />
+    <Compile Include="DTOs\SoftwareOption\SoftwareOptionActivationRuleCreateDto.cs" />
+    <Compile Include="DTOs\SoftwareOption\SoftwareOptionDetailDto.cs" />
+    <Compile Include="DTOs\SoftwareOption\SoftwareOptionDto.cs" />
+    <Compile Include="DTOs\SoftwareOption\SoftwareOptionHistoryDto.cs" />
+    <Compile Include="DTOs\Lookups\SoftwareOptionLookupDto.cs" />
+    <Compile Include="DTOs\SoftwareOption\SoftwareOptionSpecificationCodeCreateDto.cs" />
+    <Compile Include="DTOs\SoftwareOption\SpecCodeDefinitionDetailDto.cs" />
+    <Compile Include="DTOs\Lookups\SpecCodeDefinitionLookupDto.cs" />
+    <Compile Include="DTOs\Notification\StoreChangeAction.cs" />
+    <Compile Include="DTOs\Notification\StoreChangedEventArgs.cs" />
+    <Compile Include="DTOs\Order\UpdateOrderDto.cs" />
+    <Compile Include="DTOs\SoftwareOption\UpdateSoftwareOptionCommandDto.cs" />
+    <Compile Include="DTOs\Auth\UpdateUserDto.cs" />
+    <Compile Include="DTOs\Activity\UserActivityLogDto.cs" />
+    <Compile Include="DTOs\Auth\UserDto.cs" />
     <Compile Include="Enums\ApplicationPermission.cs" />
     <Compile Include="Enums\OrderStatus.cs" />
     <Compile Include="Interfaces\IAuthenticationService.cs" />
@@ -163,5 +163,6 @@
     <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

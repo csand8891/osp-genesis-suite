@@ -2,7 +2,7 @@
 // Or Common.Authentication/Interfaces/IAuthenticationStateProvider.cs
 // Adjust namespace to match your project structure (e.g., GenesisSentry.Interfaces)
 
-using RuleArchitect.Abstractions.DTOs; // Assuming UserDto is in GenesisSentry.DTOs
+using RuleArchitect.Abstractions.DTOs.Auth; // Assuming UserDto is in GenesisSentry.DTOs
 using System.ComponentModel;
 
 namespace RuleArchitect.Abstractions.Interfaces // Or your chosen namespace for interfaces

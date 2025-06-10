@@ -1,6 +1,6 @@
 ﻿using GenesisOrderGateway.Interfaces; // For IGenesisOrderGateway
 using GenesisOrderGateway.Services;  // For PdfOrderGatewayService
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Auth;
 using GenesisSentry.Interfaces;
 using GenesisSentry.Services;
 using MaterialDesignThemes.Wpf;

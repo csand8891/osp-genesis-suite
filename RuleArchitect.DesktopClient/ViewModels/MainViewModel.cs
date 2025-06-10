@@ -3,7 +3,7 @@ using RuleArchitect.DesktopClient.Commands;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using RuleArchitect.Abstractions.Interfaces;
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Auth;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Windows;

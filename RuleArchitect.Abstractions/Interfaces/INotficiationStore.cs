@@ -1,5 +1,5 @@
 ﻿
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Notification;
 using System;
 using System.Collections.Generic;
 using System.Linq;

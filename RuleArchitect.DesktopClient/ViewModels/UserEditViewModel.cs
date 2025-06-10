@@ -1,5 +1,5 @@
 ﻿// File: RuleArchitect.DesktopClient/ViewModels/UserEditViewModel.cs
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Auth;
 using RuleArchitect.DesktopClient.Commands;
 using System;
 using System.Collections.Generic;

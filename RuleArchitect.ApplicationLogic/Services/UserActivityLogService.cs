@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Activity;
 using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.Data;
 using RuleArchitect.Entities;
@@ -25,6 +25,7 @@ namespace RuleArchitect.ApplicationLogic.Services
             string userName,
             string activityType,
             string description,
+            bool saveChanges = true,
             string? targetEntityType = null,
             int? targetEntityId = null,
             string? targetEntityDescription = null,

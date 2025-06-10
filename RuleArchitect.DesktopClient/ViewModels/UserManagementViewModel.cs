@@ -1,6 +1,8 @@
 ﻿using GenesisSentry.Interfaces;
 using HeraldKit.Interfaces;
 using RuleArchitect.Abstractions.DTOs;
+using RuleArchitect.Abstractions.DTOs.Auth;
+using RuleArchitect.Abstractions.DTOs.Order;
 using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
 using System;
