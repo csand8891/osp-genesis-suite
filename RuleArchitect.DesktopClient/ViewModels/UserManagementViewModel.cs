@@ -1,7 +1,7 @@
-﻿// File: RuleArchitect.DesktopClient/ViewModels/UserManagementViewModel.cs
+﻿using GenesisSentry.Interfaces;
+using HeraldKit.Interfaces;
 using RuleArchitect.Abstractions.DTOs;
 using RuleArchitect.Abstractions.Interfaces;
-using HeraldKit.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Xml.Linq;
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
@@ -17,6 +18,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
     {
         private readonly IUserService _userService;
         private readonly INotificationService _notificationService;
+        private readonly IAuthenticationStateProvider _authStateProvider; // INJECTED
 
         private ObservableCollection<UserDto> _users;
         public ObservableCollection<UserDto> Users
@@ -42,11 +44,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     }
                     else
                     {
-                        // No selection, or selection cleared
                         CurrentEditUser = null;
                         IsEditing = false;
-                        // Optionally hide detail pane if nothing is selected
-                        // IsDetailPaneVisible = false; 
                     }
                     ((RelayCommand)EditUserCommand).RaiseCanExecuteChanged();
                     ((RelayCommand)DeleteUserCommand).RaiseCanExecuteChanged();
@@ -91,7 +90,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 if (SetProperty(ref _isDetailPaneVisible, value))
                 {
                     OnPropertyChanged(nameof(DetailPaneWidth));
-                    if (!_isDetailPaneVisible) // If pane is hidden, clear editing state
+                    if (!_isDetailPaneVisible)
                     {
                         SelectedUser = null;
                         CurrentEditUser = null;
@@ -111,11 +110,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public ICommand DeleteUserCommand { get; }
         public ICommand CancelEditCommand { get; }
 
-
-        public UserManagementViewModel(IUserService userService, INotificationService notificationService)
+        // Constructor updated to inject IAuthenticationStateProvider
+        public UserManagementViewModel(IUserService userService, INotificationService notificationService, IAuthenticationStateProvider authStateProvider)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _authStateProvider = authStateProvider ?? throw new ArgumentNullException(nameof(authStateProvider)); // STORED
 
             _users = new ObservableCollection<UserDto>();
 
@@ -125,9 +125,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
             SaveUserCommand = new RelayCommand(async () => await SaveUserAsync(), () => (IsAdding || IsEditing) && !IsLoading && CurrentEditUser != null);
             DeleteUserCommand = new RelayCommand(async () => await DeleteUserAsync(), () => SelectedUser != null && !IsLoading && !IsAdding && !IsEditing);
             CancelEditCommand = new RelayCommand(CancelEditOrAdd, () => IsAdding || IsEditing);
-
-            // Initial load can be triggered here or by the view
-            // Task.Run(async () => await LoadUsersAsync());
         }
 
         private void UpdateCommandStates()
@@ -168,7 +165,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         private void PrepareAddUser()
         {
-            SelectedUser = null; // Clear any selection
+            SelectedUser = null;
             CurrentEditUser = new UserEditViewModel();
             IsAdding = true;
             IsEditing = false;
@@ -199,46 +196,57 @@ namespace RuleArchitect.DesktopClient.ViewModels
             {
                 if (CurrentEditUser.IsNewUser)
                 {
+                    // Retrieve the current administrator performing the action
+                    var creator = _authStateProvider.CurrentUser;
+                    if (creator == null)
+                    {
+                        _notificationService.ShowError("Cannot create user. The current administrator session is invalid. Please log in again.", "Authentication Error");
+                        IsLoading = false;
+                        return;
+                    }
+
+                    // UPDATED: Call CreateUserAsync with creator's details for logging
                     var newUserDto = await _userService.CreateUserAsync(
                         CurrentEditUser.UserName,
-                        CurrentEditUser.Password!, // Validation ensures Password is not null for new user
+                        CurrentEditUser.Password!,
                         CurrentEditUser.Role,
-                        CurrentEditUser.IsActive);
+                        CurrentEditUser.IsActive,
+                        creator.UserId,
+                        creator.UserName);
 
                     if (newUserDto != null)
                     {
                         Users.Add(newUserDto);
-                        SelectedUser = newUserDto; // Select the newly added user
+                        SelectedUser = newUserDto;
                         _notificationService.ShowSuccess($"User '{newUserDto.UserName}' created successfully.", "User Created");
                         IsAdding = false;
-                        IsDetailPaneVisible = false; // Or keep open to show the new user
+                        IsDetailPaneVisible = false;
                     }
                 }
                 else // Editing existing user
                 {
+                    // TODO: Update this call to include modifier details once the interface/service is updated
                     var updateUserDto = new UpdateUserDto
                     {
                         UserId = CurrentEditUser.UserId,
                         UserName = CurrentEditUser.UserName,
                         Role = CurrentEditUser.Role,
                         IsActive = CurrentEditUser.IsActive,
-                        // Only include password if it's being changed
                         Password = string.IsNullOrWhiteSpace(CurrentEditUser.Password) ? null : CurrentEditUser.Password
                     };
 
-                    var updatedUser = await _userService.UpdateUserAsync(updateUserDto);
+                    var updatedUser = await _userService.UpdateUserAsync(updateUserDto, _authStateProvider.CurrentUser.UserId, _authStateProvider.CurrentUser.UserName);
                     if (updatedUser != null)
                     {
-                        // Refresh the list or update the specific item
-                        await LoadUsersAsync(); // Simplest way to refresh
-                        SelectedUser = Users.FirstOrDefault(u => u.UserId == updatedUser.UserId); // Re-select
+                        await LoadUsersAsync();
+                        SelectedUser = Users.FirstOrDefault(u => u.UserId == updatedUser.UserId);
                         _notificationService.ShowSuccess($"User '{updatedUser.UserName}' updated successfully.", "User Updated");
                         IsEditing = false;
-                        IsDetailPaneVisible = false; // Or keep open
+                        IsDetailPaneVisible = false;
                     }
                 }
             }
-            catch (ArgumentNullException argEx) // Catch specific exceptions from UserService for better messages
+            catch (ArgumentException argEx)
             {
                 _notificationService.ShowError($"Validation error: {argEx.Message}", "Save Error");
             }
@@ -256,7 +264,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
         {
             if (SelectedUser == null) return;
 
-            // Confirmation dialog
             if (MessageBox.Show($"Are you sure you want to delete user '{SelectedUser.UserName}'?",
                                 "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
             {
@@ -266,11 +273,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
             IsLoading = true;
             try
             {
-                bool success = await _userService.DeleteUserAsync(SelectedUser.UserId);
+                // TODO: Update this call to include deleter details once the interface/service is updated
+                bool success = await _userService.DeleteUserAsync(SelectedUser.UserId, _authStateProvider.CurrentUser.UserId, _authStateProvider.CurrentUser.UserName);
                 if (success)
                 {
                     Users.Remove(SelectedUser);
-                    SelectedUser = null; // Clear selection
+                    SelectedUser = null;
                     _notificationService.ShowSuccess("User deleted successfully.", "User Deleted");
                     IsDetailPaneVisible = false;
                 }
@@ -295,10 +303,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
             IsAdding = false;
             IsEditing = false;
             IsDetailPaneVisible = false;
-            // Optionally, if a user was selected for edit, re-select them to show their original details
-            // This might require storing the original SelectedUser before starting an edit.
-            // For now, just clearing selection is simpler.
-            // SelectedUser = null; 
         }
     }
 }

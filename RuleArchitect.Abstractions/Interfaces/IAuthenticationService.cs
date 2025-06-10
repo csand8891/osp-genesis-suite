@@ -10,6 +10,6 @@ namespace RuleArchitect.Abstractions.Interfaces
     public interface IAuthenticationService
     {
         Task<AuthenticationResult> AuthenticateAsync(string username, string password);
-        Task<UserDto> CreateUserAsync(string username, string password, string role); //Example
+        Task<UserDto> CreateUserAsync(string username, string password, string role, int creatorUserId, string creatorUsername); //Example
     }
 }

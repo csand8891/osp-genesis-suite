@@ -27,6 +27,7 @@ namespace RuleArchitect.Abstractions.Interfaces
             string userName,
             string activityType,
             string description,
+            bool saveChanges = true,
             string? targetEntityType = null,
             int? targetEntityId = null,
             string? targetEntityDescription = null,

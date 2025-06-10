@@ -12,11 +12,13 @@ namespace GenesisSentry.Services
     {
         private readonly IAuthenticationDbContext _dbContext;
         private readonly IPasswordHasher _passwordHasher;
+        private readonly IUserActivityLogService _activityLogService;
 
-        public AuthenticationService(IAuthenticationDbContext dbContext, IPasswordHasher passwordHasher)
+        public AuthenticationService(IAuthenticationDbContext dbContext, IPasswordHasher passwordHasher, IUserActivityLogService activityLogService)
         {
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
+            _activityLogService = activityLogService ?? throw new ArgumentNullException(nameof(activityLogService));
         }
 
         public async Task<AuthenticationResult> AuthenticateAsync(string username, string password)
@@ -54,14 +56,36 @@ namespace GenesisSentry.Services
 
             // Update LastLoginDate
             userEntity.LastLoginDate = DateTime.UtcNow;
+            await _activityLogService.LogActivityAsync(
+                userId: userDto.UserId,
+                userName: userDto.UserName,
+                activityType: "UserLogin",
+                description: $"User '{userDto.UserName}' logged in successfully.",
+                saveChanges: false // Let the service handle the save
+            );
+
             await _dbContext.SaveChangesAsync();
 
             return AuthenticationResult.Success(userDto);
         }
 
-        public async Task<UserDto> CreateUserAsync(string username, string password, string role)
+        /// <summary>
+        /// Creates a new user and logs the creation event.
+        /// NOTE: The IAuthenticationService interface must be updated to match this signature.
+        /// </summary>
+        /// <param name="username">The new user's username.</param>
+        /// <param name="password">The new user's password.</param>
+        /// <param name="role">The role assigned to the new user.</param>
+        /// <param name="creatorUserId">The ID of the administrator creating the user.</param>
+        /// <param name="creatorUsername">The username of the administrator creating the user.</param>
+        /// <returns>A DTO for the newly created user.</returns>
+        public async Task<UserDto> CreateUserAsync(string username, string password, string role, int creatorUserId, string creatorUsername)
         {
-            // Check for existing user
+            if (await _dbContext.Users.AnyAsync(u => u.UserName == username))
+            {
+                throw new ArgumentException($"Username '{username}' is already taken.");
+            }
+
             var (hash, salt) = _passwordHasher.HashPassword(password);
             var newUser = new UserEntity
             {
@@ -72,7 +96,23 @@ namespace GenesisSentry.Services
                 IsActive = true
             };
             _dbContext.Users.Add(newUser);
+
+            // Log the creation activity. We will save it with the new user in one transaction.
+            await _activityLogService.LogActivityAsync(
+                userId: creatorUserId,
+                userName: creatorUsername,
+                activityType: "CreateUser",
+                description: $"User '{creatorUsername}' created new user '{username}' with role '{role}'.",
+                targetEntityType: "User",
+                targetEntityDescription: newUser.UserName,
+                saveChanges: false
+            );
+
             await _dbContext.SaveChangesAsync();
+
+            // After saving, newUser.UserId will be populated.
+            // We could update the log with the new ID, but the description is usually sufficient.
+
             return new UserDto
             {
                 UserId = newUser.UserId,

@@ -10,6 +10,10 @@ using System.Threading.Tasks;
 
 namespace RuleArchitect.ApplicationLogic.Services
 {
+    /// <summary>
+    /// Service for managing Software Options, including creation, retrieval, updates, and deletion.
+    /// Implements ISoftwareOptionService.
+    /// </summary>
     public class SoftwareOptionService : ISoftwareOptionService
     {
         private readonly RuleArchitectContext _context;
@@ -19,15 +23,40 @@ namespace RuleArchitect.ApplicationLogic.Services
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
+        /// <summary>
+        /// Retrieves all software options.
+        /// </summary>
+        /// <returns>A list of all SoftwareOption DTOs.</returns>
         public async Task<List<SoftwareOptionDto>> GetAllSoftwareOptionsAsync()
         {
+            // FIX: The projection from the SoftwareOption entity to the SoftwareOptionDto
+            // is now done directly inside the Select statement. This allows Entity Framework Core
+            // to translate the query into efficient SQL.
             return await _context.SoftwareOptions
-                .AsNoTracking()
-                .Include(so => so.ControlSystem)
-                .Select(so => MapEntityToDto(so))
-                .ToListAsync();
+                                 .AsNoTracking()
+                                 .Include(so => so.ControlSystem)
+                                 .Select(so => new SoftwareOptionDto
+                                 {
+                                     SoftwareOptionId = so.SoftwareOptionId,
+                                     PrimaryName = so.PrimaryName,
+                                     AlternativeNames = so.AlternativeNames,
+                                     SourceFileName = so.SourceFileName,
+                                     PrimaryOptionNumberDisplay = so.PrimaryOptionNumberDisplay,
+                                     Notes = so.Notes,
+                                     ControlSystemId = so.ControlSystemId.GetValueOrDefault(),
+                                     ControlSystemName = so.ControlSystem != null ? so.ControlSystem.Name : null,
+                                     Version = so.Version,
+                                     LastModifiedDate = so.LastModifiedDate,
+                                     LastModifiedBy = so.LastModifiedBy
+                                 })
+                                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Retrieves a specific software option by its ID, including related data.
+        /// </summary>
+        /// <param name="softwareOptionId">The ID of the software option to retrieve.</param>
+        /// <returns>The SoftwareOption DTO with its related data, or null if not found.</returns>
         public async Task<SoftwareOptionDetailDto?> GetSoftwareOptionByIdAsync(int softwareOptionId)
         {
             var entity = await _context.SoftwareOptions
@@ -242,7 +271,8 @@ namespace RuleArchitect.ApplicationLogic.Services
 
         #region Private Helper Methods
 
-        private SoftwareOptionDto MapEntityToDto(SoftwareOption entity)
+        // This helper is now only used for single-item mapping, which is fine.
+        private SoftwareOptionDto MapSoftwareOptionToDto(SoftwareOption entity)
         {
             return new SoftwareOptionDto
             {
