@@ -15,6 +15,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private string? _notes;
 
         // --- Properties for UI Binding ---
+        public int TempId { get; set; }
         public int OriginalId { get => _originalId; set => SetProperty(ref _originalId, value); }
         public string? RuleName { get => _ruleName; set => SetProperty(ref _ruleName, value); }
         public string ActivationSetting { get => _activationSetting; set => SetProperty(ref _activationSetting, value); }

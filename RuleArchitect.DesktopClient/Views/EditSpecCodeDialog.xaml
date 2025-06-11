@@ -45,22 +45,19 @@
         <ComboBox Grid.Row="0" Grid.Column="1" 
                   ItemsSource="{Binding AvailableCategories}"
                   SelectedItem="{Binding Category, UpdateSourceTrigger=PropertyChanged}"
-                  IsEditable="False" materialDesign:HintAssist.Hint="Select Category"
-                  Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                  IsEditable="False" materialDesign:HintAssist.Hint="Select Category"/>
 
         <Label Grid.Row="1" Grid.Column="0" Content="Spec No:"/>
         <ComboBox Grid.Row="1" Grid.Column="1" 
                   ItemsSource="{Binding AvailableSpecCodeNos}"
                   SelectedItem="{Binding SpecCodeNo, UpdateSourceTrigger=PropertyChanged}"
-                  materialDesign:HintAssist.Hint="Select Spec No (1-32)"
-                  Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                  materialDesign:HintAssist.Hint="Select Spec No (1-32)"/>
 
         <Label Grid.Row="2" Grid.Column="0" Content="Spec Bit:"/>
         <ComboBox Grid.Row="2" Grid.Column="1" 
                   ItemsSource="{Binding AvailableSpecCodeBits}"
                   SelectedItem="{Binding SpecCodeBit, UpdateSourceTrigger=PropertyChanged}"
-                  materialDesign:HintAssist.Hint="Select Spec Bit (0-7)"
-                  Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                  materialDesign:HintAssist.Hint="Select Spec Bit (0-7)"/>
 
         <Button Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" Margin="0,5,0,10"
                 Command="{Binding CheckSpecCodeDefinitionCommand}" 
@@ -73,14 +70,26 @@
                  IsReadOnly="{Binding IsDescriptionReadOnly}" MinLines="2" TextWrapping="Wrap"
                  materialDesign:HintAssist.Hint="Description (auto-filled or enter if new)"/>
 
-        <Label Grid.Row="5" Grid.Column="0" Content="Activation Rule:"/>
-        <ComboBox Grid.Row="5" Grid.Column="1" 
-                  ItemsSource="{Binding AvailableActivationRules}"
-                  SelectedValue="{Binding SoftwareOptionActivationRuleId, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Null}}"
-                  SelectedValuePath="Id" DisplayMemberPath="DisplayName" 
-                  Style="{StaticResource MaterialDesignOutlinedComboBox}" 
-                  materialDesign:HintAssist.Hint="Select Rule (Optional)"/>
+        <Label Grid.Row="5" Grid.Column="0" Content="Activation Rule:" VerticalAlignment="Top" Margin="0,12,5,8"/>
+        <Grid Grid.Row="5" Grid.Column="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
+            <ComboBox Grid.Column="0"
+                      ItemsSource="{Binding AvailableActivationRules}"
+                      SelectedValue="{Binding SoftwareOptionActivationRuleId, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Null}}"
+                      SelectedValuePath="Id" DisplayMemberPath="DisplayName"
+                      materialDesign:HintAssist.Hint="Select Rule (Optional)"/>
+
+            <Button Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center"
+                    Command="{Binding CreateNewActivationRuleCommand}"
+                    Style="{StaticResource MaterialDesignToolButton}"
+                    ToolTip="Create New Activation Rule">
+                <materialDesign:PackIcon Kind="Plus" />
+            </Button>
+        </Grid>
         <Label Grid.Row="6" Grid.Column="0" Content="Interpretation:"/>
         <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding SpecificInterpretation, UpdateSourceTrigger=PropertyChanged}" MinLines="2" TextWrapping="Wrap"
                  materialDesign:HintAssist.Hint="Specific Interpretation"/>

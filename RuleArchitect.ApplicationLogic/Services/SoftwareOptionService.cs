@@ -18,10 +18,12 @@ namespace RuleArchitect.ApplicationLogic.Services
     public class SoftwareOptionService : ISoftwareOptionService
     {
         private readonly RuleArchitectContext _context;
+        private readonly IUserActivityLogService _activityLogService;
 
-        public SoftwareOptionService(RuleArchitectContext context)
+        public SoftwareOptionService(RuleArchitectContext context, IUserActivityLogService activityLogService)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _activityLogService = activityLogService ?? throw new ArgumentNullException(nameof(activityLogService));
         }
 
         /// <summary>
@@ -78,7 +80,7 @@ namespace RuleArchitect.ApplicationLogic.Services
             return MapEntityToDetailDto(entity);
         }
 
-        public async Task<SoftwareOptionDto?> CreateSoftwareOptionAsync(CreateSoftwareOptionCommandDto command, string currentUser)
+        public async Task<SoftwareOptionDto?> CreateSoftwareOptionAsync(CreateSoftwareOptionCommandDto command, int currentUserId, string currentUserName)
         {
             if (command == null) throw new ArgumentNullException(nameof(command));
             if (string.IsNullOrWhiteSpace(command.PrimaryName)) throw new ArgumentException("PrimaryName is required.", nameof(command.PrimaryName));
@@ -98,12 +100,26 @@ namespace RuleArchitect.ApplicationLogic.Services
                         ControlSystemId = command.ControlSystemId.Value,
                         Version = 1,
                         LastModifiedDate = DateTime.UtcNow,
-                        LastModifiedBy = currentUser
+                        LastModifiedBy = currentUserName
                     };
 
                     _context.SoftwareOptions.Add(newSoftwareOption);
                     await _context.SaveChangesAsync();
+                    var controlSystemName = await _context.ControlSystems
+                        .Where(cs => cs.ControlSystemId == newSoftwareOption.ControlSystemId)
+                        .Select(cs => cs.Name)
+                        .FirstOrDefaultAsync() ?? "Unknown";
 
+                    await _activityLogService.LogActivityAsync(
+                        userId: currentUserId,
+                        userName: currentUserName,
+                        activityType: "CreateSoftwareOption",
+                        description: $"User '{currentUserName}' created new software option '{newSoftwareOption.PrimaryName} ({controlSystemName})'.",
+                        targetEntityType: "SoftwareOption",
+                        targetEntityId: newSoftwareOption.SoftwareOptionId, // Now we have the ID
+                        targetEntityDescription: newSoftwareOption.PrimaryName,
+                        saveChanges: false // Let the transaction handle the final save
+                    );
                     await ProcessOptionNumbersAsync(newSoftwareOption, command.OptionNumbers);
                     await ProcessRequirementsAsync(newSoftwareOption, command.Requirements);
                     await ProcessActivationRulesAsync(newSoftwareOption, command.ActivationRules);
@@ -124,13 +140,14 @@ namespace RuleArchitect.ApplicationLogic.Services
             }
         }
 
-        public async Task<SoftwareOptionDto?> UpdateSoftwareOptionAsync(UpdateSoftwareOptionCommandDto command, string currentUser)
+        public async Task<SoftwareOptionDto?> UpdateSoftwareOptionAsync(UpdateSoftwareOptionCommandDto command, int currentUserId, string currentUserName)
         {
             using (var transaction = await _context.Database.BeginTransactionAsync())
             {
                 try
                 {
                     var softwareOptionToUpdate = await _context.SoftwareOptions
+                        .Include(so => so.ControlSystem)
                         .Include(so => so.OptionNumberRegistries)
                         .Include(so => so.Requirements)
                         .Include(so => so.SoftwareOptionActivationRules)
@@ -158,8 +175,18 @@ namespace RuleArchitect.ApplicationLogic.Services
                     {
                         softwareOptionToUpdate.Version += 1;
                         softwareOptionToUpdate.LastModifiedDate = DateTime.UtcNow;
-                        softwareOptionToUpdate.LastModifiedBy = currentUser;
-
+                        softwareOptionToUpdate.LastModifiedBy = currentUserName;
+                        await _activityLogService.LogActivityAsync(
+                            userId: currentUserId,
+                            userName: currentUserName,
+                            activityType: "UpdateSoftwareOption",
+                            // Updated description string
+                            description: $"User '{currentUserName}' updated software option '{softwareOptionToUpdate.PrimaryName} ({softwareOptionToUpdate.ControlSystem?.Name ?? "Unknown"})'.",
+                            targetEntityType: "SoftwareOption",
+                            targetEntityId: softwareOptionToUpdate.SoftwareOptionId,
+                            targetEntityDescription: softwareOptionToUpdate.PrimaryName,
+                            saveChanges: false
+                        );
                         _context.SoftwareOptionHistories.Add(CreateHistoryFromOption(softwareOptionToUpdate));
                         await _context.SaveChangesAsync();
                     }
@@ -197,12 +224,25 @@ namespace RuleArchitect.ApplicationLogic.Services
                 .ToListAsync();
         }
 
-        public async Task<bool> DeleteSoftwareOptionAsync(int softwareOptionId)
+        public async Task<bool> DeleteSoftwareOptionAsync(int softwareOptionId, int currentUserId, string currentUserName)
         {
             var softwareOptionToDelete = await _context.SoftwareOptions
+                .Include(so => so.ControlSystem)
                 .FirstOrDefaultAsync(so => so.SoftwareOptionId == softwareOptionId);
 
             if (softwareOptionToDelete == null) return false;
+
+            await _activityLogService.LogActivityAsync(
+                userId: currentUserId,
+                userName: currentUserName,
+                activityType: "DeleteSoftwareOption",
+                // Updated description string
+                description: $"User '{currentUserName}' deleted software option '{softwareOptionToDelete.PrimaryName} ({softwareOptionToDelete.ControlSystem?.Name ?? "Unknown"})'.",
+                targetEntityType: "SoftwareOption",
+                targetEntityId: softwareOptionToDelete.SoftwareOptionId,
+                targetEntityDescription: softwareOptionToDelete.PrimaryName,
+                saveChanges: false
+            );
 
             _context.SoftwareOptions.Remove(softwareOptionToDelete);
             await _context.SaveChangesAsync();

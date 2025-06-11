@@ -1,25 +1,25 @@
 ﻿// In RuleArchitect.DesktopClient/ViewModels/EditSpecCodeDialogViewModel.cs
 using Microsoft.Extensions.DependencyInjection;
+using RuleArchitect.Abstractions.DTOs;
 using RuleArchitect.Abstractions.DTOs.Lookups;
 using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using static RuleArchitect.DesktopClient.ViewModels.EditSoftwareOptionViewModel;
+using MaterialDesignThemes.Wpf;
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
     public class EditSpecCodeDialogViewModel : BaseViewModel
     {
-        //private readonly ISoftwareOptionService _softwareOptionService;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly int _parentControlSystemId;
         private readonly string _parentControlSystemName;
+        private readonly EditSoftwareOptionViewModel _parentViewModel;
 
         private SpecCodeViewModel _specCodeToEdit;
         public SpecCodeViewModel SpecCodeToEdit
@@ -28,18 +28,21 @@ namespace RuleArchitect.DesktopClient.ViewModels
             set => SetProperty(ref _specCodeToEdit, value);
         }
 
+        // Add this property
+        public bool IsAddingNew { get; set; }
+
         // Properties to bind to in the dialog (delegating to SpecCodeToEdit)
         public string Category
         {
             get => SpecCodeToEdit.Category;
             set { if (SpecCodeToEdit.Category != value) { SpecCodeToEdit.Category = value; OnPropertyChanged(); UpdateCheckCommandCanExecute(); } }
         }
-        public string SpecCodeNo // This will be bound to the ComboBox's SelectedItem
+        public string SpecCodeNo
         {
             get => SpecCodeToEdit.SpecCodeNo;
             set { if (SpecCodeToEdit.SpecCodeNo != value) { SpecCodeToEdit.SpecCodeNo = value; OnPropertyChanged(); UpdateCheckCommandCanExecute(); } }
         }
-        public string SpecCodeBit // This will be bound to the ComboBox's SelectedItem
+        public string SpecCodeBit
         {
             get => SpecCodeToEdit.SpecCodeBit;
             set { if (SpecCodeToEdit.SpecCodeBit != value) { SpecCodeToEdit.SpecCodeBit = value; OnPropertyChanged(); UpdateCheckCommandCanExecute(); } }
@@ -66,8 +69,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
         }
 
         public ObservableCollection<ActivationRuleLookupDto> AvailableActivationRules { get; }
-
-        // NEW: Collections for ComboBox ItemsSources
         public ObservableCollection<string> AvailableSpecCodeNos { get; }
         public ObservableCollection<string> AvailableSpecCodeBits { get; }
         public ObservableCollection<string> AvailableCategories { get; }
@@ -75,35 +76,32 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public ICommand CheckSpecCodeDefinitionCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
-
-        public event Action<SpecCodeViewModel?>? DialogClosed;
-        public Action<bool?>? CloseDialogWindowAction { get; set; }
+        public ICommand CreateNewActivationRuleCommand { get; }
 
         public EditSpecCodeDialogViewModel(
-            //ISoftwareOptionService softwareOptionService,
             IServiceScopeFactory scopeFactory,
             SpecCodeViewModel specCode,
             string parentControlSystemName,
             int parentControlSystemId,
-            ObservableCollection<ActivationRuleLookupDto> availableActivationRules)
+            EditSoftwareOptionViewModel parentViewModel)
         {
-            //_softwareOptionService = softwareOptionService;
-            _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory)); // STORED
-            SpecCodeToEdit = specCode; // This is the instance being edited
+            _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+            _parentViewModel = parentViewModel ?? throw new ArgumentNullException(nameof(parentViewModel));
+            SpecCodeToEdit = specCode;
             _parentControlSystemName = parentControlSystemName;
             _parentControlSystemId = parentControlSystemId;
-            AvailableActivationRules = availableActivationRules;
 
-            // Initialize new collections
             AvailableSpecCodeNos = new ObservableCollection<string>(Enumerable.Range(1, 32).Select(i => i.ToString()));
             AvailableSpecCodeBits = new ObservableCollection<string>(Enumerable.Range(0, 8).Select(i => i.ToString()));
             AvailableCategories = new ObservableCollection<string>();
+            AvailableActivationRules = _parentViewModel.AvailableActivationRules;
 
             PopulateAvailableCategories();
 
             CheckSpecCodeDefinitionCommand = new RelayCommand(async () => await ExecuteCheckSpecCodeDefinitionAsync(), CanExecuteCheck);
             SaveCommand = new RelayCommand(ExecuteSave);
             CancelCommand = new RelayCommand(ExecuteCancel);
+            CreateNewActivationRuleCommand = new RelayCommand(ExecuteCreateNewActivationRule);
 
             IsDescriptionReadOnly = true;
             if (SpecCodeToEdit.SpecCodeDefinitionId > 0 && !string.IsNullOrEmpty(SpecCodeToEdit.Description))
@@ -114,18 +112,16 @@ namespace RuleArchitect.DesktopClient.ViewModels
             {
                 IsDescriptionReadOnly = false;
             }
-            // If editing an existing item, pre-select values if they are valid, or default
+
             if (string.IsNullOrEmpty(SpecCodeToEdit.SpecCodeNo) && AvailableSpecCodeNos.Any()) SpecCodeToEdit.SpecCodeNo = AvailableSpecCodeNos.First();
             if (string.IsNullOrEmpty(SpecCodeToEdit.SpecCodeBit) && AvailableSpecCodeBits.Any()) SpecCodeToEdit.SpecCodeBit = AvailableSpecCodeBits.First();
 
             if (string.IsNullOrEmpty(SpecCodeToEdit.Category) && AvailableCategories.Any())
             {
-                Category = AvailableCategories.First(); // Set SpecCodeToEdit.Category, which will update the property
+                Category = AvailableCategories.First();
             }
             else if (!string.IsNullOrEmpty(SpecCodeToEdit.Category) && !AvailableCategories.Contains(SpecCodeToEdit.Category))
             {
-                // If current category is not in the new list, clear it or set to default.
-                // For editable ComboBox, user might want to keep it. For non-editable, clearing is better.
                 Category = AvailableCategories.Any() ? AvailableCategories.First() : string.Empty;
             }
         }
@@ -135,7 +131,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
             AvailableCategories.Clear();
             if (!string.IsNullOrEmpty(_parentControlSystemName))
             {
-                // Using ToUpperInvariant for case-insensitive "P" check
                 if (_parentControlSystemName.ToUpperInvariant().StartsWith("P"))
                 {
                     AvailableCategories.Add("NC1");
@@ -151,7 +146,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     AvailableCategories.Add("PLC");
                 }
             }
-            OnPropertyChanged(nameof(AvailableCategories)); // Notify the UI
+            OnPropertyChanged(nameof(AvailableCategories));
         }
 
         private void UpdateCheckCommandCanExecute()
@@ -162,15 +157,14 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private bool CanExecuteCheck()
         {
             return !string.IsNullOrWhiteSpace(Category) &&
-                   !string.IsNullOrWhiteSpace(SpecCodeNo) && // Will be from ComboBox, so should be valid if selected
-                   !string.IsNullOrWhiteSpace(SpecCodeBit);  // Will be from ComboBox
+                   !string.IsNullOrWhiteSpace(SpecCodeNo) &&
+                   !string.IsNullOrWhiteSpace(SpecCodeBit);
         }
 
         private async Task ExecuteCheckSpecCodeDefinitionAsync()
         {
             if (!CanExecuteCheck()) return;
 
-            // Create a scope and resolve the service here
             using (var scope = _scopeFactory.CreateScope())
             {
                 var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
@@ -198,14 +192,23 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 MessageBox.Show("Category, Spec No, and Spec Bit are required.", "Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-            DialogClosed?.Invoke(SpecCodeToEdit);
-            CloseDialogWindowAction?.Invoke(true);
+            DialogHost.CloseDialogCommand.Execute(this.SpecCodeToEdit, null);
         }
 
         private void ExecuteCancel()
         {
-            DialogClosed?.Invoke(null);
-            CloseDialogWindowAction?.Invoke(false);
+            DialogHost.CloseDialogCommand.Execute(null, null);
+        }
+
+        private void ExecuteCreateNewActivationRule()
+        {
+            _parentViewModel.AddActivationRuleCommand.Execute(null);
+
+            var newlyAddedRule = _parentViewModel.ActivationRules.LastOrDefault();
+            if (newlyAddedRule != null)
+            {
+                this.SoftwareOptionActivationRuleId = newlyAddedRule.TempId;
+            }
         }
     }
 }

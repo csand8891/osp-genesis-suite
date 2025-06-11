@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RuleArchitect.Abstractions.DTOs;
 using RuleArchitect.Abstractions.DTOs.Activity;
 using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.Data;
@@ -51,30 +52,15 @@ namespace RuleArchitect.ApplicationLogic.Services
             };
 
             _context.UserActivityLogs.Add(logEntry);
-            // Note: SaveChangesAsync will typically be called by the service that *initiated* the overall operation
-            // (e.g., SoftwareOptionService after successfully saving a SoftwareOption and its log).
-            // However, for some logs like login, this service might be the one calling SaveChanges.
-            // If this service is called within an existing transaction/DbContext scope,
-            // adding the log entry and letting the parent service save is fine.
-            // If it's a standalone log (like login), this service should save.
-            // For simplicity here, we'll assume the caller handles SaveChanges or this is a specific log call that needs saving.
-            // Consider if SaveChanges should be called here or by the consuming service.
-            // A common pattern is for the primary service (e.g. OrderService) to manage the transaction and SaveChanges.
-            // For now, let's add it for standalone logging capability.
-            await _context.SaveChangesAsync();
+
+            if (saveChanges)
+            {
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<IEnumerable<UserActivityLogDto>> GetActivityLogsAsync(ActivityLogFilterDto filterDto)
         {
-            // You would define ActivityLogFilterDto with properties like:
-            // int? UserIdFilter { get; set; }
-            // DateTime? DateFrom { get; set; }
-            // DateTime? DateTo { get; set; }
-            // string? ActivityTypeFilter { get; set; }
-            // string? SearchText { get; set; } // For Description or TargetEntityDescription
-            // int PageNumber { get; set; } = 1;
-            // int PageSize { get; set; } = 20;
-
             var query = _context.UserActivityLogs.AsNoTracking();
 
             if (filterDto.UserIdFilter.HasValue)
@@ -87,7 +73,6 @@ namespace RuleArchitect.ApplicationLogic.Services
             }
             if (filterDto.DateTo.HasValue)
             {
-                // Add 1 day to DateTo to make the range inclusive for the entire day
                 var dateTo = filterDto.DateTo.Value.Date.AddDays(1);
                 query = query.Where(log => log.Timestamp < dateTo);
             }
@@ -103,12 +88,8 @@ namespace RuleArchitect.ApplicationLogic.Services
                                            (log.UserName != null && log.UserName.ToLower().Contains(searchTextLower)));
             }
 
-            // Implement pagination
-            // query = query.Skip((filterDto.PageNumber - 1) * filterDto.PageSize).Take(filterDto.PageSize);
-
-
             return await query.OrderByDescending(log => log.Timestamp)
-                              .Select(log => new UserActivityLogDto // You need to define UserActivityLogDto
+                              .Select(log => new UserActivityLogDto
                               {
                                   UserActivityLogId = log.UserActivityLogId,
                                   UserId = log.UserId,
@@ -120,9 +101,24 @@ namespace RuleArchitect.ApplicationLogic.Services
                                   TargetEntityDescription = log.TargetEntityDescription,
                                   Description = log.Description,
                                   IpAddress = log.IpAddress
-                                  // Map other fields as needed for display
                               })
                               .ToListAsync();
+        }
+
+        /// <summary>
+        /// Retrieves a list of all distinct activity types from the logs.
+        /// </summary>
+        /// <returns>A list of unique activity type strings, ordered alphabetically.</returns>
+        public async Task<List<string>> GetDistinctActivityTypesAsync()
+        {
+            return await _context.UserActivityLogs
+                .AsNoTracking()
+                .Select(log => log.ActivityType)
+                // ADDED: Filter out any potential null values before sorting
+                .Where(type => type != null)
+                .Distinct()
+                .OrderBy(type => type)
+                .ToListAsync();
         }
     }
 }

@@ -109,14 +109,13 @@
 
                 <materialDesign:Card Grid.Row="1" Padding="0" UniformCornerRadius="8" materialDesign:ElevationAssist.Elevation="Dp2">
                     <DataGrid ItemsSource="{Binding FilteredSoftwareOptionsView}" SelectedItem="{Binding SelectedSoftwareOption}"
-                              AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
-                              SelectionMode="Single"
-                              Style="{StaticResource MaterialDesignDataGrid}"
-                              materialDesign:DataGridAssist.CellPadding="13 8 8 8"
-                              materialDesign:DataGridAssist.ColumnHeaderPadding="8"
-                              BorderThickness="0" GridLinesVisibility="Horizontal">
+              AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+              SelectionMode="Single"
+              Style="{StaticResource MaterialDesignDataGrid}"
+              materialDesign:DataGridAssist.CellPadding="13 8 8 8"
+              materialDesign:DataGridAssist.ColumnHeaderPadding="8"
+              BorderThickness="0" GridLinesVisibility="Horizontal">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Binding="{Binding SoftwareOptionId}" Width="Auto" SortMemberPath="SoftwareOptionId"/>
                             <DataGridTextColumn Header="Primary Name" Binding="{Binding PrimaryName}" Width="2*" SortMemberPath="PrimaryName"/>
                             <DataGridTextColumn Header="Option #" Binding="{Binding PrimaryOptionNumberDisplay}" Width="*" SortMemberPath="PrimaryOptionNumberDisplay"/>
                             <DataGridTextColumn Header="Control System" Binding="{Binding ControlSystemName}" Width="*" SortMemberPath="ControlSystemName"/>

@@ -41,5 +41,11 @@ namespace RuleArchitect.Abstractions.Interfaces
         /// <returns>A list of UserActivityLog DTOs or entities.</returns>
         Task<IEnumerable<UserActivityLogDto>> GetActivityLogsAsync(ActivityLogFilterDto filterDto); // You'll need to define UserActivityLogDto and ActivityLogFilterDto
 
+        /// <summary>
+        /// Retrieves a list of all distinct activity types from the logs.
+        /// </summary>
+        /// <returns>A list of unique activity type strings.</returns>
+        Task<List<string>> GetDistinctActivityTypesAsync();
+
     }
 }

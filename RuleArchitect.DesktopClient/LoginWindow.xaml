@@ -91,12 +91,29 @@
                              materialDesign:TextFieldAssist.HasLeadingIcon="True"
                              materialDesign:TextFieldAssist.LeadingIcon="Account"/>
 
-                    <PasswordBox materialDesign:HintAssist.Hint="Password"
-                                 x:Name="PasswordBox"
-                                 Style="{StaticResource MaterialDesignFloatingHintPasswordBox}"
-                                 Margin="0,8"
-                                 materialDesign:TextFieldAssist.HasLeadingIcon="True"
-                                 materialDesign:TextFieldAssist.LeadingIcon="Password"/>
+                    <Grid Margin="0,8">
+                        <PasswordBox x:Name="PasswordBox"
+                 materialDesign:HintAssist.Hint="Password"
+                 materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                 materialDesign:TextFieldAssist.LeadingIcon="Password"
+                 PasswordChanged="PasswordBox_PasswordChanged"
+                 Style="{StaticResource MaterialDesignFloatingHintPasswordBox}"/>
+
+                        <TextBox x:Name="PasswordTextBox"
+             materialDesign:HintAssist.Hint="Password"
+             materialDesign:TextFieldAssist.HasLeadingIcon="True"
+             materialDesign:TextFieldAssist.LeadingIcon="Password"
+             TextChanged="PasswordTextBox_TextChanged"
+             Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+             Visibility="Collapsed"/>
+
+                        <ToggleButton x:Name="PasswordVisibilityToggle"
+                  Style="{StaticResource MaterialDesignFlatButton}"
+                  HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,-4"
+                  Checked="PasswordVisibility_Changed" Unchecked="PasswordVisibility_Changed">
+                            <materialDesign:PackIcon Kind="Eye" />
+                        </ToggleButton>
+                    </Grid>
 
                     <TextBlock x:Name="ErrorMessageTextBlock" Text="{Binding ErrorMessage}"
                                Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"

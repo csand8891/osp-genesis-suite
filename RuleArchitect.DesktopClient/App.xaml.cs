@@ -71,6 +71,7 @@ namespace RuleArchitect.DesktopClient
             // Register other ViewModels for your different views/UserControls as you create them:
             services.AddTransient<UserManagementViewModel>();
             services.AddTransient<EditSpecCodeDialogViewModel>();
+            services.AddTransient<UserActivityLogViewModel>();
             // services.AddTransient<OrdersViewModel>();
             // services.AddTransient<ReportsViewModel>();
             // services.AddTransient<OrderReviewDashboardViewModel>(); 

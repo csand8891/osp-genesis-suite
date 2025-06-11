@@ -36,6 +36,11 @@ namespace RuleArchitect.DesktopClient.ViewModels
             "Software Option", "Spec Code", "OSP File Version", "General Text"
         };
 
+        public static List<string> AvailableConditions { get; } = new List<string>
+        {
+            "requires", "excludes", "minimumversion"
+        };
+
         // --- Properties for Display (You might load these via services or get them from parent VM's lookup lists) ---
         private string? _requiredSoftwareOptionName;
         public string? RequiredSoftwareOptionName { get => _requiredSoftwareOptionName; set => SetProperty(ref _requiredSoftwareOptionName, value); }

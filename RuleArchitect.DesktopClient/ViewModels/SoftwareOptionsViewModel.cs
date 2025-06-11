@@ -223,12 +223,19 @@ namespace RuleArchitect.DesktopClient.ViewModels
             if (MessageBox.Show($"Are you sure you want to delete '{SelectedSoftwareOption.PrimaryName}'?", "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.No)
             { return; }
             IsLoading = true;
+            var currentUser = _authStateProvider.CurrentUser;
+            if (currentUser == null)
+            {
+                _notificationService.ShowError("Authentication error. Cannot delete option.", "Delete Error");
+                IsLoading = false;
+                return;
+            }
             try
             {
                 using (var scope = _scopeFactory.CreateScope())
                 {
                     var service = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
-                    bool success = await service.DeleteSoftwareOptionAsync(SelectedSoftwareOption.SoftwareOptionId);
+                    bool success = await service.DeleteSoftwareOptionAsync(SelectedSoftwareOption.SoftwareOptionId, currentUser.UserId, currentUser.UserName);
                     if (success)
                     {
                         _notificationService.ShowSuccess($"Software Option '{SelectedSoftwareOption.PrimaryName}' deleted.", "Delete Successful");

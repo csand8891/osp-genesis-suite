@@ -1,0 +1,174 @@
+﻿<UserControl x:Class="RuleArchitect.DesktopClient.Views.UserActivityLogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=viewModels:UserActivityLogViewModel, IsDesignTimeCreatable=True}"
+             d:DesignHeight="600" d:DesignWidth="950"
+             TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+             Background="{DynamicResource MaterialDesignPaper}">
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <!-- New row for quick filters -->
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Main Filter Section -->
+        <materialDesign:Card Grid.Row="0" Padding="16" Margin="0 0 0 8">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBox Grid.Column="0"
+                         materialDesign:HintAssist.Hint="Search Text (User, Desc...)"
+                         Text="{Binding CurrentFilter.SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Margin="0 0 16 0"
+                         VerticalAlignment="Center"/>
+
+                <TextBox Grid.Column="1"
+                         materialDesign:HintAssist.Hint="Activity Type"
+                         Text="{Binding CurrentFilter.ActivityTypeFilter, UpdateSourceTrigger=PropertyChanged}"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Margin="0 0 16 0"
+                         VerticalAlignment="Center"/>
+
+                <DatePicker Grid.Column="2"
+                            materialDesign:HintAssist.Hint="Date From"
+                            SelectedDate="{Binding CurrentFilter.DateFrom}"
+                            Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                            Margin="0 0 16 0"
+                            VerticalAlignment="Center"/>
+
+                <DatePicker Grid.Column="3"
+                            materialDesign:HintAssist.Hint="Date To"
+                            SelectedDate="{Binding CurrentFilter.DateTo}"
+                            Style="{StaticResource MaterialDesignFloatingHintDatePicker}"
+                            Margin="0 0 16 0"
+                            VerticalAlignment="Center"/>
+
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Command="{Binding LoadLogsCommand}" Style="{StaticResource MaterialDesignRaisedButton}"
+                            IsDefault="True" ToolTip="Search Logs">
+                        <materialDesign:PackIcon Kind="Magnify" />
+                    </Button>
+                    <Button Command="{Binding ClearFiltersCommand}" Style="{StaticResource MaterialDesignFlatButton}"
+                            Margin="8 0 0 0" ToolTip="Clear Filters">
+                        <materialDesign:PackIcon Kind="Close" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </materialDesign:Card>
+
+        <!-- Quick Filters Section -->
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding QuickFilterTypes}" Margin="0 0 0 16">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <!-- CORRECTED: Removed the Style property entirely to use the default style -->
+                    <materialDesign:Chip Content="{Binding}"
+                                         Command="{Binding DataContext.ApplyQuickFilterCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                         CommandParameter="{Binding}"
+                                         IsDeletable="False"
+                                         Margin="0 0 8 8"
+                                         Cursor="Hand"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- DataGrid Section -->
+        <materialDesign:Card Grid.Row="2">
+            <DataGrid ItemsSource="{Binding ActivityLogs}"
+                      IsReadOnly="True"
+                      AutoGenerateColumns="False"
+                      Style="{StaticResource MaterialDesignDataGrid}"
+                      materialDesign:DataGridAssist.CellPadding="13 8 8 8"
+                      materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="Auto"/>
+                    <DataGridTextColumn Header="User" Binding="{Binding UserName}" Width="Auto"/>
+                    <DataGridTemplateColumn Header="Activity Type" Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <materialDesign:PackIcon Margin="0 0 8 0" VerticalAlignment="Center">
+                                        <materialDesign:PackIcon.Style>
+                                            <Style TargetType="materialDesign:PackIcon">
+                                                <Setter Property="Kind" Value="HelpCircleOutline" />
+                                                <Setter Property="Foreground" Value="Gray" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding ActivityType}" Value="CreateSoftwareOption">
+                                                        <Setter Property="Kind" Value="PlusCircle" />
+                                                        <Setter Property="Foreground" Value="Green" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding ActivityType}" Value="CreateUser">
+                                                        <Setter Property="Kind" Value="AccountPlus" />
+                                                        <Setter Property="Foreground" Value="Green" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding ActivityType}" Value="UpdateSoftwareOption">
+                                                        <Setter Property="Kind" Value="PencilCircle" />
+                                                        <Setter Property="Foreground" Value="Orange" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding ActivityType}" Value="DeleteSoftwareOption">
+                                                        <Setter Property="Kind" Value="MinusCircle" />
+                                                        <Setter Property="Foreground" Value="Red" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding ActivityType}" Value="UserLogin">
+                                                        <Setter Property="Kind" Value="Login" />
+                                                        <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </materialDesign:PackIcon.Style>
+                                    </materialDesign:PackIcon>
+                                    <TextBlock Text="{Binding ActivityType}" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="3*"/>
+                    <DataGridTemplateColumn Header="Target" Width="*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource MaterialDesignFlatButton}"
+                                        Command="{Binding DataContext.GoToTargetCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        ToolTip="Go to this item"
+                                        HorizontalAlignment="Left"
+                                        Padding="4 0">
+                                    <TextBlock Text="{Binding TargetEntityDescription}" TextDecorations="Underline"/>
+                                </Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="IP Address" Binding="{Binding IpAddress}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </materialDesign:Card>
+
+        <!-- Loading Indicator -->
+        <Grid Grid.Row="0" Grid.RowSpan="3" Background="#4C000000"
+              Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                             IsIndeterminate="True" Value="0" Width="50" Height="50"/>
+                <TextBlock Text="Loading Logs..." Foreground="White" Margin="0 10 0 0" FontSize="16"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -29,6 +29,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -210,6 +211,7 @@
     <Compile Include="ViewModels\RequirementViewModel.cs" />
     <Compile Include="ViewModels\SoftwareOptionsViewModel.cs" />
     <Compile Include="ViewModels\SpecCodeViewModel.cs" />
+    <Compile Include="ViewModels\UserActivityLogViewModel.cs" />
     <Compile Include="ViewModels\UserEditViewModel.cs" />
     <Compile Include="ViewModels\UserManagementViewModel.cs" />
     <Compile Include="Views\AdminDashboardView.xaml.cs">
@@ -223,6 +225,9 @@
     </Compile>
     <Compile Include="Views\SoftwareOptionsView.xaml.cs">
       <DependentUpon>SoftwareOptionsView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\UserActivityLogView.xaml.cs">
+      <DependentUpon>UserActivityLogView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Views\UserManagementView.xaml.cs">
       <DependentUpon>UserManagementView.xaml</DependentUpon>
@@ -256,6 +261,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Views\SoftwareOptionsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Views\UserActivityLogView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

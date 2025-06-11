@@ -32,7 +32,7 @@ namespace RuleArchitect.Abstractions.Interfaces
         /// <param name="currentUser">The identifier for the user performing the action.</param>
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result contains the created software option.</returns>
-        Task<SoftwareOptionDto> CreateSoftwareOptionAsync(CreateSoftwareOptionCommandDto command, string currentUser);
+        Task<SoftwareOptionDto> CreateSoftwareOptionAsync(CreateSoftwareOptionCommandDto command, int currentUserId, string currentUserName);
 
         /// <summary>
         /// Updates an existing software option asynchronously using the provided command DTO.
@@ -41,7 +41,7 @@ namespace RuleArchitect.Abstractions.Interfaces
         /// <param name="currentUser">The identifier for the user performing the action.</param>
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result contains the updated software option.</returns>
-        Task<SoftwareOptionDto?> UpdateSoftwareOptionAsync(UpdateSoftwareOptionCommandDto command, string currentUser);
+        Task<SoftwareOptionDto?> UpdateSoftwareOptionAsync(UpdateSoftwareOptionCommandDto command, int currentUserId, string currentUserName);
 
         /// <summary>
         /// Gets the history for a specific software option by its ID asynchronously.
@@ -57,7 +57,7 @@ namespace RuleArchitect.Abstractions.Interfaces
         /// <param name="softwareOptionId">The ID of the software option to delete.</param>
         /// <returns>A task that represents the asynchronous operation. 
         /// The task result is true if the deletion was successful, false otherwise.</returns>
-        Task<bool> DeleteSoftwareOptionAsync(int softwareOptionId); // Example delete method
+        Task<bool> DeleteSoftwareOptionAsync(int softwareOptionId, int currentUserId, string currentUserName); // Example delete method
 
         Task<List<ControlSystemLookupDto>> GetControlSystemLookupsAsync();
 
