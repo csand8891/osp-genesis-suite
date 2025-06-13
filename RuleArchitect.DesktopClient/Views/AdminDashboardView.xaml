@@ -6,7 +6,8 @@
              xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
              xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"  mc:Ignorable="d" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"  mc:Ignorable="d"
+             FontFamily="{materialDesign:MaterialDesignFont}"
              d:DataContext="{d:DesignInstance Type=vm:AdminDashboardViewModel, IsDesignTimeCreatable=True}"
              d:DesignHeight="700" d:DesignWidth="900">
 

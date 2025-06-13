@@ -1,0 +1,251 @@
+﻿// File: RuleArchitect.DesktopClient/ViewModels/AddSoftwareOptionWizardViewModel.cs
+using HeraldKit.Interfaces;
+using MaterialDesignThemes.Wpf;
+using Microsoft.Extensions.DependencyInjection;
+using RuleArchitect.Abstractions.DTOs.Lookups;
+using RuleArchitect.Abstractions.DTOs.SoftwareOption;
+using RuleArchitect.Abstractions.Interfaces;
+using RuleArchitect.DesktopClient.Commands;
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
+using System.Windows;
+
+
+namespace RuleArchitect.DesktopClient.ViewModels
+{
+    public class AddSoftwareOptionWizardViewModel : BaseViewModel
+    {
+        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly INotificationService _notificationService;
+        private readonly IAuthenticationStateProvider _authStateProvider;
+
+        private int _currentStepIndex;
+        public int CurrentStepIndex
+        {
+            get => _currentStepIndex;
+            set
+            {
+                if (SetProperty(ref _currentStepIndex, value))
+                {
+                    OnPropertyChanged(nameof(StepTitle));
+                    OnPropertyChanged(nameof(IsOnFirstStep));
+                    OnPropertyChanged(nameof(IsOnLastStep));
+                    ((RelayCommand)NextCommand).RaiseCanExecuteChanged();
+                    ((RelayCommand)SaveCommand).RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        public string StepTitle
+        {
+            get
+            {
+                switch (CurrentStepIndex)
+                {
+                    case 0: return "Step 1: Core Details";
+                    case 1: return "Step 2: Option Numbers";
+                    case 2: return "Step 3: Specification Codes";
+                    case 3: return "Step 4: Requirements";
+                    case 4: return "Step 5: Review and Finish";
+                    default: return "Create Software Option";
+                }
+            }
+        }
+
+        public bool IsOnFirstStep => CurrentStepIndex == 0;
+        public bool IsOnLastStep => CurrentStepIndex == 4;
+
+        public CreateSoftwareOptionCommandDto NewSoftwareOption { get; }
+        public ObservableCollection<ControlSystemLookupDto> AvailableControlSystems { get; }
+
+        // --- NEW: Properties for Spec Code Step ---
+        public ObservableCollection<SoftwareOptionSpecificationCodeCreateDto> SpecificationCodes { get; }
+        private SoftwareOptionSpecificationCodeCreateDto _selectedSpecificationCode;
+        public SoftwareOptionSpecificationCodeCreateDto SelectedSpecificationCode
+        {
+            get => _selectedSpecificationCode;
+            set => SetProperty(ref _selectedSpecificationCode, value, () => ((RelayCommand)RemoveSpecCodeCommand).RaiseCanExecuteChanged());
+        }
+        public ObservableCollection<string> AvailableCategories { get; } = new ObservableCollection<string>();
+        public ObservableCollection<string> AvailableSpecNos { get; } = new ObservableCollection<string>(Enumerable.Range(1, 32).Select(i => i.ToString()));
+        public ObservableCollection<string> AvailableSpecBits { get; } = new ObservableCollection<string>(Enumerable.Range(0, 8).Select(i => i.ToString()));
+        // --- End New ---
+
+        public ICommand NextCommand { get; }
+        public ICommand PreviousCommand { get; }
+        public ICommand SaveCommand { get; }
+        public ICommand CancelCommand { get; }
+
+        // --- NEW: Commands for Spec Code Step ---
+        public ICommand AddSpecCodeCommand { get; }
+        public ICommand RemoveSpecCodeCommand { get; }
+        // --- End New ---
+
+
+        public AddSoftwareOptionWizardViewModel(IServiceScopeFactory scopeFactory, INotificationService notificationService, IAuthenticationStateProvider authStateProvider)
+        {
+            _scopeFactory = scopeFactory;
+            _notificationService = notificationService;
+            _authStateProvider = authStateProvider;
+
+            NewSoftwareOption = new CreateSoftwareOptionCommandDto();
+            AvailableControlSystems = new ObservableCollection<ControlSystemLookupDto>();
+            SpecificationCodes = new ObservableCollection<SoftwareOptionSpecificationCodeCreateDto>(); // Initialize collection
+
+            NewSoftwareOption.SpecificationCodes = SpecificationCodes.ToList();
+            SpecificationCodes.CollectionChanged += (s, e) => {
+                NewSoftwareOption.SpecificationCodes = SpecificationCodes.ToList();
+            };
+
+            NextCommand = new RelayCommand(GoToNextStep, CanGoToNextStep);
+            PreviousCommand = new RelayCommand(GoToPreviousStep, () => !IsOnFirstStep);
+            SaveCommand = new RelayCommand(async () => await ExecuteSaveAsync(), () => IsOnLastStep);
+            CancelCommand = new RelayCommand(ExecuteCancel);
+
+            // Initialize new commands
+            AddSpecCodeCommand = new RelayCommand(ExecuteAddSpecCode);
+            RemoveSpecCodeCommand = new RelayCommand(ExecuteRemoveSpecCode, () => SelectedSpecificationCode != null);
+
+            _ = LoadLookupsAsync();
+
+            // Subscribe to property changes on the DTO to update available categories
+            this.NewSoftwareOption.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName == nameof(NewSoftwareOption.ControlSystemId))
+                {
+                    PopulateAvailableCategories();
+                }
+            };
+        }
+
+        private void PopulateAvailableCategories()
+        {
+            AvailableCategories.Clear();
+            if (NewSoftwareOption.ControlSystemId.HasValue)
+            {
+                var controlSystem = AvailableControlSystems.FirstOrDefault(cs => cs.ControlSystemId == NewSoftwareOption.ControlSystemId);
+                if (controlSystem != null)
+                {
+                    if (controlSystem.Name.ToUpperInvariant().StartsWith("P"))
+                    {
+                        AvailableCategories.Add("NC1");
+                        AvailableCategories.Add("NC2");
+                        AvailableCategories.Add("NC3");
+                        AvailableCategories.Add("PLC1");
+                        AvailableCategories.Add("PLC2");
+                        AvailableCategories.Add("PLC3");
+                    }
+                    else
+                    {
+                        AvailableCategories.Add("NC");
+                        AvailableCategories.Add("PLC");
+                    }
+                }
+            }
+        }
+
+        private void ExecuteAddSpecCode()
+        {
+            SpecificationCodes.Add(new SoftwareOptionSpecificationCodeCreateDto
+            {
+                Category = AvailableCategories.FirstOrDefault(),
+                SpecCodeNo = "1",
+                SpecCodeBit = "0"
+            });
+        }
+
+        private void ExecuteRemoveSpecCode()
+        {
+            if (SelectedSpecificationCode != null)
+            {
+                SpecificationCodes.Remove(SelectedSpecificationCode);
+            }
+        }
+
+        private async Task LoadLookupsAsync()
+        {
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+                var controlSystems = await softwareOptionService.GetControlSystemLookupsAsync();
+                if (controlSystems != null)
+                {
+                    foreach (var cs in controlSystems)
+                    {
+                        AvailableControlSystems.Add(cs);
+                    }
+                }
+            }
+        }
+
+        private void GoToNextStep()
+        {
+            if (CanGoToNextStep())
+            {
+                CurrentStepIndex++;
+            }
+        }
+
+        private bool CanGoToNextStep()
+        {
+            if (IsOnLastStep) return false;
+
+            // Step-specific validation
+            switch (CurrentStepIndex)
+            {
+                case 0: // Details Step
+                    return !string.IsNullOrWhiteSpace(NewSoftwareOption.PrimaryName) &&
+                           NewSoftwareOption.ControlSystemId.HasValue &&
+                           NewSoftwareOption.ControlSystemId > 0;
+                default:
+                    return true;
+            }
+        }
+
+        private void GoToPreviousStep()
+        {
+            CurrentStepIndex--;
+        }
+
+        private async Task ExecuteSaveAsync()
+        {
+            var currentUser = _authStateProvider.CurrentUser;
+            if (currentUser == null)
+            {
+                _notificationService.ShowError("Authentication error. Cannot save option.", "Save Error");
+                return;
+            }
+
+            try
+            {
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+                    var createdOption = await softwareOptionService.CreateSoftwareOptionAsync(NewSoftwareOption, currentUser.UserId, currentUser.UserName);
+
+                    if (createdOption != null)
+                    {
+                        _notificationService.ShowSuccess($"Software Option '{createdOption.PrimaryName}' created successfully.", "Save Successful");
+                        DialogHost.CloseDialogCommand.Execute(true, null);
+                    }
+                    else
+                    {
+                        _notificationService.ShowError("Failed to create Software Option.", "Save Failed");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowError($"An unexpected error occurred while saving: {ex.Message}", "Save Error");
+            }
+        }
+
+        private void ExecuteCancel()
+        {
+            DialogHost.CloseDialogCommand.Execute(false, null);
+        }
+    }
+}

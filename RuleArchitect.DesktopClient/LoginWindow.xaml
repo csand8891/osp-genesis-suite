@@ -52,19 +52,28 @@
 
         <Border Grid.Column="0" Background="{DynamicResource PrimaryHueMidBrush}">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Margin="32">
-                <Image Source="/genesis-suite-outline-icon-256x256.ico" 
+                <!-- Modified Image with Elevation -->
+                <materialDesign:Card
+                    Background="{DynamicResource PrimaryHueMidBrush}"
+            Width="256"
+            Height="256"
+            Padding="0"
+            materialDesign:ElevationAssist.Elevation="Dp8"  
+                    HorizontalAlignment="Center">
+                    <Image Source="/genesis-suite-outline-icon-256x256.ico" 
                    Height="256" 
-                   Width="256" 
-                   HorizontalAlignment="Center"
-                   RenderOptions.BitmapScalingMode="Fant" />
+                   Width="256"
+                   RenderOptions.BitmapScalingMode="Fant"/>
+                </materialDesign:Card>
+
                 <TextBlock Text="OSP Genesis Suite"
-                           Style="{StaticResource MaterialDesignHeadline4TextBlock}"
-                           Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
-                           TextAlignment="Center" Margin="0,8,0,0"/>
+                   Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                   Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                   TextAlignment="Center" Margin="0,8,0,0"/>
                 <TextBlock Text="Orchestrating OSP Software Production, from Order to Machine"
-                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                           Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
-                           TextAlignment="Center" Margin="0,8,0,0" TextWrapping="Wrap"/>
+                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                   Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                   TextAlignment="Center" Margin="0,8,0,0" TextWrapping="Wrap"/>
             </StackPanel>
         </Border>
 
@@ -127,6 +136,7 @@
                     </TextBlock>
                     <Button Content="LOGIN" Style="{StaticResource MaterialDesignRaisedButton}"
                             Height="48" Margin="0,24,0,8" Command="{Binding LoginCommand}"
+                            materialDesign:RippleAssist.Feedback="{DynamicResource MaterialDesignRippleBackgroundBrush}"
                             materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsLoggingIn}"
                             materialDesign:ButtonProgressAssist.Value="-1"
                             materialDesign:ButtonProgressAssist.IsIndeterminate="True"/>

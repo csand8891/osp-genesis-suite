@@ -68,6 +68,7 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<AdminDashboardViewModel>(); // Specific dashboard/view ViewModels can be transient or scoped
             services.AddTransient<SoftwareOptionsViewModel>();
             services.AddTransient<EditSoftwareOptionViewModel>();
+            services.AddTransient<AddSoftwareOptionWizardViewModel>();
             // Register other ViewModels for your different views/UserControls as you create them:
             services.AddTransient<UserManagementViewModel>();
             services.AddTransient<EditSpecCodeDialogViewModel>();
@@ -82,6 +83,7 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<LoginWindow>();
             services.AddSingleton<MainWindow>(); // MainWindow is the shell, likely singleton
             services.AddTransient<EditSpecCodeDialog>();
+            services.AddTransient<AddSoftwareOptionWizardView>();
 
 
 

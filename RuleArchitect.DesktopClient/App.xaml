@@ -10,20 +10,16 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <materialDesign:BundledTheme BaseTheme="Light" PrimaryColor="Blue" SecondaryColor="Orange" />
+                <!-- 1. Load Material Design basic resources FIRST -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
-                
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
 
 
-                <ResourceDictionary>
-                    <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#005EB8"/>
-                    <SolidColorBrush x:Key="PrimaryHueMidForegroundBrush" Color="White"/>
-                    <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="#3385D1"/>
-                    <SolidColorBrush x:Key="PrimaryHueLightForegroundBrush" Color="White"/>
-                    <SolidColorBrush x:Key="PrimaryHueDarkBrush" Color="#004A94"/>
-                    <SolidColorBrush x:Key="PrimaryHueDarkForegroundBrush" Color="White"/>
-                </ResourceDictionary>
 
+                <!-- 2. Load your CUSTOM theme (contains colors, fonts, elevations) -->
+                <ResourceDictionary Source="Themes/CustomTheme.xaml" />
+
+                <!-- 3. Load converters -->
                 <ResourceDictionary>
                     <converters:NullToBooleanConverter x:Key="NullToFalseConverter" FalseForNull="True"/>
                     <converters:NullToBooleanConverter x:Key="NullToTrueConverter" FalseForNull="False" />
@@ -35,13 +31,14 @@
                                                      FalseString="Edit User" />
                     <converters:RequirementTypeToVisibilityConverter x:Key="GlobalReqTypeToVis"/>
                 </ResourceDictionary>
-
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Data Templates (unchanged) -->
             <DataTemplate DataType="{x:Type viewModels:UserManagementViewModel}">
                 <views:UserManagementView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type viewModels:AdminDashboardViewModel}">
-                <views:AdminDashboardView />                
+                <views:AdminDashboardView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type viewModels:MainViewModel}">
                 <local:MainWindow />
@@ -49,12 +46,14 @@
             <DataTemplate DataType="{x:Type viewModels:SoftwareOptionsViewModel}">
                 <views:SoftwareOptionsView />
             </DataTemplate>
-
             <DataTemplate DataType="{x:Type viewModels:EditSoftwareOptionViewModel}">
                 <views:EditSoftwareOptionView />
             </DataTemplate>
             <DataTemplate DataType="{x:Type viewModels:UserActivityLogViewModel}">
                 <views:UserActivityLogView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:AddSoftwareOptionWizardViewModel}">
+                <views:AddSoftwareOptionWizardView />
             </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>

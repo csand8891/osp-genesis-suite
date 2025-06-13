@@ -8,8 +8,7 @@
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=viewModels:UserActivityLogViewModel, IsDesignTimeCreatable=True}"
              d:DesignHeight="600" d:DesignWidth="950"
-             TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-             Background="{DynamicResource MaterialDesignPaper}">
+             >
 
     <Grid Margin="16">
         <Grid.RowDefinitions>

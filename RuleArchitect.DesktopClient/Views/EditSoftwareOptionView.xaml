@@ -4,270 +4,247 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
-             xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+             xmlns:viewModels="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-             mc:Ignorable="d"
+             xmlns:converters="clr-namespace:RuleArchitect.DesktopClient.Converters"
              FontFamily="{materialDesign:MaterialDesignFont}"
-             d:DataContext="{d:DesignInstance Type=vm:EditSoftwareOptionViewModel, IsDesignTimeCreatable=True}"
-             d:DesignHeight="800" d:DesignWidth="750">
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=viewModels:EditSoftwareOptionViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="600" d:DesignWidth="800"
+             Background="{DynamicResource MaterialDesignPaper}">
+
     <UserControl.Resources>
-        <!-- Styles can be kept here if needed, or moved to a central dictionary -->
+        <converters:RequirementTypeToVisibilityConverter x:Key="RequirementTypeToVisibilityConverter" />
+        
+        <!-- Add this DataTemplate -->
+        <DataTemplate x:Key="TabHeaderTemplate">
+            <TextBlock Text="{Binding}"
+                      Foreground="{DynamicResource MaterialDesignBody}"
+                      FontSize="14"/>
+        </DataTemplate>
+
+        <!-- Add these brushes -->
+        <SolidColorBrush x:Key="MaterialDesignBody" Color="#DD000000"/>
+        <SolidColorBrush x:Key="MaterialDesignTabHeaderSelectedBrush" Color="#005EB8"/>
+        <SolidColorBrush x:Key="MaterialDesignTabHeaderUnselectedBrush" Color="#89000000"/>
+
+        <!-- Define the TabItem style -->
+        <Style x:Key="CustomTabItemStyle" TargetType="TabItem" BasedOn="{StaticResource MaterialDesignTabItem}">
+        </Style>
     </UserControl.Resources>
 
-    <materialDesign:DialogHost Identifier="EditSoftwareOptionDialogHost">
-        <Grid Margin="16">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
-                <!-- New row for the button bar -->
-            </Grid.RowDefinitions>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="{Binding ViewTitle}" Style="{StaticResource MaterialDesignHeadline5TextBlock}" Margin="0,0,0,16"/>
+        <!-- DialogHost and content below header -->
+        <materialDesign:DialogHost Grid.Row="1"
+                                  Identifier="EditSoftwareOptionDialogHost"
+                                  CloseOnClickAway="True"
+                                  Margin="0,8,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <TabControl Grid.Row="1" Style="{StaticResource MaterialDesignTabControl}">
+                <!-- Header: Always visible, not overlapped -->
+                <TextBlock Grid.Row="0"
+                           Text="{Binding ViewTitle}" 
+                           Foreground="#FF000000"  
+                           FontSize="24"
+                           FontWeight="Bold"
+                           Margin="16,16,16,0"
+                           VerticalAlignment="Top"/>
 
-                <!-- Main Details Tab -->
-                <TabItem>
-                    <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="FileDocumentEditOutline" />
-                            <TextBlock Text="Details" Margin="8 0 0 0"/>
-                        </StackPanel>
-                    </TabItem.Header>
-                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24 16">
+                <!-- Content Tabs -->
+                <TabControl Grid.Row="1" Margin="8" 
+                            Style="{DynamicResource MaterialDesignTabControl}">
+                    <!-- Details Tab -->
+                    <TabItem Style="{StaticResource CustomTabItemStyle}" Header="Details">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
+                            <StackPanel>
+                                <TextBox materialDesign:HintAssist.Hint="Primary Name" Text="{Binding PrimaryName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5"/>
+                                <TextBox materialDesign:HintAssist.Hint="Alternative Names" Text="{Binding AlternativeNames, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5"/>
+                                <TextBox materialDesign:HintAssist.Hint="Source File Name" Text="{Binding SourceFileName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5"/>
+                                <ComboBox materialDesign:HintAssist.Hint="Control System" ItemsSource="{Binding AvailableControlSystems}" DisplayMemberPath="Name" SelectedValuePath="ControlSystemId" SelectedValue="{Binding ControlSystemId}" Style="{StaticResource MaterialDesignFloatingHintComboBox}" Margin="0,5"/>
+                                <TextBox materialDesign:HintAssist.Hint="Notes" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" TextWrapping="Wrap" MinLines="3" Margin="0,5"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <!-- Option # Tab -->
+                    <TabItem Style="{StaticResource CustomTabItemStyle}" Header="Option #">
                         <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" MinWidth="160"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <ListView Grid.Row="0" ItemsSource="{Binding OptionNumbers}" Margin="8">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding OptionNumber, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" BorderThickness="0,0,0,1"/>
+                                            <Button Grid.Column="1" 
+                                                    Command="{Binding DataContext.RemoveOptionNumberCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" 
+                                                    CommandParameter="{Binding}" 
+                                                    Style="{StaticResource MaterialDesignToolButton}" 
+                                                    ToolTip="Remove Option Number">
+                                                <materialDesign:PackIcon Kind="Delete"/>
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            <Button Grid.Row="1" Content="Add Option #" Command="{Binding AddOptionNumberCommand}" Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Right" Margin="8"/>
+                        </Grid>
+                    </TabItem>
+
+                    <!-- Spec Codes Tab -->
+                    <TabItem Style="{StaticResource CustomTabItemStyle}" Header="Spec Codes">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
-                            <Label Grid.Row="0" Grid.Column="0" Content="Primary Name:" Style="{StaticResource MaterialDesignLabel}"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding PrimaryName, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Enter primary name" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                            <Label Grid.Row="1" Grid.Column="0" Content="Alternative Names:" Style="{StaticResource MaterialDesignLabel}"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding AlternativeNames, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., AltName1; AltName2" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                            <Label Grid.Row="2" Grid.Column="0" Content="Source File Name:" Style="{StaticResource MaterialDesignLabel}"/>
-                            <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding SourceFileName, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., rules.xlsx" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                            <Label Grid.Row="3" Grid.Column="0" Content="Control System:" Style="{StaticResource MaterialDesignLabel}"/>
-                            <ComboBox Grid.Row="3" Grid.Column="1" ItemsSource="{Binding AvailableControlSystems}" SelectedValue="{Binding ControlSystemId, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Null}}" SelectedValuePath="ControlSystemId" DisplayMemberPath="Name" materialDesign:HintAssist.Hint="Select Control System" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
-                            <Label Grid.Row="4" Grid.Column="0" Content="Notes:" Style="{StaticResource MaterialDesignLabel}"/>
-                            <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" MinLines="3" MaxLines="5" VerticalScrollBarVisibility="Auto" materialDesign:HintAssist.Hint="Additional notes" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                            <Label Grid.Row="5" Grid.Column="0" Content="Checked By:" Style="{StaticResource MaterialDesignLabel}"/>
-                            <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding CheckedBy, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="User who checked" Style="{StaticResource MaterialDesignOutlinedTextBox}"/>
-                            <Label Grid.Row="6" Grid.Column="0" Content="Checked Date:" Style="{StaticResource MaterialDesignLabel}"/>
-                            <DatePicker Grid.Row="6" Grid.Column="1" SelectedDate="{Binding CheckedDate, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Date of check" Style="{StaticResource MaterialDesignOutlinedDatePicker}"/>
-                            <TextBlock Grid.Row="7" Grid.Column="0" Text="Version:" VerticalAlignment="Center" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
-                            <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding Version}" VerticalAlignment="Center" Margin="0,5,0,12"/>
-                            <TextBlock Grid.Row="8" Grid.Column="0" Text="Last Modified:" VerticalAlignment="Center" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
-                            <StackPanel Grid.Row="8" Grid.Column="1" Orientation="Vertical" Margin="0,5,0,12">
-                                <TextBlock Text="{Binding LastModifiedDate, StringFormat='{}{0:g}'}"/>
-                                <TextBlock Text="{Binding LastModifiedBy, StringFormat='by {0}'}" Foreground="{DynamicResource MaterialDesignBodyLight}"/>
-                            </StackPanel>
-                            <TextBlock Grid.Row="9" Grid.Column="0" Text="Software Option ID:" VerticalAlignment="Center" FontWeight="SemiBold" Visibility="{Binding IsNewSoftwareOption, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}"/>
-                            <TextBlock Grid.Row="9" Grid.Column="1" Text="{Binding SoftwareOptionId}" VerticalAlignment="Center" Margin="0,5,0,12" Foreground="Gray" Visibility="{Binding IsNewSoftwareOption, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}"/>
-                        </Grid>
-                    </ScrollViewer>
-                </TabItem>
-
-                <!-- Option Numbers Tab -->
-                <TabItem>
-                    <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Pound" />
-                            <TextBlock Text="Option #" Margin="8 0 0 0"/>
-                        </StackPanel>
-                    </TabItem.Header>
-                    <Grid Margin="16">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <ItemsControl Grid.Row="0" ItemsSource="{Binding OptionNumbers}" Margin="0,0,0,8" VerticalAlignment="Top">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate DataType="{x:Type vm:OptionNumberViewModel}">
-                                    <Grid Margin="0,2">
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <TextBox Grid.Column="0" Text="{Binding OptionNumber, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignOutlinedTextBox}" materialDesign:HintAssist.Hint="Enter option number" Margin="0,0,8,0"/>
-                                        <Button Grid.Column="1" Command="{Binding DataContext.RemoveOptionNumberCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Remove Option Number" Padding="4">
-                                            <materialDesign:PackIcon Kind="MinusCircleOutline" Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"/>
-                                        </Button>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <Button Grid.Row="1" Command="{Binding AddOptionNumberCommand}" Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center"/>
-                                <TextBlock Text="Add Option Number" Margin="4,0,0,0"/>
-                            </StackPanel>
-                        </Button>
-                    </Grid>
-                </TabItem>
-
-                <!-- Specification Codes Tab -->
-                <TabItem>
-                    <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Barcode" />
-                            <TextBlock Text="Spec Codes" Margin="8 0 0 0"/>
-                        </StackPanel>
-                    </TabItem.Header>
-                    <Grid Margin="16">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <DataGrid Grid.Row="0" ItemsSource="{Binding SpecificationCodes}" SelectedItem="{Binding SelectedSpecificationCode}" AutoGenerateColumns="False" CanUserAddRows="False" MaxHeight="500" Style="{StaticResource MaterialDesignDataGrid}">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="*"/>
-                                <DataGridTextColumn Header="Spec No" Binding="{Binding SpecCodeNo}" Width="Auto"/>
-                                <DataGridTextColumn Header="Spec Bit" Binding="{Binding SpecCodeBit}" Width="Auto"/>
-                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="2*"/>
-                                <DataGridTextColumn Header="Activation Rule" Binding="{Binding ActivationRuleName}" Width="*"/>
-                                <DataGridTextColumn Header="Interpretation" Binding="{Binding SpecificInterpretation}" Width="1.5*"/>
-                                <DataGridTemplateColumn Width="Auto">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Button Command="{Binding DataContext.EditSpecificationCodeCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignToolButton}" Padding="2" ToolTip="Edit Spec Code">
-                                                <materialDesign:PackIcon Kind="PencilOutline"/>
-                                            </Button>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                        <Button Grid.Row="1" Command="{Binding AddSpecificationCodeCommand}" Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Left" Margin="0,8,0,0">
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center"/>
-                                <TextBlock Text="Add Specification Code" Margin="4,0,0,0"/>
-                            </StackPanel>
-                        </Button>
-                    </Grid>
-                </TabItem>
-
-                <!-- Requirements Tab -->
-                <TabItem>
-                    <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="ClipboardListOutline" />
-                            <TextBlock Text="Requirements" Margin="8 0 0 0"/>
-                        </StackPanel>
-                    </TabItem.Header>
-                    <Grid Margin="16">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" MaxHeight="500">
-                            <ItemsControl ItemsSource="{Binding Requirements}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type vm:RequirementViewModel}">
-                                        <Border BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1" Padding="8" Margin="0,5">
-                                            <Grid>
-                                                <Grid.RowDefinitions>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                    <RowDefinition Height="Auto"/>
-                                                </Grid.RowDefinitions>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" MinWidth="150"/>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <Button Grid.Row="0" Grid.Column="2" Grid.RowSpan="10" VerticalAlignment="Top" Margin="5,0,0,0" Command="{Binding DataContext.RemoveRequirementCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" CommandParameter="{Binding}" Style="{StaticResource MaterialDesignToolButton}" ToolTip="Remove Requirement">
-                                                    <materialDesign:PackIcon Kind="MinusCircleOutline" Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"/>
+                            <DataGrid Grid.Row="0" ItemsSource="{Binding SpecificationCodes}" 
+                                      SelectedItem="{Binding SelectedSpecificationCode, Mode=TwoWay}"
+                                      AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" Margin="8">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="*"/>
+                                    <DataGridTextColumn Header="Spec No" Binding="{Binding SpecCodeNo}" Width="*"/>
+                                    <DataGridTextColumn Header="Spec Bit" Binding="{Binding SpecCodeBit}" Width="*"/>
+                                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="3*"/>
+                                    <DataGridTextColumn Header="Activation Rule" Binding="{Binding ActivationRuleName}" Width="2*"/>
+                                    <DataGridTextColumn Header="Interpretation" Binding="{Binding SpecificInterpretation}" Width="2*"/>
+                                    <DataGridTemplateColumn>
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Button Style="{StaticResource MaterialDesignToolButton}" 
+                                                        Command="{Binding DataContext.EditSpecificationCodeCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
+                                                        CommandParameter="{Binding}"
+                                                        ToolTip="Edit Specification Code">
+                                                    <materialDesign:PackIcon Kind="Pencil" />
                                                 </Button>
-                                                <Label Grid.Row="0" Grid.Column="0" Content="Requirement Type:"/>
-                                                <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Source={x:Static vm:RequirementViewModel.AvailableRequirementTypes}}" SelectedItem="{Binding RequirementType, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Select type"/>
-                                                <Label Grid.Row="1" Grid.Column="0" Content="Condition:"/>
-                                                <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding Source={x:Static vm:RequirementViewModel.AvailableConditions}}" SelectedItem="{Binding Condition, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="Select a condition"/>
-                                                <Label Grid.Row="2" Grid.Column="0" Content="Required Value:" Visibility="{Binding RequirementType, Converter={StaticResource GlobalReqTypeToVis}, ConverterParameter='General Text'}"/>
-                                                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding GeneralRequiredValue, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="General value / Text" Visibility="{Binding RequirementType, Converter={StaticResource GlobalReqTypeToVis}, ConverterParameter='General Text'}"/>
-                                                <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Vertical" Visibility="{Binding RequirementType, Converter={StaticResource GlobalReqTypeToVis}, ConverterParameter='Software Option'}">
-                                                    <Label Content="Required Software Option:"/>
-                                                    <ComboBox ItemsSource="{Binding DataContext.AvailableSoftwareOptionsForRequirements, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" SelectedValue="{Binding RequiredSoftwareOptionId, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Null}}" SelectedValuePath="SoftwareOptionId" DisplayMemberPath="PrimaryName" materialDesign:HintAssist.Hint="Select required SO"/>
-                                                </StackPanel>
-                                                <StackPanel Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Vertical" Visibility="{Binding RequirementType, Converter={StaticResource GlobalReqTypeToVis}, ConverterParameter='Spec Code'}">
-                                                    <Label Content="Required Spec Code:"/>
-                                                    <ComboBox ItemsSource="{Binding DataContext.AvailableSpecCodesForRequirements, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" SelectedValue="{Binding RequiredSpecCodeDefinitionId, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Null}}" SelectedValuePath="SpecCodeDefinitionId" DisplayMemberPath="DisplayName" materialDesign:HintAssist.Hint="Select required Spec Code"/>
-                                                </StackPanel>
-                                                <StackPanel Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Orientation="Vertical" Visibility="{Binding RequirementType, Converter={StaticResource GlobalReqTypeToVis}, ConverterParameter='OSP File Version'}">
-                                                    <Label Content="OSP File Name:"/>
-                                                    <TextBox Text="{Binding OspFileName, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., MYFILE.OSP"/>
-                                                    <Label Content="OSP File Version:"/>
-                                                    <TextBox Text="{Binding OspFileVersion, UpdateSourceTrigger=PropertyChanged}" materialDesign:HintAssist.Hint="e.g., 1.02"/>
-                                                </StackPanel>
-                                                <Label Grid.Row="6" Grid.Column="0" Content="Notes:"/>
-                                                <TextBox Grid.Row="6" Grid.Column="1" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" MinLines="2" materialDesign:HintAssist.Hint="Notes for this requirement"/>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                        <Button Grid.Row="1" Command="{Binding AddRequirementCommand}" Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Left" Margin="0,8,0,0">
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="Plus" VerticalAlignment="Center"/>
-                                <TextBlock Text="Add Requirement" Margin="4,0,0,0"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+                                <Button Content="Remove Selected" 
+                                        Command="{Binding RemoveSpecificationCodeCommand}" 
+                                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                                        ToolTip="Removes the currently selected specification code from the list."
+                                        Margin="0,0,8,0" />
+
+                                <Button Content="Add Specification Code" 
+                                        Command="{Binding AddSpecificationCodeCommand}" 
+                                        Style="{StaticResource MaterialDesignFlatButton}"/>
                             </StackPanel>
-                        </Button>
-                    </Grid>
-                </TabItem>
+                        </Grid>
+                    </TabItem>
 
-                <!-- Activation Rules Tab -->
-                <TabItem>
-                    <TabItem.Header>
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="ToggleSwitchOutline" />
-                            <TextBlock Text="Activation Rules" Margin="8 0 0 0"/>
-                        </StackPanel>
-                    </TabItem.Header>
-                    <Grid Margin="16">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <DataGrid Grid.Row="0" ItemsSource="{Binding ActivationRules}" SelectedItem="{Binding SelectedActivationRule}" AutoGenerateColumns="False" CanUserAddRows="False" MaxHeight="500">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="Rule Name" Binding="{Binding RuleName, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
-                                <DataGridTextColumn Header="Activation Setting" Binding="{Binding ActivationSetting, UpdateSourceTrigger=PropertyChanged}" Width="2*"/>
-                                <DataGridTextColumn Header="Notes" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="2*"/>
-                            </DataGrid.Columns>
-                        </DataGrid>
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 10 0 0">
-                            <Button Content="Add Rule" Command="{Binding AddActivationRuleCommand}" Style="{StaticResource MaterialDesignRaisedButton}"/>
-                            <Button Content="Remove Selected" Command="{Binding RemoveActivationRuleCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="10 0 0 0"/>
-                        </StackPanel>
-                    </Grid>
-                </TabItem>
-            </TabControl>
+                    <!-- Requirements Tab -->
+                    <TabItem Style="{StaticResource CustomTabItemStyle}" Header="Requirements">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <DataGrid Grid.Row="0" ItemsSource="{Binding Requirements}" AutoGenerateColumns="False" CanUserAddRows="False" Margin="8" SelectedItem="{Binding SelectedRequirement, Mode=TwoWay}">
+                                <DataGrid.Columns>
+                                    <!-- Requirement Type Selector -->
+                                    <DataGridTemplateColumn Header="Type" Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ComboBox ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableRequirementTypes}}" 
+                                                          SelectedValue="{Binding RequirementType, UpdateSourceTrigger=PropertyChanged}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
 
-            <!-- =========== NEWLY ADDED BUTTON BAR START =========== -->
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0 16 0 0">
-                <Button Content="Save" Command="{Binding SaveCommand}" Style="{StaticResource MaterialDesignRaisedButton}" Margin="0,0,8,0" Width="100"/>
-                <Button Content="Cancel" Command="{Binding CancelEditCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Width="100"/>
-            </StackPanel>
-            <!-- =========== NEWLY ADDED BUTTON BAR END =========== -->
+                                    <!-- Condition Selector -->
+                                    <DataGridTemplateColumn Header="Condition" Width="*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <ComboBox ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableConditions}}" 
+                                                          SelectedValue="{Binding Condition, UpdateSourceTrigger=PropertyChanged}"/>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
 
-        </Grid>
-    </materialDesign:DialogHost>
+                                    <!-- Value (Dynamic content based on Type) -->
+                                    <DataGridTemplateColumn Header="Value" Width="2*">
+                                        <DataGridTemplateColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <!-- Text Box for General Text -->
+                                                    <TextBox Text="{Binding GeneralRequiredValue, UpdateSourceTrigger=PropertyChanged}"
+                                                             Visibility="{Binding RequirementType, Converter={StaticResource RequirementTypeToVisibilityConverter}, ConverterParameter='General Text'}"/>
+
+                                                    <!-- ComboBox for Software Options -->
+                                                    <ComboBox ItemsSource="{Binding DataContext.AvailableSoftwareOptionsForRequirements, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
+                                                              DisplayMemberPath="PrimaryName"
+                                                              SelectedValuePath="SoftwareOptionId"
+                                                              SelectedValue="{Binding RequiredSoftwareOptionId}"
+                                                              Visibility="{Binding RequirementType, Converter={StaticResource RequirementTypeToVisibilityConverter}, ConverterParameter='Software Option'}"/>
+
+                                                    <!-- ComboBox for Spec Codes -->
+                                                    <ComboBox ItemsSource="{Binding DataContext.AvailableSpecCodesForRequirements, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
+                                                              DisplayMemberPath="DisplayName"
+                                                              SelectedValuePath="SpecCodeDefinitionId"
+                                                              SelectedValue="{Binding RequiredSpecCodeDefinitionId}"
+                                                              Visibility="{Binding RequirementType, Converter={StaticResource RequirementTypeToVisibilityConverter}, ConverterParameter='Spec Code'}"/>
+
+                                                    <!-- You can add more controls here for other RequirementTypes -->
+                                                </Grid>
+                                            </DataTemplate>
+                                        </DataGridTemplateColumn.CellTemplate>
+                                    </DataGridTemplateColumn>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+                                <Button Content="Remove Selected" Command="{Binding RemoveRequirementCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,8,0"/>
+                                <Button Content="Add Requirement" Command="{Binding AddRequirementCommand}" Style="{StaticResource MaterialDesignFlatButton}"/>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+
+                    <!-- Activation Rules Tab -->
+                    <TabItem Style="{StaticResource CustomTabItemStyle}" Header="Activation Rules">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <DataGrid Grid.Row="0" ItemsSource="{Binding ActivationRules}"
+                                      SelectedItem="{Binding SelectedActivationRule, Mode=TwoWay}"
+                                      AutoGenerateColumns="False" CanUserAddRows="False" Margin="8">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Rule Name" Binding="{Binding RuleName, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                    <DataGridTextColumn Header="Activation Setting" Binding="{Binding ActivationSetting, UpdateSourceTrigger=PropertyChanged}" Width="2*"/>
+                                    <DataGridTextColumn Header="Notes" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="3*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+                                <Button Content="Remove Selected" Command="{Binding RemoveActivationRuleCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,8,0"/>
+                                <Button Content="Add Rule" Command="{Binding AddActivationRuleCommand}" Style="{StaticResource MaterialDesignFlatButton}"/>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+
+                </TabControl>
+            </Grid>
+        </materialDesign:DialogHost>
+    </Grid>
 </UserControl>

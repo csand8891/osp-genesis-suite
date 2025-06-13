@@ -112,7 +112,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             SubscribeToCollectionChanges();
             SaveCommand = new RelayCommand(async () => await ExecuteSaveAsync());
             AddOptionNumberCommand = new RelayCommand(ExecuteAddOptionNumber);
-            RemoveOptionNumberCommand = new RelayCommand(ExecuteRemoveOptionNumber, () => SelectedOptionNumber != null);
+            RemoveOptionNumberCommand = new RelayCommand(ExecuteRemoveOptionNumber, (param) => param is OptionNumberViewModel);
             AddRequirementCommand = new RelayCommand(ExecuteAddRequirement);
             RemoveRequirementCommand = new RelayCommand(ExecuteRemoveRequirement, () => SelectedRequirement != null);
             AddSpecificationCodeCommand = new RelayCommand(ExecuteShowSpecCodeDialogForAdd);
@@ -359,11 +359,14 @@ namespace RuleArchitect.DesktopClient.ViewModels
             OptionNumbers.Add(newOptionNumber);
         }
 
-        private void ExecuteRemoveOptionNumber()
+        private void ExecuteRemoveOptionNumber(object? parameter)
         {
-            if (SelectedOptionNumber != null) OptionNumbers.Remove(SelectedOptionNumber);
+            // This method now uses the parameter passed from the button.
+            if (parameter is OptionNumberViewModel optionToRemove)
+            {
+                OptionNumbers.Remove(optionToRemove);
+            }
         }
-
         private void ExecuteAddRequirement()
         {
             var newReqVm = new RequirementViewModel { RequirementType = RequirementViewModel.AvailableRequirementTypes.FirstOrDefault() ?? string.Empty };

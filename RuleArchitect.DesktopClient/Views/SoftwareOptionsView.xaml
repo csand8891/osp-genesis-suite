@@ -9,10 +9,10 @@
              xmlns:converters="clr-namespace:RuleArchitect.DesktopClient.Converters"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d"
+             Background="{DynamicResource MaterialDesignPaper}"
              FontFamily="{materialDesign:MaterialDesignFont}"
              d:DataContext="{d:DesignInstance Type=vm:SoftwareOptionsViewModel, IsDesignTimeCreatable=True}"
              d:DesignHeight="600" d:DesignWidth="1000"
-             Background="{DynamicResource MaterialDesignPaper}"
              Unloaded="SoftwareOptionsView_Unloaded">
 
     <i:Interaction.Triggers>
@@ -22,148 +22,154 @@
     </i:Interaction.Triggers>
 
     <UserControl.Resources>
-        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <converters:NullToBooleanConverter x:Key="NullToFalseConverter" FalseForNull="True"/>
-        <Style x:Key="FilterTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
-            <Setter Property="Margin" Value="0,0,10,0"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Width" Value="250"/>
-            <Setter Property="materialDesign:TextFieldAssist.HasClearButton" Value="True"/>
-        </Style>
-        <Style x:Key="FilterComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignOutlinedComboBox}">
-            <Setter Property="Margin" Value="0,0,10,0"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-            <Setter Property="Width" Value="220"/>
-        </Style>
+        <!-- UPDATED: Added MergedDictionaries to ensure resources are found in the DialogHost -->
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="/Themes/CustomTheme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+            <converters:NullToBooleanConverter x:Key="NullToFalseConverter" FalseForNull="True"/>
+            <Style x:Key="FilterTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+                <Setter Property="Margin" Value="0,0,10,0"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Width" Value="250"/>
+                <Setter Property="materialDesign:TextFieldAssist.HasClearButton" Value="True"/>
+            </Style>
+            <Style x:Key="FilterComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignOutlinedComboBox}">
+                <Setter Property="Margin" Value="0,0,10,0"/>
+                <Setter Property="VerticalAlignment" Value="Center"/>
+                <Setter Property="Width" Value="220"/>
+            </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <!-- The DialogHost no longer needs the DialogBackground property -->
+    <materialDesign:DialogHost Identifier="SoftwareOptionsDialogHost" CloseOnClickAway="True">
 
-        <Border Grid.Row="0" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1">
-            <ToolBarTray Background="{DynamicResource MaterialDesignPaper}">
-                <ToolBar Style="{DynamicResource MaterialDesignToolBar}" ClipToBounds="False">
-                    <Button Command="{Binding LoadCommand}" ToolTip="Refresh Software Options" Style="{StaticResource MaterialDesignToolButton}">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center"/>
-                            <!--<TextBlock Text="Load" Margin="8,0,0,0" VerticalAlignment="Center"/>-->
-                        </StackPanel>
-                    </Button>
-                    <Separator/>
-                    <Button Command="{Binding AddCommand}" ToolTip="Add New Software Option" Style="{StaticResource MaterialDesignToolButton}">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="PlusOutline" VerticalAlignment="Center"/>
-                            <!--<TextBlock Text="Add" Margin="8,0,0,0" VerticalAlignment="Center"/>-->
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding EditCommand}" ToolTip="Edit Selected Software Option"
-                            IsEnabled="{Binding SelectedSoftwareOption, Converter={StaticResource NullToFalseConverter}}" Style="{StaticResource MaterialDesignToolButton}">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="PencilOutline" VerticalAlignment="Center"/>
-                            <!--<TextBlock Text="Edit" Margin="8,0,0,0" VerticalAlignment="Center"/>-->
-                        </StackPanel>
-                    </Button>
-                    <Button Command="{Binding DeleteCommand}" ToolTip="Delete Selected Software Option"
-                            IsEnabled="{Binding SelectedSoftwareOption, Converter={StaticResource NullToFalseConverter}}"
-                            Style="{StaticResource MaterialDesignToolButton}"
-                            Foreground="{DynamicResource MaterialDesignValidationErrorBrush}">
-                        <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="TrashCanOutline" VerticalAlignment="Center"/>
-                            <!--<TextBlock Text="Delete" Margin="8,0,0,0" VerticalAlignment="Center"/>-->
-                        </StackPanel>
-                    </Button>
-                </ToolBar>
-            </ToolBarTray>
-        </Border>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="16,10,16,10">
-            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                     materialDesign:HintAssist.Hint="Search Options..."
-                     Style="{StaticResource FilterTextBoxStyle}"/>
+            <Border Grid.Row="0" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1" CornerRadius="{DynamicResource ButtonCornerRadius}" >
+                <ToolBarTray Background="{DynamicResource MaterialDesignPaper}">
+                    <ToolBar Style="{DynamicResource MaterialDesignToolBar}" ClipToBounds="False" >
+                        <Button Command="{Binding LoadCommand}" ToolTip="Refresh Software Options" Style="{StaticResource MaterialDesignToolButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Separator/>
+                        <Button Command="{Binding AddCommand}" ToolTip="Add New Software Option" Style="{StaticResource MaterialDesignToolButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="PlusOutline" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding EditCommand}" ToolTip="Edit Selected Software Option"
+                                IsEnabled="{Binding SelectedSoftwareOption, Converter={StaticResource NullToFalseConverter}}" Style="{StaticResource MaterialDesignToolButton}">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="PencilOutline" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Button Command="{Binding DeleteCommand}" ToolTip="Delete Selected Software Option"
+                                IsEnabled="{Binding SelectedSoftwareOption, Converter={StaticResource NullToFalseConverter}}"
+                                Style="{StaticResource MaterialDesignToolButton}"
+                                Foreground="{DynamicResource MaterialDesignValidationErrorBrush}">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="TrashCanOutline" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                        <Separator />
+                        <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                 materialDesign:HintAssist.Hint="Search Options..."
+                                 Style="{StaticResource FilterTextBoxStyle}"/>
 
-            <ComboBox ItemsSource="{Binding AllControlSystemsForFilter}"
-                      SelectedValue="{Binding SelectedFilterControlSystemId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Null}}"
-                      DisplayMemberPath="Name"
-                      SelectedValuePath="ControlSystemId"
-                      materialDesign:HintAssist.Hint="Filter by Control System"
-                      Style="{StaticResource FilterComboBoxStyle}"/>
-        </StackPanel>
+                        <ComboBox ItemsSource="{Binding AllControlSystemsForFilter}"
+                                  SelectedValue="{Binding SelectedFilterControlSystemId, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, TargetNullValue={x:Null}}"
+                                  DisplayMemberPath="Name"
+                                  SelectedValuePath="ControlSystemId"
+                                  materialDesign:HintAssist.Hint="Filter by Control System"
+                                  Style="{StaticResource FilterComboBoxStyle}"/>
 
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="{Binding MasterPaneColumnWidth}" MinWidth="250" x:Name="MasterColumn"/> 
-                <ColumnDefinition Width="{Binding SplitterActualColumnWidth}" x:Name="SplitterColumn"/> 
-                <ColumnDefinition Width="{Binding DetailPaneColumnWidth}" MinWidth="0" x:Name="DetailColumn"/>
-            </Grid.ColumnDefinitions>
+                    </ToolBar>
+                </ToolBarTray>
+            </Border>
 
-            <Grid Grid.Column="0" Margin="16,0,16,16">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <TextBlock Text="Software Options" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,12"/>
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="{Binding MasterPaneColumnWidth}" MinWidth="250" x:Name="MasterColumn"/>
+                    <ColumnDefinition Width="{Binding SplitterActualColumnWidth}" x:Name="SplitterColumn"/>
+                    <ColumnDefinition Width="{Binding DetailPaneColumnWidth}" MinWidth="0" x:Name="DetailColumn"/>
+                </Grid.ColumnDefinitions>
 
-                <materialDesign:Card Grid.Row="1" Padding="0" UniformCornerRadius="8" materialDesign:ElevationAssist.Elevation="Dp2">
-                    <DataGrid ItemsSource="{Binding FilteredSoftwareOptionsView}" SelectedItem="{Binding SelectedSoftwareOption}"
-              AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
-              SelectionMode="Single"
-              Style="{StaticResource MaterialDesignDataGrid}"
-              materialDesign:DataGridAssist.CellPadding="13 8 8 8"
-              materialDesign:DataGridAssist.ColumnHeaderPadding="8"
-              BorderThickness="0" GridLinesVisibility="Horizontal">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Primary Name" Binding="{Binding PrimaryName}" Width="2*" SortMemberPath="PrimaryName"/>
-                            <DataGridTextColumn Header="Option #" Binding="{Binding PrimaryOptionNumberDisplay}" Width="*" SortMemberPath="PrimaryOptionNumberDisplay"/>
-                            <DataGridTextColumn Header="Control System" Binding="{Binding ControlSystemName}" Width="*" SortMemberPath="ControlSystemName"/>
-                            <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="Auto" SortMemberPath="Version"/>
-                            <DataGridTextColumn Header="Last Modified" Binding="{Binding LastModifiedDate, StringFormat='{}{0:g}'}" Width="*" SortMemberPath="LastModifiedDate"/>
-                            <DataGridTextColumn Header="Modified By" Binding="{Binding LastModifiedBy}" Width="*" SortMemberPath="LastModifiedBy"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </materialDesign:Card>
+                <Grid Grid.Column="0" Margin="16,0,16,16">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="Software Options" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,12"/>
+
+                    <materialDesign:Card Grid.Row="1" Padding="0" UniformCornerRadius="8" materialDesign:ElevationAssist.Elevation="Dp2">
+                        <DataGrid ItemsSource="{Binding FilteredSoftwareOptionsView}" SelectedItem="{Binding SelectedSoftwareOption}"
+                                  AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                                  SelectionMode="Single"
+                                  Style="{StaticResource MaterialDesignDataGrid}"
+                                  materialDesign:DataGridAssist.CellPadding="13 8 8 8"
+                                  materialDesign:DataGridAssist.ColumnHeaderPadding="8"
+                                  BorderThickness="0" GridLinesVisibility="Horizontal">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Primary Name" Binding="{Binding PrimaryName}" Width="2*" SortMemberPath="PrimaryName"/>
+                                <DataGridTextColumn Header="Option #" Binding="{Binding PrimaryOptionNumberDisplay}" Width="*" SortMemberPath="PrimaryOptionNumberDisplay"/>
+                                <DataGridTextColumn Header="Control System" Binding="{Binding ControlSystemName}" Width="*" SortMemberPath="ControlSystemName"/>
+                                <DataGridTextColumn Header="Version" Binding="{Binding Version}" Width="Auto" SortMemberPath="Version"/>
+                                <DataGridTextColumn Header="Last Modified" Binding="{Binding LastModifiedDate, StringFormat='{}{0:g}'}" Width="*" SortMemberPath="LastModifiedDate"/>
+                                <DataGridTextColumn Header="Modified By" Binding="{Binding LastModifiedBy}" Width="*" SortMemberPath="LastModifiedBy"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </materialDesign:Card>
+                </Grid>
+
+                <GridSplitter Grid.Column="1"
+                              Width="5"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Stretch"
+                              Background="LightGray" 
+                              ResizeBehavior="PreviousAndNext"
+                              IsEnabled="{Binding IsDetailPaneVisible}"
+                              Visibility="{Binding SplitterVisibility}"/>
+                <Border Grid.Column="2" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="1,0,0,0"
+                        Visibility="{Binding IsDetailPaneVisible, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+
+                    <materialDesign:Card MinWidth="0" Visibility="{Binding IsDetailPaneVisible, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" Padding="20" Margin="16" UniformCornerRadius="8" 
+                                         materialDesign:ElevationAssist.Elevation="Dp4">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <ContentControl Grid.Row="0" Content="{Binding CurrentEditSoftwareOption}" Margin="0,0,0,16"/>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Command="{Binding SaveCommand}" Content="Save" Style="{StaticResource MaterialDesignRaisedButton}" Margin="0,0,8,0" Width="80"/>
+                                <Button Command="{Binding CancelEditCommand}" Content="Cancel" Style="{StaticResource MaterialDesignOutlinedButton}" Width="80"/>
+                            </StackPanel>
+                        </Grid>
+                    </materialDesign:Card>
+                </Border>
             </Grid>
 
-            <GridSplitter Grid.Column="1"
-                          Width="5"
-                          HorizontalAlignment="Stretch"
-                          VerticalAlignment="Stretch"
-                          Background="LightGray" 
-                          ResizeBehavior="PreviousAndNext"
-                          IsEnabled="{Binding IsDetailPaneVisible}"
-                          Visibility="{Binding SplitterVisibility}"/>
-            <Border Grid.Column="2" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="1,0,0,0"
-                    Visibility="{Binding IsDetailPaneVisible, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
-
-                <materialDesign:Card MinWidth="0" Visibility="{Binding IsDetailPaneVisible, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" Padding="20" Margin="16" UniformCornerRadius="8" 
-                                     materialDesign:ElevationAssist.Elevation="Dp4">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <ContentControl Grid.Row="0" Content="{Binding CurrentEditSoftwareOption}" Margin="0,0,0,16"/>
-                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Command="{Binding SaveCommand}" Content="Save" Style="{StaticResource MaterialDesignRaisedButton}" Margin="0,0,8,0" Width="80"/>
-                            <Button Command="{Binding CancelEditCommand}" Content="Cancel" Style="{StaticResource MaterialDesignOutlinedButton}" Width="80"/>
-                        </StackPanel>
-                    </Grid>
+            <Grid Grid.Row="0" Grid.RowSpan="3" Background="#44000000"
+                  Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
+                <materialDesign:Card UniformCornerRadius="10" Padding="16" VerticalAlignment="Center" HorizontalAlignment="Center" materialDesign:ElevationAssist.Elevation="Dp8">
+                    <StackPanel Orientation="Horizontal">
+                        <ProgressBar IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                     Width="30" Height="30" Margin="0,0,12,0"/>
+                        <TextBlock Text="Loading Options..." VerticalAlignment="Center" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                    </StackPanel>
                 </materialDesign:Card>
-            </Border>
+            </Grid>
         </Grid>
-
-        <Grid Grid.Row="0" Grid.RowSpan="3" Background="#44000000"
-              Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}">
-            <materialDesign:Card UniformCornerRadius="10" Padding="16" VerticalAlignment="Center" HorizontalAlignment="Center" materialDesign:ElevationAssist.Elevation="Dp8">
-                <StackPanel Orientation="Horizontal">
-                    <ProgressBar IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
-                                 Width="30" Height="30" Margin="0,0,12,0"/>
-                    <TextBlock Text="Loading Options..." VerticalAlignment="Center" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
-                </StackPanel>
-            </materialDesign:Card>
-        </Grid>
-    </Grid>
+    </materialDesign:DialogHost>
 </UserControl>

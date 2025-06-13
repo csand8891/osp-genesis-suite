@@ -1,11 +1,13 @@
 ﻿
 using HeraldKit.Interfaces;
+using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
-using RuleArchitect.Abstractions.DTOs.SoftwareOption;
 using RuleArchitect.Abstractions.DTOs.Auth;
 using RuleArchitect.Abstractions.DTOs.Lookups;
+using RuleArchitect.Abstractions.DTOs.SoftwareOption;
 using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
+using RuleArchitect.DesktopClient.Views;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -56,6 +58,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public bool IsAdding { get => _isAdding; set => SetProperty(ref _isAdding, value, UpdateCommandStates); }
         public UserDto? CurrentUser { get => _currentUser; set { SetProperty(ref _currentUser, value); } }
 
+
         public ICommand LoadCommand { get; }
         public ICommand AddCommand { get; }
         public ICommand EditCommand { get; }
@@ -75,7 +78,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             FilteredSoftwareOptionsView.Filter = ApplyFilterPredicate;
 
             LoadCommand = new RelayCommand(async () => await LoadSoftwareOptionsAndFiltersAsync(), () => !IsLoading);
-            AddCommand = new RelayCommand(PrepareAddSoftwareOption, () => !IsLoading && !IsDetailPaneVisible);
+            AddCommand = new RelayCommand(async () => await PrepareAddSoftwareOptionAsync(), () => !IsLoading && !IsDetailPaneVisible);
             EditCommand = new RelayCommand(PrepareEditSoftwareOption, () => SelectedSoftwareOption != null && !IsLoading && !IsDetailPaneVisible);
             DeleteCommand = new RelayCommand(async () => await DeleteSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading && !IsDetailPaneVisible);
             SaveCommand = new RelayCommand(async () => await SaveSoftwareOptionAsync(), () => IsDetailPaneVisible && CurrentEditSoftwareOption != null && !IsLoading);
@@ -178,12 +181,23 @@ namespace RuleArchitect.DesktopClient.ViewModels
             }
         }
 
-        private void PrepareAddSoftwareOption()
+        private async Task PrepareAddSoftwareOptionAsync()
         {
-            IsAdding = true;
-            CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(_authStateProvider, _scopeFactory, _notificationService);
-            IsDetailPaneVisible = true;
-            UpdateCommandStates();
+            // Use the service provider to create an instance of the wizard's ViewModel
+            using (var scope = _scopeFactory.CreateScope())
+            {
+                var wizardVm = scope.ServiceProvider.GetRequiredService<AddSoftwareOptionWizardViewModel>();
+                var wizardView = new AddSoftwareOptionWizardView { DataContext = wizardVm };
+
+                // The identifier "RootDialog" must match the one on the DialogHost in SoftwareOptionsView.xaml
+                var result = await DialogHost.Show(wizardView, "SoftwareOptionsDialogHost");
+
+                // If the wizard was completed successfully (returned true), refresh the list
+                if (result is bool wasSuccessful && wasSuccessful)
+                {
+                    await LoadSoftwareOptionsAndFiltersAsync();
+                }
+            }
         }
 
         private async void PrepareEditSoftwareOption()
