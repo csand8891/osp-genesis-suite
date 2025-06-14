@@ -10,93 +10,114 @@
         mc:Ignorable="d"
         FontFamily="{materialDesign:MaterialDesignFont}"
         Background="{DynamicResource MaterialDesignPaper}"
-        Title="OSP Genesis Suite" Height="720" Width="1280"
+        Title="OSP Genesis Suite" 
+        Height="720" 
+        Width="1280"
         Icon="Genesis_flat_icon_256x256.ico"
         WindowStartupLocation="CenterScreen"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}">
 
     <Grid>
         <materialDesign:DrawerHost IsLeftDrawerOpen="{Binding IsMenuOpen}">
-            
-                <!-- Content of the slide-out drawer -->
-                <materialDesign:DrawerHost.LeftDrawerContent>
-                    <materialDesign:Card 
-            Background="{DynamicResource PrimaryHueDarkBrush}"
-            BorderBrush="{DynamicResource MaterialDesignDivider}" 
-            BorderThickness="0,0,1,0" 
-            MinWidth="220"
-            materialDesign:ElevationAssist.Elevation="Dp6"
-            materialDesign:ShadowAssist.CacheMode="BitmapCache"
-            Padding="0">
 
-                        <DockPanel>
-                            <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,8">
-                                <Separator Margin="8,16"/>
-                                <Button Content="Logout" 
-                            Command="{Binding LogoutCommand}" 
-                            Style="{StaticResource MaterialDesignFlatButton}" 
-                            Margin="8,5" 
-                            Height="40" 
-                            Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"/>
-                            </StackPanel>
+            <!-- Left Drawer Content -->
+            <materialDesign:DrawerHost.LeftDrawerContent>
+                <materialDesign:Card 
+                    Background="{DynamicResource PrimaryHueDarkBrush}"
+                    BorderBrush="{DynamicResource MaterialDesignDivider}" 
+                    BorderThickness="0,0,1,0" 
+                    MinWidth="220"
+                    materialDesign:ElevationAssist.Elevation="Dp6"
+                    Padding="0">
 
-                            <TextBlock DockPanel.Dock="Top"
-                          Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                          Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}" 
-                          Text="{Binding CurrentUser.UserName, StringFormat='User: {0}'}" 
-                          FontWeight="SemiBold" 
-                          Margin="16,16,16,0"/>
-                            <TextBlock DockPanel.Dock="Top" 
-                          Style="{StaticResource MaterialDesignBody2TextBlock}"
-                          Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}" 
-                          Text="{Binding CurrentUser.Role, StringFormat='Role: {0}'}" 
-                          Margin="16,4,16,8" 
-                          FontStyle="Italic"/>
-                            <Separator DockPanel.Dock="Top" Margin="8,8"/>
+                    <DockPanel>
+                        <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,8">
+                            <Separator Margin="8,16"/>
+                            <Button Content="Logout" 
+                                Command="{Binding LogoutCommand}" 
+                                Style="{DynamicResource PrimaryTextButton}" 
+                                Margin="8,5" 
+                                Height="40"/>
+                        </StackPanel>
 
-                            <ListBox ItemsSource="{Binding NavigationItems}" 
-                         SelectedItem="{Binding SelectedNavigationItem}"
-                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                         BorderThickness="0"
-                         Style="{StaticResource MaterialDesignNavigationListBox}">
-                                <ListBox.ItemTemplate>
-                                    <DataTemplate DataType="{x:Type vm:NavigationItemViewModel}">
-                                        <StackPanel Orientation="Horizontal" Margin="16,10">
-                                            <TextBlock 
-                                           Style="{StaticResource MaterialDesignBody2TextBlock}"
-                                           Text="{Binding DisplayName}" 
-                                           Foreground="{DynamicResource PrimaryHueMidForegroundBrush}" 
-                                           VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </DataTemplate>
-                                </ListBox.ItemTemplate>
-                            </ListBox>
-                        </DockPanel>
-                    </materialDesign:Card>
-                </materialDesign:DrawerHost.LeftDrawerContent>
+                        <TextBlock DockPanel.Dock="Top"
+                            Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                            Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}" 
+                            Text="{Binding CurrentUser.UserName, StringFormat='User: {0}'}" 
+                            FontWeight="SemiBold" 
+                            Margin="16,16,16,0"/>
+                        <TextBlock DockPanel.Dock="Top" 
+                            Style="{StaticResource MaterialDesignBody2TextBlock}"
+                            Foreground="{DynamicResource PrimaryHueDarkForegroundBrush}" 
+                            Text="{Binding CurrentUser.Role, StringFormat='Role: {0}'}" 
+                            Margin="16,4,16,8" 
+                            FontStyle="Italic"/>
+                        <Separator DockPanel.Dock="Top" Margin="8,8"/>
 
-                <!-- Main Content Area Wrapped in DialogHost -->
+                        <ListBox ItemsSource="{Binding NavigationItems}" 
+                            SelectedItem="{Binding SelectedNavigationItem}"
+                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                            BorderThickness="0"
+                            Style="{StaticResource MaterialDesignNavigationListBox}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:NavigationItemViewModel}">
+                                    <StackPanel Orientation="Horizontal" Margin="16,10">
+                                        <materialDesign:PackIcon 
+                                            Kind="{Binding IconKind}" 
+                                            Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                                            Margin="0,0,8,0"/>
+                                        <TextBlock 
+                                            Style="{StaticResource MaterialDesignBody2TextBlock}"
+                                            Text="{Binding DisplayName}" 
+                                            Foreground="{DynamicResource PrimaryHueMidForegroundBrush}" 
+                                            VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+                </materialDesign:Card>
+            </materialDesign:DrawerHost.LeftDrawerContent>
+
+            <!-- Main Content Area -->
             <materialDesign:DialogHost Identifier="RootDialog">
                 <DockPanel>
-                    <materialDesign:ColorZone Mode="PrimaryDark" DockPanel.Dock="Top" materialDesign:ElevationAssist.Elevation="Dp2">
-                        <ToolBar Style="{DynamicResource MaterialDesignToolBar}" ClipToBounds="False" Background="{StaticResource PrimaryHueDarkBrush}">
-                        <Button Command="{Binding ToggleMenuCommand}" Style="{StaticResource MaterialDesignToolButton}">
-                            <materialDesign:PackIcon Kind="Menu" Foreground="{StaticResource PrimaryHueMidForegroundBrush}" />
-                        </Button>
-                        <TextBlock Text="{Binding SelectedNavigationItem.DisplayName}" VerticalAlignment="Center" Margin="16,0" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"/>
-                    </ToolBar>
+                    <materialDesign:ColorZone 
+                        Mode="PrimaryDark" 
+                        DockPanel.Dock="Top" 
+                        materialDesign:ElevationAssist.Elevation="Dp2">
+                        <ToolBar 
+                            Style="{DynamicResource MaterialDesignToolBar}" 
+                            ClipToBounds="False" 
+                            Background="{DynamicResource PrimaryHueDarkBrush}">
+                            <Button 
+                                Command="{Binding ToggleMenuCommand}" 
+                                Style="{StaticResource MaterialDesignToolButton}">
+                                <materialDesign:PackIcon 
+                                    Kind="Menu" 
+                                    Foreground="{DynamicResource PrimaryHueMidForegroundBrush}" />
+                            </Button>
+                            <TextBlock 
+                                Text="{Binding SelectedNavigationItem.DisplayName}" 
+                                VerticalAlignment="Center" 
+                                Margin="16,0" 
+                                Style="{StaticResource MaterialDesignHeadline6TextBlock}" 
+                                Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"/>
+                        </ToolBar>
                     </materialDesign:ColorZone>
 
-                    <ContentControl Content="{Binding CurrentViewViewModel}" Margin="16"/>
+                    <ContentControl 
+                        Content="{Binding CurrentViewViewModel}" 
+                        Margin="16"/>
                 </DockPanel>
             </materialDesign:DialogHost>
-
         </materialDesign:DrawerHost>
 
-        <!-- Snackbar overlays everything -->
+        <!-- Snackbar -->
         <materialDesign:Snackbar
             MessageQueue="{Binding SnackbarMessageQueue}"
             HorizontalAlignment="Stretch" 
-            VerticalAlignment="Bottom" Margin="15"/>
+            VerticalAlignment="Bottom" 
+            Margin="15"/>
     </Grid>
 </Window>

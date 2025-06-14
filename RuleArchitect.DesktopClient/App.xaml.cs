@@ -1,11 +1,11 @@
 ﻿using GenesisOrderGateway.Interfaces; // For IGenesisOrderGateway
 using GenesisOrderGateway.Services;  // For PdfOrderGatewayService
-using RuleArchitect.Abstractions.DTOs.Auth;
 using GenesisSentry.Interfaces;
 using GenesisSentry.Services;
 using MaterialDesignThemes.Wpf;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using RuleArchitect.Abstractions.DTOs.Auth;
 using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.ApplicationLogic.Services;
 using RuleArchitect.Data;
@@ -14,6 +14,7 @@ using RuleArchitect.DesktopClient.ViewModels; // For LoginViewModel, MainViewMod
 using RuleArchitect.DesktopClient.Views;
 using System;
 using System.Windows;
+using System.Windows.Controls;
 
 namespace RuleArchitect.DesktopClient
 {
@@ -23,6 +24,7 @@ namespace RuleArchitect.DesktopClient
 
         public App()
         {
+            
             this.ShutdownMode = ShutdownMode.OnLastWindowClose;
             ServiceCollection services = new ServiceCollection();
             ConfigureServices(services);

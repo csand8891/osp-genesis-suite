@@ -21,7 +21,6 @@
     </i:Interaction.Triggers>
 
     <UserControl.Resources>
-        <!--<converters:BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>-->
         <converters:BooleanNegationConverter x:Key="BoolNegationConverter"/>
         <converters:NullToBooleanConverter x:Key="NullToFalseConverter" FalseForNull="True"/>
         <converters:NullToBooleanConverter x:Key="NullToTrueConverter" FalseForNull="False"/>
@@ -37,6 +36,7 @@
         <Style TargetType="Label" BasedOn="{StaticResource MaterialDesignLabel}">
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="Foreground" Value="{DynamicResource PrimaryHueDarkBrush}"/>
         </Style>
 
         <DataTemplate DataType="{x:Type vm:UserEditViewModel}">
@@ -57,7 +57,9 @@
 
                 <TextBlock Grid.Row="0" Grid.ColumnSpan="2" 
                            Text="{Binding IsNewUser, Converter={StaticResource TitleTextConverter}}" 
-                           Style="{StaticResource MaterialDesignHeadline5TextBlock}" Margin="0,0,0,20"/>
+                           Style="{StaticResource MaterialDesignHeadline5TextBlock}" 
+                           Foreground="{DynamicResource PrimaryHueDarkBrush}"
+                           Margin="0,0,0,20"/>
 
                 <Label Grid.Row="1" Grid.Column="0" Content="Username:"/>
                 <TextBox Grid.Row="1" Grid.Column="1" 
@@ -65,6 +67,7 @@
                          IsEnabled="{Binding IsNewUser}" 
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          materialDesign:HintAssist.Hint="Enter username"
+                         materialDesign:HintAssist.Foreground="{DynamicResource PrimaryHueMidBrush}"
                          Margin="0,0,0,12"/>
 
                 <Label Grid.Row="2" Grid.Column="0" Content="Role:"/>
@@ -73,24 +76,30 @@
                           SelectedItem="{Binding Role}" 
                           Style="{StaticResource MaterialDesignOutlinedComboBox}"
                           materialDesign:HintAssist.Hint="Select a role"
+                          materialDesign:HintAssist.Foreground="{DynamicResource PrimaryHueMidBrush}"
                           Margin="0,0,0,12"/>
 
                 <Label Grid.Row="3" Grid.Column="0" Content="Active:"/>
                 <CheckBox Grid.Row="3" Grid.Column="1" 
                           IsChecked="{Binding IsActive}" 
-                          VerticalAlignment="Center" Margin="0,0,0,12"/>
+                          VerticalAlignment="Center" 
+                          Margin="0,0,0,12"/>
 
                 <Label Grid.Row="4" Grid.Column="0" Content="Password:"/>
                 <PasswordBox x:Name="EditPasswordBox" Grid.Row="4" Grid.Column="1" 
                              materialDesign:HintAssist.Hint="{Binding IsNewUser, Converter={StaticResource PasswordHintConverter}}"
+                             materialDesign:HintAssist.Foreground="{DynamicResource PrimaryHueMidBrush}"
                              materialDesign:PasswordBoxAssist.Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, NotifyOnValidationError=True}"
-                             Style="{StaticResource MaterialDesignOutlinedPasswordBox}" Margin="0,0,0,12"/>
+                             Style="{StaticResource MaterialDesignOutlinedPasswordBox}" 
+                             Margin="0,0,0,12"/>
 
                 <Label Grid.Row="5" Grid.Column="0" Content="Confirm Password:"/>
                 <PasswordBox x:Name="EditConfirmPasswordBox" Grid.Row="5" Grid.Column="1" 
                              materialDesign:HintAssist.Hint="Confirm password"
+                             materialDesign:HintAssist.Foreground="{DynamicResource PrimaryHueMidBrush}"
                              materialDesign:PasswordBoxAssist.Password="{Binding ConfirmPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, NotifyOnValidationError=True}"
-                             Style="{StaticResource MaterialDesignOutlinedPasswordBox}" Margin="0,0,0,12"/>
+                             Style="{StaticResource MaterialDesignOutlinedPasswordBox}" 
+                             Margin="0,0,0,12"/>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
@@ -106,31 +115,30 @@
                 <ToolBar Style="{DynamicResource MaterialDesignToolBar}" ClipToBounds="False">
                     <Button Command="{Binding LoadUsersCommand}" ToolTip="Refresh User List" Style="{StaticResource MaterialDesignToolButton}">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center"/>
-                            <TextBlock Text="Load" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                            <TextBlock Text="Load" Margin="8,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
                         </StackPanel>
                     </Button>
                     <Separator/>
                     <Button Command="{Binding AddUserCommand}" ToolTip="Add New User" Style="{StaticResource MaterialDesignToolButton}">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="AccountPlusOutline" VerticalAlignment="Center"/>
-                            <TextBlock Text="Add" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="AccountPlusOutline" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                            <TextBlock Text="Add" Margin="8,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
                         </StackPanel>
                     </Button>
                     <Button Command="{Binding EditUserCommand}" ToolTip="Edit Selected User"
                             IsEnabled="{Binding SelectedUser, Converter={StaticResource NullToFalseConverter}}" Style="{StaticResource MaterialDesignToolButton}">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="AccountEditOutline" VerticalAlignment="Center"/>
-                            <TextBlock Text="Edit" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="AccountEditOutline" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                            <TextBlock Text="Edit" Margin="8,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
                         </StackPanel>
                     </Button>
                     <Button Command="{Binding DeleteUserCommand}" ToolTip="Delete Selected User"
                             IsEnabled="{Binding SelectedUser, Converter={StaticResource NullToFalseConverter}}"
-                            Style="{StaticResource MaterialDesignToolButton}"
-                            Foreground="{DynamicResource MaterialDesignValidationErrorBrush}">
+                            Style="{StaticResource MaterialDesignToolButton}">
                         <StackPanel Orientation="Horizontal">
-                            <materialDesign:PackIcon Kind="AccountRemoveOutline" VerticalAlignment="Center"/>
-                            <TextBlock Text="Delete" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                            <materialDesign:PackIcon Kind="AccountRemoveOutline" VerticalAlignment="Center" Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"/>
+                            <TextBlock Text="Delete" Margin="8,0,0,0" VerticalAlignment="Center" Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"/>
                         </StackPanel>
                     </Button>
                 </ToolBar>
@@ -148,7 +156,10 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                <TextBlock Text="Manage Users" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,12"/>
+                <TextBlock Text="Manage Users" 
+                           Style="{StaticResource MaterialDesignHeadline6TextBlock}" 
+                           Foreground="{DynamicResource PrimaryHueDarkBrush}"
+                           Margin="0,0,0,12"/>
 
                 <materialDesign:Card Grid.Row="1" Padding="0" UniformCornerRadius="8" materialDesign:ElevationAssist.Elevation="Dp2">
                     <DataGrid ItemsSource="{Binding Users}" SelectedItem="{Binding SelectedUser}"
@@ -159,10 +170,18 @@
                               materialDesign:DataGridAssist.ColumnHeaderPadding="8"
                               BorderThickness="0" GridLinesVisibility="Horizontal">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="ID" Binding="{Binding UserId}" Width="Auto" ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
-                            <DataGridTextColumn Header="Username" Binding="{Binding UserName}" Width="*" ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
-                            <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="*" ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
-                            <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="Auto" ElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnStyle}" EditingElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnEditingStyle}"/>
+                            <DataGridTextColumn Header="ID" Binding="{Binding UserId}" Width="Auto" 
+                                               ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" 
+                                               EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
+                            <DataGridTextColumn Header="Username" Binding="{Binding UserName}" Width="*" 
+                                               ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" 
+                                               EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
+                            <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="*" 
+                                               ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" 
+                                               EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
+                            <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="Auto" 
+                                                  ElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnStyle}" 
+                                                  EditingElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnEditingStyle}"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </materialDesign:Card>
@@ -182,8 +201,12 @@
                         </ScrollViewer>
 
                         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                            <Button Command="{Binding SaveUserCommand}" Content="Save" Style="{StaticResource MaterialDesignRaisedButton}" Margin="0,0,8,0" Width="80"/>
-                            <Button Command="{Binding CancelEditCommand}" Content="Cancel" Style="{StaticResource MaterialDesignOutlinedButton}" Width="80"/>
+                            <Button Command="{Binding SaveUserCommand}" Content="Save" 
+                                   Style="{StaticResource PrimaryRaisedButton}" 
+                                   Margin="0,0,8,0" Width="80"/>
+                            <Button Command="{Binding CancelEditCommand}" Content="Cancel" 
+                                   Style="{StaticResource PrimaryOutlinedButton}" 
+                                   Width="80"/>
                         </StackPanel>
                     </Grid>
                 </materialDesign:Card>
@@ -194,8 +217,11 @@
             <materialDesign:Card UniformCornerRadius="10" Padding="16" VerticalAlignment="Center" HorizontalAlignment="Center" materialDesign:ElevationAssist.Elevation="Dp8">
                 <StackPanel Orientation="Horizontal">
                     <ProgressBar IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}"
+                                 Foreground="{DynamicResource PrimaryHueMidBrush}"
                                  Width="30" Height="30" Margin="0,0,12,0"/>
-                    <TextBlock Text="Loading..." VerticalAlignment="Center" Style="{StaticResource MaterialDesignBody1TextBlock}"/>
+                    <TextBlock Text="Loading..." VerticalAlignment="Center" 
+                              Style="{StaticResource MaterialDesignBody1TextBlock}"
+                              Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
                 </StackPanel>
             </materialDesign:Card>
         </Grid>
