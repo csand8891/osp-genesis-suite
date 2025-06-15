@@ -6,17 +6,18 @@
              xmlns:converters="clr-namespace:RuleArchitect.DesktopClient.Converters"
              xmlns:viewModels="clr-namespace:RuleArchitect.DesktopClient.ViewModels" 
              xmlns:views="clr-namespace:RuleArchitect.DesktopClient.Views"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
              ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- 1. Load Material Design basic resources FIRST -->
+                <!-- 1. Load Control Libraries FIRST -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
 
-
-
-                <!-- 2. Load your CUSTOM theme (contains colors, fonts, elevations) -->
+                <!-- 2. Load your CUSTOM theme -->
                 <ResourceDictionary Source="Themes/CustomTheme.xaml" />
 
                 <!-- 3. Load converters -->
@@ -27,13 +28,16 @@
                     <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
                     <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
                     <converters:TrueFalseToCustomStringConverter x:Key="TrueFalseToCustomStringConverter"
-                                                     TrueString="New User"
-                                                     FalseString="Edit User" />
+                                                         TrueString="New User"
+                                                         FalseString="Edit User" />
                     <converters:RequirementTypeToVisibilityConverter x:Key="GlobalReqTypeToVis"/>
                 </ResourceDictionary>
+
+
+
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- Data Templates (unchanged) -->
+            <!-- Data Templates -->
             <DataTemplate DataType="{x:Type viewModels:UserManagementViewModel}">
                 <views:UserManagementView />
             </DataTemplate>

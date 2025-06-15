@@ -17,10 +17,24 @@
         WindowStartupLocation="CenterScreen"
         d:DataContext="{d:DesignInstance Type=vm:MainViewModel, IsDesignTimeCreatable=True}">
 
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:AdminDashboardViewModel}">
+            <views:AdminDashboardView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SoftwareOptionsViewModel}">
+            <views:SoftwareOptionsView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:UserManagementViewModel}">
+            <views:UserManagementView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:UserActivityLogViewModel}">
+            <views:UserActivityLogView/>
+        </DataTemplate>
+    </Window.Resources>
+
     <Grid>
         <materialDesign:DrawerHost IsLeftDrawerOpen="{Binding IsMenuOpen}">
 
-            <!-- Left Drawer Content -->
             <materialDesign:DrawerHost.LeftDrawerContent>
                 <materialDesign:Card 
                     Background="{DynamicResource PrimaryHueDarkBrush}"
@@ -34,10 +48,10 @@
                         <StackPanel DockPanel.Dock="Bottom" Margin="0,0,0,8">
                             <Separator Margin="8,16"/>
                             <Button Content="Logout" 
-                                Command="{Binding LogoutCommand}" 
-                                Style="{DynamicResource PrimaryTextButton}" 
-                                Margin="8,5" 
-                                Height="40"/>
+                                    Command="{Binding LogoutCommand}" 
+                                    Style="{DynamicResource PrimaryTextButton}" 
+                                    Margin="8,5" 
+                                    Height="40"/>
                         </StackPanel>
 
                         <TextBlock DockPanel.Dock="Top"
@@ -55,10 +69,10 @@
                         <Separator DockPanel.Dock="Top" Margin="8,8"/>
 
                         <ListBox ItemsSource="{Binding NavigationItems}" 
-                            SelectedItem="{Binding SelectedNavigationItem}"
-                            ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                            BorderThickness="0"
-                            Style="{StaticResource MaterialDesignNavigationListBox}">
+                                 SelectedItem="{Binding SelectedNavigationItem}"
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 BorderThickness="0"
+                                 Style="{StaticResource MaterialDesignNavigationListBox}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="{x:Type vm:NavigationItemViewModel}">
                                     <StackPanel Orientation="Horizontal" Margin="16,10">
@@ -79,7 +93,6 @@
                 </materialDesign:Card>
             </materialDesign:DrawerHost.LeftDrawerContent>
 
-            <!-- Main Content Area -->
             <materialDesign:DialogHost Identifier="RootDialog">
                 <DockPanel>
                     <materialDesign:ColorZone 
@@ -113,7 +126,7 @@
             </materialDesign:DialogHost>
         </materialDesign:DrawerHost>
 
-        <!-- Snackbar -->
+        <!-- RE-ADDED: Snackbar control at the bottom of the grid. -->
         <materialDesign:Snackbar
             MessageQueue="{Binding SnackbarMessageQueue}"
             HorizontalAlignment="Stretch" 

@@ -16,7 +16,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private readonly IAuthenticationStateProvider _authStateProvider;
         private readonly IServiceProvider _serviceProvider;
 
+        // RE-ADDED: The SnackbarMessageQueue property.
         public SnackbarMessageQueue SnackbarMessageQueue { get; }
+
         private BaseViewModel _currentViewViewModel;
         public BaseViewModel CurrentViewViewModel
         {
@@ -48,12 +50,11 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 if (SetProperty(ref _selectedNavigationItem, value) && value != null)
                 {
                     value.NavigateCommand?.Execute(null);
-                    IsMenuOpen = false; // Close the menu on selection
+                    IsMenuOpen = false;
                 }
             }
         }
 
-        // --- ADDED FOR DRAWERHOST ---
         private bool _isMenuOpen;
         public bool IsMenuOpen
         {
@@ -61,36 +62,27 @@ namespace RuleArchitect.DesktopClient.ViewModels
             set => SetProperty(ref _isMenuOpen, value);
         }
         public ICommand ToggleMenuCommand { get; }
-        // -----------------------------
 
         public ICommand LogoutCommand { get; }
 
+        // UPDATED: Constructor now requires SnackbarMessageQueue again.
         public MainViewModel(IAuthenticationStateProvider authStateProvider, IServiceProvider serviceProvider, SnackbarMessageQueue snackbarMessageQueue)
         {
             _authStateProvider = authStateProvider;
             _serviceProvider = serviceProvider;
+            // RE-ADDED: The SnackbarMessageQueue is now injected and stored.
             SnackbarMessageQueue = snackbarMessageQueue;
 
             NavigationItems = new ObservableCollection<NavigationItemViewModel>();
             CurrentUser = _authStateProvider.CurrentUser;
 
-            // Initialize new command
             ToggleMenuCommand = new RelayCommand(() => IsMenuOpen = !IsMenuOpen);
             LogoutCommand = new RelayCommand(ExecuteLogout);
 
-            if (NavigationItems.Any())
+            if (CurrentUser != null)
             {
-                SelectedNavigationItem = NavigationItems.First();
-            }
-            else if (CurrentUser != null)
-            {
-                // Set initial view to dashboard for Admin
-                if (CurrentUser.Role == "Administrator")
-                {
-                    NavigateTo(typeof(AdminDashboardViewModel));
-                    // Also set the SelectedNavigationItem to match the initial view
-                    SelectedNavigationItem = NavigationItems.FirstOrDefault(n => n.TargetViewModelType == typeof(AdminDashboardViewModel));
-                }
+                BuildNavigationForRole();
+                SelectedNavigationItem = NavigationItems.FirstOrDefault();
             }
         }
 
@@ -99,58 +91,47 @@ namespace RuleArchitect.DesktopClient.ViewModels
             NavigationItems.Clear();
             if (CurrentUser == null) return;
 
-            void AddNavItem(string displayName, Type targetVmType)
+            void AddNavItem(string displayName, Type targetVmType, PackIconKind icon)
             {
                 NavigationItems.Add(new NavigationItemViewModel
                 {
                     DisplayName = displayName,
                     TargetViewModelType = targetVmType,
-                    NavigateCommand = new RelayCommand(() => NavigateTo(targetVmType))
+                    NavigateCommand = new RelayCommand(() => NavigateTo(targetVmType)),
+                    
                 });
             }
 
             switch (CurrentUser.Role)
             {
                 case "Administrator":
-                    AddNavItem("Dashboard", typeof(AdminDashboardViewModel));
-                    AddNavItem("Rulesheets", typeof(SoftwareOptionsViewModel));
-                    //AddNavItem("Manage Orders", typeof(OrdersViewModel));
-                    AddNavItem("Manage Users", typeof(UserManagementViewModel));
-                    AddNavItem("Activity Log", typeof(UserActivityLogViewModel));
+                    AddNavItem("Dashboard", typeof(AdminDashboardViewModel), PackIconKind.ViewDashboardOutline);
+                    AddNavItem("Rulesheets", typeof(SoftwareOptionsViewModel), PackIconKind.FileDocumentMultipleOutline);
+                    AddNavItem("Manage Users", typeof(UserManagementViewModel), PackIconKind.AccountGroupOutline);
+                    AddNavItem("Activity Log", typeof(UserActivityLogViewModel), PackIconKind.History);
                     break;
-
-                    // ... other roles
             }
         }
 
         private void NavigateTo(Type viewModelType)
         {
             if (viewModelType == null) return;
-
-            try
-            {
-                CurrentViewViewModel = (BaseViewModel)_serviceProvider.GetRequiredService(viewModelType);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Failed to load view for {viewModelType.Name}.\n{ex.Message}", "Navigation Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                CurrentViewViewModel = null;
-            }
+            CurrentViewViewModel = (BaseViewModel)_serviceProvider.GetRequiredService(viewModelType);
         }
 
         private void ExecuteLogout()
         {
+            var currentMainWindow = Application.Current.MainWindow;
             _authStateProvider.ClearCurrentUser();
-            Application.Current.MainWindow?.Close();
             var loginWindow = _serviceProvider.GetRequiredService<LoginWindow>();
-            var newLoginResult = loginWindow.ShowDialog();
-            if (newLoginResult == true)
+            if (loginWindow.ShowDialog() == true)
             {
                 var newMainViewModel = _serviceProvider.GetRequiredService<MainViewModel>();
                 var newMainWindow = _serviceProvider.GetRequiredService<MainWindow>();
                 newMainWindow.DataContext = newMainViewModel;
                 Application.Current.MainWindow = newMainWindow;
                 newMainWindow.Show();
+                currentMainWindow?.Close();
             }
             else
             {

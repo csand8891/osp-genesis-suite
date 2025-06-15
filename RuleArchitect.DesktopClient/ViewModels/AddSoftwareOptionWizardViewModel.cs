@@ -61,28 +61,40 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public CreateSoftwareOptionCommandDto NewSoftwareOption { get; }
         public ObservableCollection<ControlSystemLookupDto> AvailableControlSystems { get; }
 
-        // --- NEW: Properties for Spec Code Step ---
+        // --- Properties for Option Number Step ---
+        public ObservableCollection<OptionNumberRegistryCreateDto> OptionNumbers { get; }
+        // REMOVED: The SelectedOptionNumber property is no longer needed.
+
+        // --- Properties for Spec Code Step ---
         public ObservableCollection<SoftwareOptionSpecificationCodeCreateDto> SpecificationCodes { get; }
-        private SoftwareOptionSpecificationCodeCreateDto _selectedSpecificationCode;
-        public SoftwareOptionSpecificationCodeCreateDto SelectedSpecificationCode
-        {
-            get => _selectedSpecificationCode;
-            set => SetProperty(ref _selectedSpecificationCode, value, () => ((RelayCommand)RemoveSpecCodeCommand).RaiseCanExecuteChanged());
-        }
+        // REMOVED: The SelectedSpecificationCode property is no longer needed.
+
         public ObservableCollection<string> AvailableCategories { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> AvailableSpecNos { get; } = new ObservableCollection<string>(Enumerable.Range(1, 32).Select(i => i.ToString()));
         public ObservableCollection<string> AvailableSpecBits { get; } = new ObservableCollection<string>(Enumerable.Range(0, 8).Select(i => i.ToString()));
-        // --- End New ---
+
+        // --- Properties for Requirements Step ---
+        public ObservableCollection<RequirementViewModel> Requirements { get; }
+        public ObservableCollection<SoftwareOptionLookupDto> AvailableSoftwareOptionsForRequirements { get; }
+        public ObservableCollection<SpecCodeDefinitionLookupDto> AvailableSpecCodesForRequirements { get; }
+
 
         public ICommand NextCommand { get; }
         public ICommand PreviousCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand CancelCommand { get; }
 
-        // --- NEW: Commands for Spec Code Step ---
+        // --- Commands for Option Number Step ---
+        public ICommand AddOptionNumberCommand { get; }
+        public ICommand RemoveOptionNumberCommand { get; }
+
+        // --- Commands for Spec Code Step ---
         public ICommand AddSpecCodeCommand { get; }
         public ICommand RemoveSpecCodeCommand { get; }
-        // --- End New ---
+
+        // --- Commands for Requirements Step ---
+        public ICommand AddRequirementCommand { get; }
+        public ICommand RemoveRequirementCommand { get; }
 
 
         public AddSoftwareOptionWizardViewModel(IServiceScopeFactory scopeFactory, INotificationService notificationService, IAuthenticationStateProvider authStateProvider)
@@ -93,11 +105,31 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
             NewSoftwareOption = new CreateSoftwareOptionCommandDto();
             AvailableControlSystems = new ObservableCollection<ControlSystemLookupDto>();
-            SpecificationCodes = new ObservableCollection<SoftwareOptionSpecificationCodeCreateDto>(); // Initialize collection
+            SpecificationCodes = new ObservableCollection<SoftwareOptionSpecificationCodeCreateDto>();
+            OptionNumbers = new ObservableCollection<OptionNumberRegistryCreateDto>();
+            Requirements = new ObservableCollection<RequirementViewModel>();
+            AvailableSoftwareOptionsForRequirements = new ObservableCollection<SoftwareOptionLookupDto>();
+            AvailableSpecCodesForRequirements = new ObservableCollection<SpecCodeDefinitionLookupDto>();
 
-            NewSoftwareOption.SpecificationCodes = SpecificationCodes.ToList();
+            // Sync observable collections with the DTO model
             SpecificationCodes.CollectionChanged += (s, e) => {
                 NewSoftwareOption.SpecificationCodes = SpecificationCodes.ToList();
+            };
+            OptionNumbers.CollectionChanged += (s, e) => {
+                NewSoftwareOption.OptionNumbers = OptionNumbers.ToList();
+            };
+            Requirements.CollectionChanged += (s, e) => {
+                NewSoftwareOption.Requirements = Requirements.Select(vm => new RequirementCreateDto
+                {
+                    RequirementType = vm.RequirementType,
+                    Condition = vm.Condition,
+                    GeneralRequiredValue = vm.GeneralRequiredValue,
+                    RequiredSoftwareOptionId = vm.RequiredSoftwareOptionId,
+                    RequiredSpecCodeDefinitionId = vm.RequiredSpecCodeDefinitionId,
+                    OspFileName = vm.OspFileName,
+                    OspFileVersion = vm.OspFileVersion,
+                    Notes = vm.Notes
+                }).ToList();
             };
 
             NextCommand = new RelayCommand(GoToNextStep, CanGoToNextStep);
@@ -105,18 +137,24 @@ namespace RuleArchitect.DesktopClient.ViewModels
             SaveCommand = new RelayCommand(async () => await ExecuteSaveAsync(), () => IsOnLastStep);
             CancelCommand = new RelayCommand(ExecuteCancel);
 
-            // Initialize new commands
+            // UPDATED: Commands now take a parameter and don't rely on a SelectedItem property.
+            AddOptionNumberCommand = new RelayCommand(ExecuteAddOptionNumber);
+            RemoveOptionNumberCommand = new RelayCommand(ExecuteRemoveOptionNumber, (param) => param is OptionNumberRegistryCreateDto);
+
             AddSpecCodeCommand = new RelayCommand(ExecuteAddSpecCode);
-            RemoveSpecCodeCommand = new RelayCommand(ExecuteRemoveSpecCode, () => SelectedSpecificationCode != null);
+            RemoveSpecCodeCommand = new RelayCommand(ExecuteRemoveSpecCode, (param) => param is SoftwareOptionSpecificationCodeCreateDto);
+
+            AddRequirementCommand = new RelayCommand(ExecuteAddRequirement);
+            RemoveRequirementCommand = new RelayCommand(ExecuteRemoveRequirement, (param) => param is RequirementViewModel);
 
             _ = LoadLookupsAsync();
 
-            // Subscribe to property changes on the DTO to update available categories
             this.NewSoftwareOption.PropertyChanged += (sender, args) =>
             {
                 if (args.PropertyName == nameof(NewSoftwareOption.ControlSystemId))
                 {
                     PopulateAvailableCategories();
+                    _ = LoadSpecCodeDefinitionsForRequirementsAsync();
                 }
             };
         }
@@ -147,6 +185,22 @@ namespace RuleArchitect.DesktopClient.ViewModels
             }
         }
 
+        // --- Methods for Option Number Commands ---
+        private void ExecuteAddOptionNumber()
+        {
+            OptionNumbers.Add(new OptionNumberRegistryCreateDto { OptionNumber = "New Option Number" });
+        }
+
+        // UPDATED: Method now accepts a parameter.
+        private void ExecuteRemoveOptionNumber(object parameter)
+        {
+            if (parameter is OptionNumberRegistryCreateDto optionToRemove)
+            {
+                OptionNumbers.Remove(optionToRemove);
+            }
+        }
+
+        // --- Methods for Spec Code Commands ---
         private void ExecuteAddSpecCode()
         {
             SpecificationCodes.Add(new SoftwareOptionSpecificationCodeCreateDto
@@ -157,11 +211,30 @@ namespace RuleArchitect.DesktopClient.ViewModels
             });
         }
 
-        private void ExecuteRemoveSpecCode()
+        // UPDATED: Method now accepts a parameter.
+        private void ExecuteRemoveSpecCode(object parameter)
         {
-            if (SelectedSpecificationCode != null)
+            if (parameter is SoftwareOptionSpecificationCodeCreateDto specCodeToRemove)
             {
-                SpecificationCodes.Remove(SelectedSpecificationCode);
+                SpecificationCodes.Remove(specCodeToRemove);
+            }
+        }
+
+        // --- Methods for Requirement Commands ---
+        private void ExecuteAddRequirement()
+        {
+            var newReq = new RequirementViewModel
+            {
+                RequirementType = RequirementViewModel.AvailableRequirementTypes.First()
+            };
+            Requirements.Add(newReq);
+        }
+
+        private void ExecuteRemoveRequirement(object parameter)
+        {
+            if (parameter is RequirementViewModel requirementToRemove)
+            {
+                Requirements.Remove(requirementToRemove);
             }
         }
 
@@ -178,6 +251,52 @@ namespace RuleArchitect.DesktopClient.ViewModels
                         AvailableControlSystems.Add(cs);
                     }
                 }
+
+                var allSoftwareOptions = await softwareOptionService.GetAllSoftwareOptionsAsync();
+                if (allSoftwareOptions != null)
+                {
+                    foreach (var so in allSoftwareOptions.OrderBy(s => s.PrimaryName))
+                    {
+                        AvailableSoftwareOptionsForRequirements.Add(new SoftwareOptionLookupDto { SoftwareOptionId = so.SoftwareOptionId, PrimaryName = so.PrimaryName, ControlSystemId = so.ControlSystemId });
+                    }
+                }
+            }
+        }
+
+        private async Task LoadSpecCodeDefinitionsForRequirementsAsync()
+        {
+            if (!NewSoftwareOption.ControlSystemId.HasValue || NewSoftwareOption.ControlSystemId.Value <= 0)
+            {
+                Application.Current.Dispatcher.Invoke(() => { AvailableSpecCodesForRequirements.Clear(); });
+                return;
+            }
+            try
+            {
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+                    var specCodes = await softwareOptionService.GetSpecCodeDefinitionsForControlSystemAsync(NewSoftwareOption.ControlSystemId.Value);
+                    Application.Current.Dispatcher.Invoke(() => {
+                        AvailableSpecCodesForRequirements.Clear();
+                        if (specCodes != null)
+                        {
+                            foreach (var scd in specCodes.OrderBy(s => s.Category).ThenBy(s => s.SpecCodeNo).ThenBy(s => s.SpecCodeBit))
+                            {
+                                AvailableSpecCodesForRequirements.Add(new SpecCodeDefinitionLookupDto
+                                {
+                                    SpecCodeDefinitionId = scd.SpecCodeDefinitionId,
+                                    DisplayName = $"{scd.Category} - {scd.SpecCodeNo}/{scd.SpecCodeBit}: {scd.Description?.Substring(0, Math.Min(scd.Description.Length, 30)) ?? ""}{(scd.Description?.Length > 30 ? "..." : "")}",
+                                    ControlSystemId = scd.ControlSystemId
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowError($"Error loading spec code definitions for requirements: {ex.Message}", "Load Error");
+                Application.Current.Dispatcher.Invoke(() => { AvailableSpecCodesForRequirements.Clear(); });
             }
         }
 
@@ -193,10 +312,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
         {
             if (IsOnLastStep) return false;
 
-            // Step-specific validation
             switch (CurrentStepIndex)
             {
-                case 0: // Details Step
+                case 0:
                     return !string.IsNullOrWhiteSpace(NewSoftwareOption.PrimaryName) &&
                            NewSoftwareOption.ControlSystemId.HasValue &&
                            NewSoftwareOption.ControlSystemId > 0;

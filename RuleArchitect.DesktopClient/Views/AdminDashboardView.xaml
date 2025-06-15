@@ -6,6 +6,7 @@
              xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
              xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"  mc:Ignorable="d"
              FontFamily="{materialDesign:MaterialDesignFont}"
              d:DataContext="{d:DesignInstance Type=vm:AdminDashboardViewModel, IsDesignTimeCreatable=True}"
@@ -20,7 +21,9 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="16">
             <TextBlock Text="Administrator Dashboard" Style="{StaticResource MaterialDesignHeadline4TextBlock}" Margin="0,0,0,24" HorizontalAlignment="Center"/>
+
             <WrapPanel HorizontalAlignment="Center" Orientation="Horizontal">
+
                 <materialDesign:Card Width="300" Margin="16" Padding="0" UniformCornerRadius="8">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -93,29 +96,35 @@
                     </Grid>
                 </materialDesign:Card>
 
-                <materialDesign:Card Width="300" Margin="16" Padding="0" UniformCornerRadius="8">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <materialDesign:ColorZone Mode="PrimaryMid" Padding="16">
-                            <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="ChartBar" VerticalAlignment="Center" Margin="0,0,8,0" Width="24" Height="24"/>
-                                <TextBlock Text="System Reports" Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
-                            </StackPanel>
-                        </materialDesign:ColorZone>
-                        <StackPanel Grid.Row="1" Margin="16">
-                            <TextBlock Text="Generate reports on rulesheet usage, order processing times, and other system metrics." TextWrapping="Wrap" MinHeight="60"/>
-                        </StackPanel>
-                        <Button Grid.Row="2" Style="{StaticResource MaterialDesignFlatButton}"
-                                Command="{Binding GoToReportsCommand}"
-                                HorizontalAlignment="Right" Margin="8"
-                                Content="GO TO REPORTS"/>
-                    </Grid>
-                </materialDesign:Card>
             </WrapPanel>
+
+            <materialDesign:Card Margin="16" Padding="16" UniformCornerRadius="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,16">
+                        Recent User Activity (Last 7 Days)
+                    </TextBlock>
+
+                    <lvc:CartesianChart Grid.Row="1" MinHeight="250" Series="{Binding ActivitySeries}" LegendLocation="Bottom" >
+                        <lvc:CartesianChart.AxisX>
+                            <lvc:Axis Title="Date" Labels="{Binding ActivityLabels}" />
+                        </lvc:CartesianChart.AxisX>
+                        <lvc:CartesianChart.AxisY>
+                            <!-- CORRECTED BINDING -->
+                            <lvc:Axis Title="Actions" LabelFormatter="{Binding YFormatter}" MinValue="0">
+                                <lvc:Axis.Separator>
+                                    <lvc:Separator Step="1" IsEnabled="True" />
+                                </lvc:Axis.Separator>
+                            </lvc:Axis>
+                        </lvc:CartesianChart.AxisY>
+                    </lvc:CartesianChart>
+                </Grid>
+            </materialDesign:Card>
+
         </StackPanel>
     </ScrollViewer>
 </UserControl>

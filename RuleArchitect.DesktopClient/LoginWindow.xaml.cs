@@ -27,9 +27,9 @@ namespace RuleArchitect.DesktopClient
 
                 // Subscribe to events
                 PasswordBox.PasswordChanged += PasswordBox_PasswordChanged;
-                PasswordTextBox.TextChanged += PasswordTextBox_TextChanged; // <-- ADDED
-                PasswordVisibilityToggle.Checked += PasswordVisibility_Changed; // <-- ADDED
-                PasswordVisibilityToggle.Unchecked += PasswordVisibility_Changed; // <-- ADDED
+                PasswordTextBox.TextChanged += PasswordTextBox_TextChanged;
+                PasswordVisibilityToggle.Checked += PasswordVisibility_Changed;
+                PasswordVisibilityToggle.Unchecked += PasswordVisibility_Changed;
             }
 
             this.Loaded += LoginWindow_Loaded;
@@ -49,8 +49,6 @@ namespace RuleArchitect.DesktopClient
                 shakeStoryboard.Begin(this.ErrorMessageTextBlock);
             }
         }
-
-        // --- NEW AND UPDATED METHODS FOR PASSWORD TOGGLE ---
 
         private void PasswordVisibility_Changed(object sender, RoutedEventArgs e)
         {
@@ -81,6 +79,7 @@ namespace RuleArchitect.DesktopClient
             // Keep the underlying PasswordBox in sync with the visible TextBox
             if (PasswordBox.Password != PasswordTextBox.Text)
             {
+                // CORRECTED LINE:
                 PasswordBox.Password = PasswordTextBox.Text;
             }
         }
@@ -100,8 +99,6 @@ namespace RuleArchitect.DesktopClient
             }
         }
 
-        // --- EXISTING METHODS ---
-
         private void LoginWindow_Loaded(object sender, RoutedEventArgs e)
         {
             _isWindowLoaded = true;
@@ -117,9 +114,9 @@ namespace RuleArchitect.DesktopClient
 
             // Unsubscribe from events to prevent memory leaks
             PasswordBox.PasswordChanged -= PasswordBox_PasswordChanged;
-            PasswordTextBox.TextChanged -= PasswordTextBox_TextChanged; // <-- ADDED
-            PasswordVisibilityToggle.Checked -= PasswordVisibility_Changed; // <-- ADDED
-            PasswordVisibilityToggle.Unchecked -= PasswordVisibility_Changed; // <-- ADDED
+            PasswordTextBox.TextChanged -= PasswordTextBox_TextChanged;
+            PasswordVisibilityToggle.Checked -= PasswordVisibility_Changed;
+            PasswordVisibilityToggle.Unchecked -= PasswordVisibility_Changed;
 
             if (_viewModel != null)
             {

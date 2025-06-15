@@ -28,8 +28,8 @@
         </Storyboard>
         <Storyboard x:Key="ShakeErrorStoryboard">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetName="ErrorMessageTextTransform"
-                               Storyboard.TargetProperty="X"
-                               Duration="0:0:0.5">
+                                       Storyboard.TargetProperty="X"
+                                       Duration="0:0:0.5">
                 <LinearDoubleKeyFrame Value="0" KeyTime="0:0:0" />
                 <LinearDoubleKeyFrame Value="-10" KeyTime="0:0:0.1" />
                 <LinearDoubleKeyFrame Value="10" KeyTime="0:0:0.2" />
@@ -49,59 +49,55 @@
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*" MinWidth="350"/>
-            <!-- Increased min-width -->
             <ColumnDefinition Width="1*" MinWidth="450"/>
-            <!-- Increased min-width -->
         </Grid.ColumnDefinitions>
 
-        <!-- Left Panel - Branding Area (Unchanged except width) -->
         <materialDesign:ColorZone Grid.Column="0" 
-                                Mode="PrimaryMid"
-                                Padding="32"
-                                HorizontalAlignment="Stretch"
-                                VerticalAlignment="Stretch">
+                                  Mode="PrimaryMid"
+                                  Padding="32"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch">
             <StackPanel HorizontalAlignment="Center" 
-                       VerticalAlignment="Center"
-                       Width="300">
+                        VerticalAlignment="Center"
+                        Width="300">
                 <TextBlock Text="OSP Genesis Suite"
-                  Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                  Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
-                  TextAlignment="Center" 
-                  Margin="0,8,0,0"/>
+             Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+             Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+             TextAlignment="Center" 
+             Margin="0,8,0,0"/>
                 <materialDesign:Card Background="Transparent"
-                                   Width="256"
-                                   Height="256"
-                                   Padding="0"
-                                     HorizontalAlignment="Center"
-                                   materialDesign:ElevationAssist.Elevation="Dp8">
+                                     Width="256"
+                                     Height="256"
+                                     Padding="0"
+                                      HorizontalAlignment="Center"
+                                     materialDesign:ElevationAssist.Elevation="Dp8">
                     <Image Source="/genesis-suite-outline-icon-256x256.ico" 
                            Height="256" 
                            Width="256"
                            RenderOptions.BitmapScalingMode="Fant"/>
                 </materialDesign:Card>
 
-                
+
 
                 <TextBlock Text="Orchestrating OSP Software Production, from Order to Machine"
-                          Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
-                          Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
-                          TextAlignment="Center" 
-                          Margin="0,8,0,0" 
-                          TextWrapping="Wrap"/>
+                           Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                           Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                           TextAlignment="Center" 
+                           Margin="0,8,0,0" 
+                           TextWrapping="Wrap"/>
             </StackPanel>
         </materialDesign:ColorZone>
 
-        <!-- Right Panel - Login Form (Unchanged except width) -->
         <Grid Grid.Column="1" Background="{DynamicResource MaterialDesignPaper}">
             <materialDesign:ColorZone Mode="PrimaryLight"
-                                   CornerRadius="8"
-                                   Width="450" 
-                HorizontalAlignment="Stretch"
-                                   VerticalAlignment="Stretch">
+                                  CornerRadius="8"
+                                  Width="450" 
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch">
                 <materialDesign:Card Padding="32" 
-                                   Margin="48"
-                                   materialDesign:ElevationAssist.Elevation="Dp8"
-                                   Background="{DynamicResource MaterialDesignPaper}">
+                                     Margin="48"
+                                     materialDesign:ElevationAssist.Elevation="Dp8"
+                                     Background="{DynamicResource MaterialDesignPaper}">
                     <StackPanel x:Name="stackPanel" RenderTransformOrigin="0.5,0.5">
                         <StackPanel.RenderTransform>
                             <TransformGroup>
@@ -112,87 +108,82 @@
                             </TransformGroup>
                         </StackPanel.RenderTransform>
 
-                        <!-- Login Header -->
                         <TextBlock Text="Welcome to OSP Genesis Suite" 
-                                  Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-                                  HorizontalAlignment="Center"
-                                  Margin="0,0,0,16"
-                                  Foreground="{DynamicResource MaterialDesignBody}"/>
+                                   Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,16"
+                                   Foreground="{DynamicResource MaterialDesignBody}"/>
 
                         <TextBlock Text="Sign in to continue"
-                                  Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
-                                  HorizontalAlignment="Center"
-                                  Margin="0,0,0,24"
-                                  Foreground="{DynamicResource MaterialDesignBody}"/>
+                                   Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,0,0,24"
+                                   Foreground="{DynamicResource MaterialDesignBody}"/>
 
-                        <!-- Form Fields -->
                         <TextBox materialDesign:HintAssist.Hint="Username"
-                               Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
-                               Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                               Margin="0,0,0,8"
-                               materialDesign:TextFieldAssist.HasLeadingIcon="True"
-                               materialDesign:TextFieldAssist.LeadingIcon="Account"/>
+                                 Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 Margin="0,0,0,8"
+                                 materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                 materialDesign:TextFieldAssist.LeadingIcon="Account"/>
 
                         <Grid Margin="0,8">
                             <PasswordBox x:Name="PasswordBox"
-                                       materialDesign:HintAssist.Hint="Password"
-                                       materialDesign:TextFieldAssist.HasLeadingIcon="True"
-                                       materialDesign:TextFieldAssist.LeadingIcon="Password"
-                                       PasswordChanged="PasswordBox_PasswordChanged"
-                                       Style="{StaticResource MaterialDesignFloatingHintPasswordBox}"/>
+                                         materialDesign:HintAssist.Hint="Password"
+                                         materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                         materialDesign:TextFieldAssist.LeadingIcon="Password"
+                                         PasswordChanged="PasswordBox_PasswordChanged"
+                                         Style="{StaticResource MaterialDesignFloatingHintPasswordBox}"/>
 
                             <TextBox x:Name="PasswordTextBox"
-                                   materialDesign:HintAssist.Hint="Password"
-                                   materialDesign:TextFieldAssist.HasLeadingIcon="True"
-                                   materialDesign:TextFieldAssist.LeadingIcon="Password"
-                                   TextChanged="PasswordTextBox_TextChanged"
-                                   Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                                   Visibility="Collapsed"/>
+                                     materialDesign:HintAssist.Hint="Password"
+                                     materialDesign:TextFieldAssist.HasLeadingIcon="True"
+                                     materialDesign:TextFieldAssist.LeadingIcon="Password"
+                                     TextChanged="PasswordTextBox_TextChanged"
+                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                     Visibility="Collapsed"/>
 
                             <ToggleButton x:Name="PasswordVisibilityToggle"
-                                       Style="{StaticResource MaterialDesignFlatButton}"
-                                       HorizontalAlignment="Right" 
-                                       VerticalAlignment="Center" 
-                                       Margin="0,0,4,-4"
-                                       Checked="PasswordVisibility_Changed" 
-                                       Unchecked="PasswordVisibility_Changed">
+                                          Style="{StaticResource MaterialDesignFlatButton}"
+                                          HorizontalAlignment="Right" 
+                                          VerticalAlignment="Center" 
+                                          Margin="0,0,4,-4"
+                                          Checked="PasswordVisibility_Changed" 
+                                          Unchecked="PasswordVisibility_Changed">
                                 <materialDesign:PackIcon Kind="Eye" />
                             </ToggleButton>
                         </Grid>
 
-                        <!-- Error Message -->
                         <TextBlock x:Name="ErrorMessageTextBlock" 
-                                 Text="{Binding ErrorMessage}"
-                                 Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"
-                                 Style="{StaticResource MaterialDesignCaptionTextBlock}"
-                                 TextWrapping="Wrap" 
-                                 MinHeight="32" 
-                                 Margin="0,8,0,0"
-                                 HorizontalAlignment="Center" 
-                                 TextAlignment="Center"
-                                 Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}">
+                                   Text="{Binding ErrorMessage}"
+                                   Foreground="{DynamicResource MaterialDesignValidationErrorBrush}"
+                                   Style="{StaticResource MaterialDesignCaptionTextBlock}"
+                                   TextWrapping="Wrap" 
+                                   MinHeight="32" 
+                                   Margin="0,8,0,0"
+                                   HorizontalAlignment="Center" 
+                                   TextAlignment="Center"
+                                   Visibility="{Binding ErrorMessage, Converter={StaticResource NullOrEmptyToVisibilityConverter}}">
                             <TextBlock.RenderTransform>
                                 <TranslateTransform x:Name="ErrorMessageTextTransform" X="0"/>
                             </TextBlock.RenderTransform>
                         </TextBlock>
 
-                        <!-- Login Button -->
                         <Button Content="SIGN IN" 
-                               Style="{StaticResource MaterialDesignRaisedButton}"
-                               Height="48" 
-                               Margin="0,24,0,8" 
-                               Command="{Binding LoginCommand}"
-                               materialDesign:RippleAssist.Feedback="{StaticResource PrimaryHueLightBrush}"
-                               materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsLoggingIn}"
-                               materialDesign:ButtonProgressAssist.Value="-1"
-                               materialDesign:ButtonProgressAssist.IsIndeterminate="True"/>
+                                Style="{StaticResource MaterialDesignRaisedButton}"
+                                Height="48" 
+                                Margin="0,24,0,8" 
+                                Command="{Binding LoginCommand}"
+                                materialDesign:RippleAssist.Feedback="{StaticResource PrimaryHueLightBrush}"
+                                materialDesign:ButtonProgressAssist.IsIndicatorVisible="{Binding IsLoggingIn}"
+                                materialDesign:ButtonProgressAssist.Value="-1"
+                                materialDesign:ButtonProgressAssist.IsIndeterminate="True"/>
 
-                        <!-- Forgot Password Link -->
                         <Button Content="Forgot password?"
-                               Style="{StaticResource MaterialDesignFlatButton}"
-                               HorizontalAlignment="Center"
-                               Margin="0,8"
-                               Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                                Style="{StaticResource MaterialDesignFlatButton}"
+                                HorizontalAlignment="Center"
+                                Margin="0,8"
+                                Foreground="{DynamicResource PrimaryHueMidBrush}"/>
                     </StackPanel>
                 </materialDesign:Card>
             </materialDesign:ColorZone>

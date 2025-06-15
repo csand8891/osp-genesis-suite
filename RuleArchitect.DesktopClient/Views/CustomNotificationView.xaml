@@ -1,0 +1,21 @@
+﻿<UserControl x:Class="RuleArchitect.DesktopClient.Views.CustomNotificationView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DesignHeight="80" d:DesignWidth="300">
+    <materialDesign:Card x:Name="Card" Padding="16" UniformCornerRadius="4">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <materialDesign:PackIcon x:Name="Icon" Kind="Information" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,16,0" Width="24" Height="24"/>
+            <TextBlock x:Name="MessageTextBlock" Grid.Column="1" Text="This is a sample notification message." TextWrapping="Wrap" VerticalAlignment="Center"/>
+        </Grid>
+    </materialDesign:Card>
+</UserControl>
