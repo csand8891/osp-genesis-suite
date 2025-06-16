@@ -321,6 +321,30 @@ namespace RuleArchitect.DesktopClient.ViewModels
             }
         }
 
+        private void PrepareReviewStepData()
+        {
+            // Populate the display text for each requirement
+            foreach (var req in Requirements)
+            {
+                switch (req.RequirementType)
+                {
+                    case "Software Option":
+                        var requiredSo = AvailableSoftwareOptionsForRequirements
+                            .FirstOrDefault(so => so.SoftwareOptionId == req.RequiredSoftwareOptionId);
+                        req.RequiredValueDisplayText = requiredSo?.PrimaryName ?? "Not Found";
+                        break;
+                    case "Spec Code":
+                        var requiredSc = AvailableSpecCodesForRequirements
+                            .FirstOrDefault(sc => sc.SpecCodeDefinitionId == req.RequiredSpecCodeDefinitionId);
+                        req.RequiredValueDisplayText = requiredSc?.DisplayName ?? "Not Found";
+                        break;
+                    default:
+                        req.RequiredValueDisplayText = req.GeneralRequiredValue;
+                        break;
+                }
+            }
+        }
+
         // --- UPDATED: Final hybrid validation logic ---
         private bool CanGoToNextStep()
         {

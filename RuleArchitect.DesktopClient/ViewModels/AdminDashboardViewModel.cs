@@ -57,6 +57,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
             set => SetProperty(ref _activityLabels, value);
         }
         public Func<double, string> YFormatter { get; } = value => value.ToString("N0");
+
+        public SeriesCollection RulesheetDistributionSeries { get; set; }
+        public string[] RulesheetDistributionLabels { get; private set; }
         // ****** ENSURE THIS IsLoading PROPERTY IS EXACTLY AS BELOW ******
         private bool _isLoading;
         public bool IsLoading
@@ -108,6 +111,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
             System.Diagnostics.Debug.WriteLine("AdminDashboardViewModel: Constructor END. Data loading should be triggered by view's Loaded event.");
             ActivitySeries = new SeriesCollection();
             ActivityLabels = new string[0];
+
+            RulesheetDistributionSeries = new SeriesCollection();
+            RulesheetDistributionLabels = new string[0];
         }
 
         private async Task LoadDataAsync()
@@ -122,7 +128,32 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 var allOptions = await _softwareOptionService.GetAllSoftwareOptionsAsync();
                 TotalRulesheets = allOptions?.Count ?? 0;
                 System.Diagnostics.Debug.WriteLine($"AdminDashboardViewModel: TotalRulesheets = {TotalRulesheets}");
+                // --- NEW: Logic for Rulesheet Distribution Chart ---
+                if (allOptions != null && allOptions.Any())
+                {
+                    var distribution = allOptions
+                        .Where(o => !string.IsNullOrEmpty(o.ControlSystemName))
+                        .GroupBy(o => o.ControlSystemName)
+                        .Select(g => new { ControlSystem = g.Key, Count = g.Count() })
+                        .OrderByDescending(x => x.Count) // Show most used systems first
+                        .ToList();
 
+                    RulesheetDistributionLabels = distribution.Select(d => d.ControlSystem).ToArray();
+
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        RulesheetDistributionSeries.Clear();
+                        RulesheetDistributionSeries.Add(new ColumnSeries
+                        {
+                            Title = "Rulesheets",
+                            Values = new ChartValues<int>(distribution.Select(d => d.Count)),
+                            DataLabels = true, // Optional: Shows count on top of bars
+                        });
+                    });
+                    OnPropertyChanged(nameof(RulesheetDistributionLabels));
+                    OnPropertyChanged(nameof(RulesheetDistributionSeries));
+                }
+                // --- END NEW ---
                 ActiveUsers = await _userService.GetActiveUserCountAsync();
                 OrdersPendingReview = 0;
                 // --- NEW: Logic to load data for the activity chart ---

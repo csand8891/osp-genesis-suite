@@ -10,7 +10,7 @@
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"  mc:Ignorable="d"
              FontFamily="{materialDesign:MaterialDesignFont}"
              d:DataContext="{d:DesignInstance Type=vm:AdminDashboardViewModel, IsDesignTimeCreatable=True}"
-             d:DesignHeight="700" d:DesignWidth="900">
+             d:DesignHeight="700" d:DesignWidth="1200">
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
@@ -19,10 +19,18 @@
     </i:Interaction.Triggers>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="16">
-            <TextBlock Text="Administrator Dashboard" Style="{StaticResource MaterialDesignHeadline4TextBlock}" Margin="0,0,0,24" HorizontalAlignment="Center"/>
+        <!-- Using a Grid for more robust layout of dashboard sections -->
+        <Grid Margin="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-            <WrapPanel HorizontalAlignment="Center" Orientation="Horizontal">
+            <TextBlock Grid.Row="0" Text="Administrator Dashboard" Style="{StaticResource MaterialDesignHeadline4TextBlock}" Margin="0,0,0,24" HorizontalAlignment="Center"/>
+
+            <!-- Summary Cards Section -->
+            <WrapPanel Grid.Row="1" HorizontalAlignment="Center" Orientation="Horizontal">
 
                 <materialDesign:Card Width="300" Margin="16" Padding="0" UniformCornerRadius="8">
                     <Grid>
@@ -98,33 +106,70 @@
 
             </WrapPanel>
 
-            <materialDesign:Card Margin="16" Padding="16" UniformCornerRadius="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
+            <!-- Charts Section -->
+            <Grid Grid.Row="2" Margin="0,16,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-                    <TextBlock Grid.Row="0" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,16">
-                        Recent User Activity (Last 7 Days)
-                    </TextBlock>
+                <!-- Existing User Activity Chart -->
+                <materialDesign:Card Grid.Column="0" Margin="16,0,8,0" Padding="16" UniformCornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock Grid.Row="0" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,16">
+                            Recent User Activity (Last 7 Days)
+                        </TextBlock>
+                        <lvc:CartesianChart Grid.Row="1" MinHeight="250" Series="{Binding ActivitySeries}" LegendLocation="Bottom" >
+                            <lvc:CartesianChart.AxisX>
+                                <lvc:Axis Title="Date" Labels="{Binding ActivityLabels}" />
+                            </lvc:CartesianChart.AxisX>
+                            <lvc:CartesianChart.AxisY>
+                                <lvc:Axis Title="Actions" LabelFormatter="{Binding YFormatter}" MinValue="0">
+                                    <lvc:Axis.Separator>
+                                        <lvc:Separator Step="1" IsEnabled="True" />
+                                    </lvc:Axis.Separator>
+                                </lvc:Axis>
+                            </lvc:CartesianChart.AxisY>
+                        </lvc:CartesianChart>
+                    </Grid>
+                </materialDesign:Card>
 
-                    <lvc:CartesianChart Grid.Row="1" MinHeight="250" Series="{Binding ActivitySeries}" LegendLocation="Bottom" >
-                        <lvc:CartesianChart.AxisX>
-                            <lvc:Axis Title="Date" Labels="{Binding ActivityLabels}" />
-                        </lvc:CartesianChart.AxisX>
-                        <lvc:CartesianChart.AxisY>
-                            <!-- CORRECTED BINDING -->
-                            <lvc:Axis Title="Actions" LabelFormatter="{Binding YFormatter}" MinValue="0">
-                                <lvc:Axis.Separator>
-                                    <lvc:Separator Step="1" IsEnabled="True" />
-                                </lvc:Axis.Separator>
-                            </lvc:Axis>
-                        </lvc:CartesianChart.AxisY>
-                    </lvc:CartesianChart>
-                </Grid>
-            </materialDesign:Card>
+                <!-- NEW: Rulesheet Distribution Chart -->
+                <materialDesign:Card Grid.Column="1" Margin="8,0,16,0" Padding="16" UniformCornerRadius="8">
+                    <StackPanel>
+                        <TextBlock Text="Rulesheets by Control System" 
+                                   Style="{StaticResource MaterialDesignHeadline6TextBlock}" 
+                                   Margin="0,0,0,16"/>
 
-        </StackPanel>
+                        <lvc:CartesianChart Series="{Binding RulesheetDistributionSeries}" LegendLocation="None" MinHeight="250">
+                            <lvc:CartesianChart.AxisX>
+                                <lvc:Axis Title="Control System" 
+                                          Labels="{Binding RulesheetDistributionLabels}"
+                                          LabelsRotation="-45">
+                                    <lvc:Axis.Separator>
+                                        <lvc:Separator Step="1" IsEnabled="False" />
+                                    </lvc:Axis.Separator>
+                                </lvc:Axis>
+                            </lvc:CartesianChart.AxisX>
+                            <lvc:CartesianChart.AxisY>
+                                <lvc:Axis Title="Number of Rulesheets" 
+                                          LabelFormatter="{Binding YFormatter}" 
+                                          MinValue="0">
+                                    <lvc:Axis.Separator>
+                                        <lvc:Separator Step="1" />
+                                    </lvc:Axis.Separator>
+                                </lvc:Axis>
+                            </lvc:CartesianChart.AxisY>
+                        </lvc:CartesianChart>
+                    </StackPanel>
+                </materialDesign:Card>
+
+            </Grid>
+
+        </Grid>
     </ScrollViewer>
 </UserControl>
