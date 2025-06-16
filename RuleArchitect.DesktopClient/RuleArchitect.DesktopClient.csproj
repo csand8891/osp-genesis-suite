@@ -221,12 +221,14 @@
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\NavigationItemViewModel.cs" />
     <Compile Include="ViewModels\OptionNumberViewModel.cs" />
+    <Compile Include="ViewModels\OptionNumberWizardViewModel.cs" />
     <Compile Include="ViewModels\RequirementViewModel.cs" />
     <Compile Include="ViewModels\SoftwareOptionsViewModel.cs" />
     <Compile Include="ViewModels\SpecCodeViewModel.cs" />
     <Compile Include="ViewModels\UserActivityLogViewModel.cs" />
     <Compile Include="ViewModels\UserEditViewModel.cs" />
     <Compile Include="ViewModels\UserManagementViewModel.cs" />
+    <Compile Include="ViewModels\ValidatableViewModel.cs" />
     <Compile Include="Views\AddSoftwareOptionWizardView.xaml.cs">
       <DependentUpon>AddSoftwareOptionWizardView.xaml</DependentUpon>
     </Compile>

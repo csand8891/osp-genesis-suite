@@ -1,12 +1,14 @@
 ﻿// File: RuleArchitect.Abstractions/DTOs/SoftwareOption/CreateSoftwareOptionCommandDto.cs
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace RuleArchitect.Abstractions.DTOs.SoftwareOption
 {
-    public class CreateSoftwareOptionCommandDto : INotifyPropertyChanged
+    public class CreateSoftwareOptionCommandDto : INotifyPropertyChanged, INotifyDataErrorInfo
     {
         private string _primaryName;
         private string? _alternativeNames;
@@ -71,5 +73,68 @@ namespace RuleArchitect.Abstractions.DTOs.SoftwareOption
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        #region INotifyDataErrorInfo Implementation (NEW)
+
+        private readonly Dictionary<string, List<string>> _errors = new Dictionary<string, List<string>>();
+
+        public event EventHandler<DataErrorsChangedEventArgs>? ErrorsChanged;
+
+        public bool HasErrors => _errors.Any();
+
+        public IEnumerable GetErrors(string? propertyName)
+        {
+            if (string.IsNullOrEmpty(propertyName) || !_errors.ContainsKey(propertyName))
+            {
+                return Enumerable.Empty<string>();
+            }
+            return _errors[propertyName];
+        }
+
+        private void OnErrorsChanged(string propertyName)
+        {
+            ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(propertyName));
+            OnPropertyChanged(nameof(HasErrors));
+        }
+
+        // Public method to trigger validation
+        public void Validate()
+        {
+            // Primary Name Validation
+            ClearErrors(nameof(PrimaryName));
+            if (string.IsNullOrWhiteSpace(PrimaryName))
+            {
+                AddError(nameof(PrimaryName), "Primary Name is required.");
+            }
+
+            // Control System Validation
+            ClearErrors(nameof(ControlSystemId));
+            if (!ControlSystemId.HasValue || ControlSystemId <= 0)
+            {
+                AddError(nameof(ControlSystemId), "A Control System must be selected.");
+            }
+        }
+
+        private void AddError(string propertyName, string error)
+        {
+            if (!_errors.ContainsKey(propertyName))
+                _errors[propertyName] = new List<string>();
+
+            if (!_errors[propertyName].Contains(error))
+            {
+                _errors[propertyName].Add(error);
+                OnErrorsChanged(propertyName);
+            }
+        }
+
+        private void ClearErrors(string propertyName)
+        {
+            if (_errors.ContainsKey(propertyName))
+            {
+                _errors.Remove(propertyName);
+                OnErrorsChanged(propertyName);
+            }
+        }
+        #endregion
     }
 }

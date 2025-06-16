@@ -1,5 +1,4 @@
-﻿// File: RuleArchitect.DesktopClient/ViewModels/AddSoftwareOptionWizardViewModel.cs
-using HeraldKit.Interfaces;
+﻿using HeraldKit.Interfaces;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
 using RuleArchitect.Abstractions.DTOs.Lookups;
@@ -33,7 +32,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     OnPropertyChanged(nameof(StepTitle));
                     OnPropertyChanged(nameof(IsOnFirstStep));
                     OnPropertyChanged(nameof(IsOnLastStep));
+                    // Manually re-evaluate commands whenever the step changes.
                     ((RelayCommand)NextCommand).RaiseCanExecuteChanged();
+                    ((RelayCommand)PreviousCommand).RaiseCanExecuteChanged();
                     ((RelayCommand)SaveCommand).RaiseCanExecuteChanged();
                 }
             }
@@ -61,14 +62,11 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public CreateSoftwareOptionCommandDto NewSoftwareOption { get; }
         public ObservableCollection<ControlSystemLookupDto> AvailableControlSystems { get; }
 
-        // --- Properties for Option Number Step ---
-        public ObservableCollection<OptionNumberRegistryCreateDto> OptionNumbers { get; }
-        // REMOVED: The SelectedOptionNumber property is no longer needed.
+        // --- UPDATED: Use the new validatable ViewModel for Option Numbers ---
+        public ObservableCollection<OptionNumberWizardViewModel> OptionNumbers { get; }
 
-        // --- Properties for Spec Code Step ---
+        // --- Properties for Spec Code Step (using DTO as discussed) ---
         public ObservableCollection<SoftwareOptionSpecificationCodeCreateDto> SpecificationCodes { get; }
-        // REMOVED: The SelectedSpecificationCode property is no longer needed.
-
         public ObservableCollection<string> AvailableCategories { get; } = new ObservableCollection<string>();
         public ObservableCollection<string> AvailableSpecNos { get; } = new ObservableCollection<string>(Enumerable.Range(1, 32).Select(i => i.ToString()));
         public ObservableCollection<string> AvailableSpecBits { get; } = new ObservableCollection<string>(Enumerable.Range(0, 8).Select(i => i.ToString()));
@@ -105,18 +103,24 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
             NewSoftwareOption = new CreateSoftwareOptionCommandDto();
             AvailableControlSystems = new ObservableCollection<ControlSystemLookupDto>();
+
+            // UPDATED: Initialize collections with the correct types
             SpecificationCodes = new ObservableCollection<SoftwareOptionSpecificationCodeCreateDto>();
-            OptionNumbers = new ObservableCollection<OptionNumberRegistryCreateDto>();
+            OptionNumbers = new ObservableCollection<OptionNumberWizardViewModel>();
             Requirements = new ObservableCollection<RequirementViewModel>();
+
             AvailableSoftwareOptionsForRequirements = new ObservableCollection<SoftwareOptionLookupDto>();
             AvailableSpecCodesForRequirements = new ObservableCollection<SpecCodeDefinitionLookupDto>();
 
-            // Sync observable collections with the DTO model
+            // UPDATED: Sync observable collections with the DTO model
             SpecificationCodes.CollectionChanged += (s, e) => {
                 NewSoftwareOption.SpecificationCodes = SpecificationCodes.ToList();
             };
             OptionNumbers.CollectionChanged += (s, e) => {
-                NewSoftwareOption.OptionNumbers = OptionNumbers.ToList();
+                // Map from the ViewModel back to the DTO for saving
+                NewSoftwareOption.OptionNumbers = OptionNumbers
+                    .Select(vm => new OptionNumberRegistryCreateDto { OptionNumber = vm.OptionNumber })
+                    .ToList();
             };
             Requirements.CollectionChanged += (s, e) => {
                 NewSoftwareOption.Requirements = Requirements.Select(vm => new RequirementCreateDto
@@ -137,9 +141,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
             SaveCommand = new RelayCommand(async () => await ExecuteSaveAsync(), () => IsOnLastStep);
             CancelCommand = new RelayCommand(ExecuteCancel);
 
-            // UPDATED: Commands now take a parameter and don't rely on a SelectedItem property.
+            // UPDATED: Commands now take correct parameter types
             AddOptionNumberCommand = new RelayCommand(ExecuteAddOptionNumber);
-            RemoveOptionNumberCommand = new RelayCommand(ExecuteRemoveOptionNumber, (param) => param is OptionNumberRegistryCreateDto);
+            RemoveOptionNumberCommand = new RelayCommand(ExecuteRemoveOptionNumber, (param) => param is OptionNumberWizardViewModel);
 
             AddSpecCodeCommand = new RelayCommand(ExecuteAddSpecCode);
             RemoveSpecCodeCommand = new RelayCommand(ExecuteRemoveSpecCode, (param) => param is SoftwareOptionSpecificationCodeCreateDto);
@@ -156,6 +160,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     PopulateAvailableCategories();
                     _ = LoadSpecCodeDefinitionsForRequirementsAsync();
                 }
+                // When a property changes, re-evaluate if we can move to the next step
+                ((RelayCommand)NextCommand).RaiseCanExecuteChanged();
             };
         }
 
@@ -185,22 +191,25 @@ namespace RuleArchitect.DesktopClient.ViewModels
             }
         }
 
-        // --- Methods for Option Number Commands ---
+        // --- UPDATED: Methods for Option Number Commands ---
         private void ExecuteAddOptionNumber()
         {
-            OptionNumbers.Add(new OptionNumberRegistryCreateDto { OptionNumber = "New Option Number" });
+            var newOption = new OptionNumberWizardViewModel { OptionNumber = "" };
+            newOption.Validate(); // Immediately trigger validation to show the error
+            OptionNumbers.Add(newOption);
+            ((RelayCommand)NextCommand).RaiseCanExecuteChanged();
         }
 
-        // UPDATED: Method now accepts a parameter.
         private void ExecuteRemoveOptionNumber(object parameter)
         {
-            if (parameter is OptionNumberRegistryCreateDto optionToRemove)
+            if (parameter is OptionNumberWizardViewModel optionToRemove)
             {
                 OptionNumbers.Remove(optionToRemove);
+                ((RelayCommand)NextCommand).RaiseCanExecuteChanged();
             }
         }
 
-        // --- Methods for Spec Code Commands ---
+        // --- Methods for Spec Code Commands (Unchanged logic, uses DTO) ---
         private void ExecuteAddSpecCode()
         {
             SpecificationCodes.Add(new SoftwareOptionSpecificationCodeCreateDto
@@ -209,14 +218,15 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 SpecCodeNo = "1",
                 SpecCodeBit = "0"
             });
+            ((RelayCommand)NextCommand).RaiseCanExecuteChanged();
         }
 
-        // UPDATED: Method now accepts a parameter.
         private void ExecuteRemoveSpecCode(object parameter)
         {
             if (parameter is SoftwareOptionSpecificationCodeCreateDto specCodeToRemove)
             {
                 SpecificationCodes.Remove(specCodeToRemove);
+                ((RelayCommand)NextCommand).RaiseCanExecuteChanged();
             }
         }
 
@@ -227,7 +237,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
             {
                 RequirementType = RequirementViewModel.AvailableRequirementTypes.First()
             };
+            newReq.Validate();
             Requirements.Add(newReq);
+            ((RelayCommand)NextCommand).RaiseCanExecuteChanged();
         }
 
         private void ExecuteRemoveRequirement(object parameter)
@@ -235,6 +247,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             if (parameter is RequirementViewModel requirementToRemove)
             {
                 Requirements.Remove(requirementToRemove);
+                ((RelayCommand)NextCommand).RaiseCanExecuteChanged();
             }
         }
 
@@ -308,16 +321,31 @@ namespace RuleArchitect.DesktopClient.ViewModels
             }
         }
 
+        // --- UPDATED: Final hybrid validation logic ---
         private bool CanGoToNextStep()
         {
             if (IsOnLastStep) return false;
 
             switch (CurrentStepIndex)
             {
-                case 0:
-                    return !string.IsNullOrWhiteSpace(NewSoftwareOption.PrimaryName) &&
-                           NewSoftwareOption.ControlSystemId.HasValue &&
-                           NewSoftwareOption.ControlSystemId > 0;
+                case 0: // Core Details (Uses INotifyDataErrorInfo on DTO)
+                    NewSoftwareOption.Validate();
+                    return !NewSoftwareOption.HasErrors;
+
+                case 1: // Option Numbers (Uses INotifyDataErrorInfo on ViewModel)
+                    foreach (var on in OptionNumbers) { on.Validate(); }
+                    return OptionNumbers.All(on => !on.HasErrors);
+
+                case 2: // Specification Codes (Uses direct, simple check)
+                    return SpecificationCodes.All(sc =>
+                        !string.IsNullOrWhiteSpace(sc.Category) &&
+                        !string.IsNullOrWhiteSpace(sc.SpecCodeNo) &&
+                        !string.IsNullOrWhiteSpace(sc.SpecCodeBit));
+
+                case 3: // Requirements (Uses INotifyDataErrorInfo on ViewModel)
+                    foreach (var req in Requirements) { req.Validate(); }
+                    return Requirements.All(req => !req.HasErrors);
+
                 default:
                     return true;
             }
@@ -330,6 +358,17 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         private async Task ExecuteSaveAsync()
         {
+            // Before saving, run one final validation check on all steps.
+            NewSoftwareOption.Validate();
+            foreach (var on in OptionNumbers) { on.Validate(); }
+            foreach (var req in Requirements) { req.Validate(); }
+
+            if (NewSoftwareOption.HasErrors || OptionNumbers.Any(on => on.HasErrors) || Requirements.Any(req => req.HasErrors))
+            {
+                _notificationService.ShowWarning("Please fix all validation errors before finishing.", "Validation Failed");
+                return;
+            }
+
             var currentUser = _authStateProvider.CurrentUser;
             if (currentUser == null)
             {
