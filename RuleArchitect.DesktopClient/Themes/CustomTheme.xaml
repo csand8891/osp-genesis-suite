@@ -5,19 +5,19 @@
 
     <!-- ===== COLOR PALETTE ===== -->
     <!-- Primary Colors -->
-    <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="#E3F2FD"/>
+    <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="#7BA4DB"/>
     <SolidColorBrush x:Key="PrimaryHueLightForegroundBrush" Color="#000000"/>
     <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#005EB8"/>
     <SolidColorBrush x:Key="PrimaryHueMidForegroundBrush" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="PrimaryHueDarkBrush" Color="#003B75"/>
+    <SolidColorBrush x:Key="PrimaryHueDarkBrush" Color="#0B308E"/>
     <SolidColorBrush x:Key="PrimaryHueDarkForegroundBrush" Color="#FFFFFF"/>
 
     <!-- Secondary/Accent Colors -->
-    <SolidColorBrush x:Key="SecondaryHueLightBrush" Color="#FFECB3"/>
+    <SolidColorBrush x:Key="SecondaryHueLightBrush" Color="#B7BF10"/>
     <SolidColorBrush x:Key="SecondaryHueLightForegroundBrush" Color="#000000"/>
-    <SolidColorBrush x:Key="SecondaryHueMidBrush" Color="#FFC107"/>
+    <SolidColorBrush x:Key="SecondaryHueMidBrush" Color="#FFB549"/>
     <SolidColorBrush x:Key="SecondaryHueMidForegroundBrush" Color="#000000"/>
-    <SolidColorBrush x:Key="SecondaryHueDarkBrush" Color="#FF8F00"/>
+    <SolidColorBrush x:Key="SecondaryHueDarkBrush" Color="#A57FB2"/>
     <SolidColorBrush x:Key="SecondaryHueDarkForegroundBrush" Color="#FFFFFF"/>
 
     <!-- System Colors -->

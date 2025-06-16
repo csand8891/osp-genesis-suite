@@ -2,6 +2,7 @@
 using GenesisSentry.Interfaces;
 using LiveCharts;
 using LiveCharts.Wpf;
+using MaterialDesignColors;
 using RuleArchitect.Abstractions.DTOs.Activity;
 using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
@@ -10,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
@@ -148,6 +150,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                             Values = new ChartValues<int>(distribution.Select(d => d.Count)),
                             DataLabels = true,
                         });
+                        
                     });
                 }
 
@@ -177,7 +180,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
                         Title = "User Activities",
                         Values = new ChartValues<int>(chartData.Select(x => x.Value)),
                         PointGeometry = DefaultGeometries.Circle,
-                        PointGeometrySize = 10
+                        PointGeometrySize = 10,
+                        Fill = (SolidColorBrush)Application.Current.FindResource("PrimaryHueLightBrush"),
+                        Stroke = (SolidColorBrush)Application.Current.FindResource("SecondaryHueLightBrush"),
                     });
                 });
             }
