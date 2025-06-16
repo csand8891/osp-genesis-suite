@@ -1,0 +1,117 @@
+<UserControl x:Class="RuleArchitect.DesktopClient.Views.OrderManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
+             xmlns:viewmodels="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+             xmlns:dto="clr-namespace:RuleArchitect.Abstractions.DTOs.Order;assembly=RuleArchitect.Abstractions"
+             xmlns:enums="clr-namespace:RuleArchitect.Abstractions.Enums;assembly=RuleArchitect.Abstractions"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d"
+             d:DesignHeight="450" d:DesignWidth="800"
+             d:DataContext="{d:DesignInstance Type=viewmodels:OrderManagementViewModel, IsDesignTimeCreatable=False}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <ToolBarTray Grid.Row="0">
+            <ToolBar>
+                <Button Command="{Binding LoadOrdersCommand}" ToolTip="Refresh Orders">
+                    <materialDesign:PackIcon Kind="Refresh" />
+                </Button>
+                <Separator/>
+                <Button Command="{Binding SubmitOrderForProductionCommand}" ToolTip="Submit for Production">
+                    <materialDesign:PackIcon Kind="ProgressUpload" />
+                </Button>
+                <Button Command="{Binding StartProductionCommand}" ToolTip="Start Production">
+                    <materialDesign:PackIcon Kind="PlayCircleOutline" />
+                </Button>
+                <Button Command="{Binding CompleteProductionCommand}" ToolTip="Complete Production">
+                    <materialDesign:PackIcon Kind="CheckCircleOutline" />
+                </Button>
+                 <Button Command="{Binding StartSoftwareReviewCommand}" ToolTip="Start Software Review">
+                    <materialDesign:PackIcon Kind="CodeTagsCheck" />
+                </Button>
+                <Separator/>
+                <Button Command="{Binding PutOrderOnHoldCommand}" ToolTip="Put Order On Hold">
+                    <materialDesign:PackIcon Kind="PauseCircleOutline" />
+                </Button>
+                <Button Command="{Binding RejectOrderCommand}" ToolTip="Reject Order">
+                    <materialDesign:PackIcon Kind="CloseCircleOutline" Foreground="DarkRed" />
+                </Button>
+                <Button Command="{Binding CancelOrderCommand}" ToolTip="Cancel Order">
+                    <materialDesign:PackIcon Kind="Cancel" Foreground="OrangeRed"/>
+                </Button>
+                <!-- Add other workflow buttons here as needed -->
+            </ToolBar>
+        </ToolBarTray>
+
+        <!-- Filter Controls -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="5">
+            <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                     materialDesign:HintAssist.Hint="Search Order #, Customer, Model..."
+                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                     materialDesign:TextFieldAssist.HasClearButton="True"
+                     MinWidth="200" Margin="0,0,20,0"/>
+            <ComboBox ItemsSource="{Binding AllOrderStatuses}"
+                      SelectedItem="{Binding SelectedOrderStatusFilter}"
+                      materialDesign:HintAssist.Hint="Filter by Status"
+                      Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                      materialDesign:ComboBoxAssist.HasClearButton="True"
+                      MinWidth="150"/>
+        </StackPanel>
+
+        <!-- DataGrid -->
+        <DataGrid Grid.Row="2" ItemsSource="{Binding FilteredOrdersView}"
+                  SelectedItem="{Binding SelectedOrder}"
+                  AutoGenerateColumns="False" IsReadOnly="True"
+                  CanUserAddRows="False" CanUserDeleteRows="False"
+                  SelectionMode="Single" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Order #" Binding="{Binding OrderNumber}" Width="Auto"/>
+                <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}" Width="*"/>
+                <DataGridTextColumn Header="Order Date" Binding="{Binding OrderDate, StringFormat={}{0:yyyy-MM-dd}}" Width="Auto"/>
+                <DataGridTextColumn Header="Required Date" Binding="{Binding RequiredDate, StringFormat={}{0:yyyy-MM-dd}}" Width="Auto"/>
+                <DataGridTextColumn Header="Status" Binding="{Binding Status}" Width="Auto"/>
+                <DataGridTextColumn Header="Control System" Binding="{Binding ControlSystemName}" Width="Auto"/>
+                <DataGridTextColumn Header="Machine Model" Binding="{Binding MachineModelName}" Width="Auto"/>
+                <DataGridTextColumn Header="Created By" Binding="{Binding CreatedByUserName}" Width="Auto"/>
+                <DataGridTextColumn Header="Last Modified" Binding="{Binding LastModifiedAt, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="Auto"/>
+                <DataGridTextColumn Header="Last Modified By" Binding="{Binding LastModifiedByUserName}" Width="Auto"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- Loading Indicator -->
+        <materialDesign:Card Grid.Row="0" Grid.RowSpan="3" VerticalAlignment="Center" HorizontalAlignment="Center"
+                             Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
+                             Padding="20">
+            <StackPanel Orientation="Vertical" HorizontalAlignment="Center">
+                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}" IsIndeterminate="True" Value="0" />
+                <TextBlock Text="Loading Orders..." Margin="0,10,0,0" />
+            </StackPanel>
+        </materialDesign:Card>
+
+        <!-- Status Bar / Summary -->
+        <StatusBar Grid.Row="3">
+            <StatusBarItem>
+                <TextBlock>
+                    <Run Text="Selected Order:"/>
+                    <Run Text="{Binding SelectedOrder.OrderNumber, FallbackValue='None', TargetNullValue='None'}"/>
+                    <Run Text="- Status:"/>
+                    <Run Text="{Binding SelectedOrder.Status, FallbackValue='N/A', TargetNullValue='N/A'}"/>
+                </TextBlock>
+            </StatusBarItem>
+            <Separator Style="{StaticResource MaterialDesignDarkSeparator}" />
+            <StatusBarItem>
+                 <TextBlock Text="{Binding Orders.Count, StringFormat={}{0} Orders Loaded}"/>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</UserControl>

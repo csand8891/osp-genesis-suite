@@ -68,6 +68,8 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<UserManagementViewModel>();
             services.AddTransient<EditSpecCodeDialogViewModel>();
             services.AddTransient<UserActivityLogViewModel>();
+            services.AddTransient<OrderManagementViewModel>();
+            services.AddTransient<EditOrderViewModel>();
 
             // --- Windows and Views ---
             services.AddTransient<LoginWindow>();

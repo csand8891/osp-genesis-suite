@@ -96,6 +96,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 NavigationItems.Add(new NavigationItemViewModel
                 {
                     DisplayName = displayName,
+                    Icon = icon, // Assuming NavigationItemViewModel has an Icon property
                     TargetViewModelType = targetVmType,
                     NavigateCommand = new RelayCommand(() => NavigateTo(targetVmType)),
                     
@@ -106,10 +107,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
             {
                 case "Administrator":
                     AddNavItem("Dashboard", typeof(AdminDashboardViewModel), PackIconKind.ViewDashboardOutline);
+                    AddNavItem("Order Management", typeof(OrderManagementViewModel), PackIconKind.ClipboardListOutline);
                     AddNavItem("Rulesheets", typeof(SoftwareOptionsViewModel), PackIconKind.FileDocumentMultipleOutline);
                     AddNavItem("Manage Users", typeof(UserManagementViewModel), PackIconKind.AccountGroupOutline);
                     AddNavItem("Activity Log", typeof(UserActivityLogViewModel), PackIconKind.History);
                     break;
+                // Add other roles as needed
             }
         }
 

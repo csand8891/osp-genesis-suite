@@ -24,8 +24,9 @@ namespace RuleArchitect.Data
         public virtual DbSet<UserEntity> Users { get; set; } = null!;
         public virtual DbSet<Order> Orders { get; set; } = null!;
         public virtual DbSet<OrderItem> OrderItems { get; set; } = null!;
-        public virtual DbSet<MachineModel> MachineModels { get; set; } = null!; // <-- NEW DbSet
+        public virtual DbSet<MachineModel> MachineModels { get; set; } = null!;
         public virtual DbSet<UserActivityLog> UserActivityLogs { get; set; } = null!;
+        public virtual DbSet<RoleEntity> Roles { get; set; } = null!; // New DbSet for Roles
 
         public RuleArchitectContext() { }
 
@@ -145,8 +146,40 @@ namespace RuleArchitect.Data
                 entity.HasKey(e => e.UserId);
                 entity.HasIndex(e => e.UserName).IsUnique();
                 entity.Property(e => e.UserName).IsRequired().HasMaxLength(100);
-                // ... other UserEntity properties
+                // Role property is now a collection, direct configuration here might change or be removed
+                // if relying on the many-to-many configuration below.
             });
+
+            // --- Configuration for RoleEntity ---
+            modelBuilder.Entity<RoleEntity>(entity =>
+            {
+                entity.HasKey(r => r.RoleId);
+                entity.HasIndex(r => r.RoleName).IsUnique();
+                entity.Property(r => r.RoleName).IsRequired().HasMaxLength(100);
+
+                // Configure the collection of ApplicationPermission enums
+                entity.Property(e => e.Permissions)
+                    .HasConversion(
+                        v => string.Join(',', v.Select(p => p.ToString())), // Convert list of enums to comma-separated string
+                        v => v.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                              .Select(s => Enum.Parse<RuleArchitect.Abstractions.Enums.ApplicationPermission>(s)).ToList() // Convert string back to list of enums
+                    );
+            });
+
+            // --- UserEntity to RoleEntity (Many-to-Many) ---
+            modelBuilder.Entity<UserEntity>()
+                .HasMany(u => u.Roles)
+                .WithMany(r => r.Users)
+                .UsingEntity<Dictionary<string, object>>(
+                    "UserRoles",
+                    j => j.HasOne<RoleEntity>().WithMany().HasForeignKey("RoleId").OnDelete(DeleteBehavior.Cascade),
+                    j => j.HasOne<UserEntity>().WithMany().HasForeignKey("UserId").OnDelete(DeleteBehavior.Cascade),
+                    j =>
+                    {
+                        j.HasKey("UserId", "RoleId");
+                        j.ToTable("UserRoles");
+                    });
+
 
             // --- Configuration for MachineModel ---
             modelBuilder.Entity<MachineModel>(entity =>
@@ -242,18 +275,34 @@ namespace RuleArchitect.Data
             string adminSalt = "f9DAu0b2jcGAhuVKmgFYNw=="; // e.g., Convert.ToBase64String(new byte[16])
             string adminHash = "gHarxnybaF14pg0khiMv27IsdXuj2dmx0ytALdo5+aE="; // e.g., Hash of "DefaultAdminPassword123!" using the salt
 
+            // --- Seed Administrator Role ---
+            var adminRole = new RoleEntity
+            {
+                RoleId = 1,
+                RoleName = "Administrator",
+                Permissions = Enum.GetValues(typeof(RuleArchitect.Abstractions.Enums.ApplicationPermission)).Cast<RuleArchitect.Abstractions.Enums.ApplicationPermission>().ToList()
+            };
+            modelBuilder.Entity<RoleEntity>().HasData(adminRole);
+
+            // --- Seed Admin User (update existing to remove direct Role string) ---
             modelBuilder.Entity<UserEntity>().HasData(
                 new UserEntity
                 {
-                    UserId = 1, // Explicitly set ID for seeding
+                    UserId = 1,
                     UserName = "admin",
+                    Email = "admin@example.com", // Ensure Email is provided if it's required
                     PasswordSalt = adminSalt,
                     PasswordHash = adminHash,
-                    Role = "Administrator", // Or your standard role name
                     IsActive = true,
-                    LastLoginDate = null
+                    CreatedAt = DateTime.UtcNow, // Provide values for all required properties
+                    UpdatedAt = DateTime.UtcNow
+                    // Roles collection is linked via the UserRoles join table seeding below
                 }
-                // You can add more default users here if needed
+            );
+
+            // --- Seed UserRoles join table entry ---
+            modelBuilder.Entity<Dictionary<string, object>>("UserRoles").HasData(
+                new { UserId = 1, RoleId = 1 }
             );
         }
     }

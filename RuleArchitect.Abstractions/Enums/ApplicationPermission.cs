@@ -41,6 +41,18 @@ namespace RuleArchitect.Abstractions.Enums
         [Display(Name = "Manage Order Software Review Status", Description = "Allows updating the order's software review status.")]
         ManageOrderSoftwareReviewStatus,
 
+        [Display(Name = "Put Order On Hold", Description = "Allows putting an order on hold.")]
+        PutOrderOnHold,
+
+        [Display(Name = "Cancel Order", Description = "Allows cancelling an order.")]
+        CancelOrder,
+
+        [Display(Name = "Reject Order", Description = "Allows rejecting an order.")]
+        RejectOrder,
+
+        [Display(Name = "Remove Software Option From Order", Description = "Allows removing a software option (line item) from an order.")]
+        RemoveSoftwareOptionFromOrder,
+
         // Software Option (Rulesheet) Management Permissions
         [Display(Name = "View Software Options", Description = "Allows viewing software options/rulesheets.")]
         ViewSoftwareOptions,
