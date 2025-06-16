@@ -8,28 +8,32 @@ namespace RuleArchitect.DesktopClient.ViewModels
 {
     public abstract class BaseViewModel : INotifyPropertyChanged
     {
-        public Action? ItemChangedCallback { get; set; }
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-            ItemChangedCallback?.Invoke();
         }
 
-        // CORRECTED SetProperty method signature and implementation
-        protected bool SetProperty<T>(
-            ref T storage,
-            T value,
-            Action? onChanged = null, // Action to call when property actually changes
-            [CallerMemberName] string? propertyName = null)
+        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(storage, value))
                 return false;
 
             storage = value;
-            OnPropertyChanged(propertyName); // This will notify UI and call ItemChangedCallback
-            onChanged?.Invoke();             // This explicitly calls the specific action passed for this property
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+
+        // Overload to handle actions on property changed, which is used in your original code.
+        protected bool SetProperty<T>(ref T storage, T value, Action? onChanged, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(storage, value))
+                return false;
+
+            storage = value;
+            onChanged?.Invoke();
+            OnPropertyChanged(propertyName);
             return true;
         }
     }

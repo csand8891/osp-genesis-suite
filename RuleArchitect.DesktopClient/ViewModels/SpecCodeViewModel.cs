@@ -39,7 +39,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 onChanged: () => {
                     // Optionally update a display name if one is constructed based on this ID later
                     // OnPropertyChanged(nameof(SomeConsolidatedDisplayName));
-                    ItemChangedCallback?.Invoke();
+                    //ItemChangedCallback?.Invoke();
                 });
         }
 
@@ -47,25 +47,25 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public string Category
         {
             get => _category;
-            set => SetProperty(ref _category, value, onChanged: () => ItemChangedCallback?.Invoke());
+            set => SetProperty(ref _category, value);
         }
 
         public string SpecCodeNo
         {
             get => _specCodeNo;
-            set => SetProperty(ref _specCodeNo, value, onChanged: () => ItemChangedCallback?.Invoke());
+            set => SetProperty(ref _specCodeNo, value);
         }
 
         public string SpecCodeBit
         {
             get => _specCodeBit;
-            set => SetProperty(ref _specCodeBit, value, onChanged: () => ItemChangedCallback?.Invoke());
+            set => SetProperty(ref _specCodeBit, value);
         }
 
         public string? Description
         {
             get => _description;
-            set => SetProperty(ref _description, value, onChanged: () => ItemChangedCallback?.Invoke());
+            set => SetProperty(ref _description, value);
         }
 
         public bool IsDescriptionReadOnly
@@ -81,15 +81,14 @@ namespace RuleArchitect.DesktopClient.ViewModels
             set => SetProperty(ref _softwareOptionActivationRuleId, value,
                 onChanged: () => {
                     OnPropertyChanged(nameof(ActivationRuleName)); // If display name depends on it
-                    ItemChangedCallback?.Invoke();
+                    
                 });
         }
 
         public string? SpecificInterpretation
         {
             get => _specificInterpretation;
-            set => SetProperty(ref _specificInterpretation, value,
-                onChanged: () => ItemChangedCallback?.Invoke());
+            set => SetProperty(ref _specificInterpretation, value);
         }
 
         public string? ActivationRuleName

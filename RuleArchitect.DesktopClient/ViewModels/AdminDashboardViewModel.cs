@@ -1,5 +1,4 @@
-﻿// Ensure this is the content of RuleArchitect.DesktopClient/ViewModels/AdminDashboardViewModel.cs
-
+﻿// File: RuleArchitect.DesktopClient/ViewModels/AdminDashboardViewModel.cs
 using GenesisSentry.Interfaces;
 using LiveCharts;
 using LiveCharts.Wpf;
@@ -11,7 +10,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-// No need for Microsoft.Extensions.DependencyInjection here if not using IServiceScopeFactory
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
@@ -21,6 +19,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private readonly IOrderService _orderService;
         private readonly IUserService _userService;
         private readonly IUserActivityLogService _activityLogService;
+
+        // --- Manually Implemented Properties with Backing Fields ---
 
         private int _totalRulesheets;
         public int TotalRulesheets
@@ -54,40 +54,49 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public string[] ActivityLabels
         {
             get => _activityLabels;
-            set => SetProperty(ref _activityLabels, value);
+            private set => SetProperty(ref _activityLabels, value);
         }
-        public Func<double, string> YFormatter { get; } = value => value.ToString("N0");
 
-        public SeriesCollection RulesheetDistributionSeries { get; set; }
-        public string[] RulesheetDistributionLabels { get; private set; }
-        // ****** ENSURE THIS IsLoading PROPERTY IS EXACTLY AS BELOW ******
+        private SeriesCollection _rulesheetDistributionSeries;
+        public SeriesCollection RulesheetDistributionSeries
+        {
+            get => _rulesheetDistributionSeries;
+            set => SetProperty(ref _rulesheetDistributionSeries, value);
+        }
+
+        private string[] _rulesheetDistributionLabels;
+        public string[] RulesheetDistributionLabels
+        {
+            get => _rulesheetDistributionLabels;
+            private set => SetProperty(ref _rulesheetDistributionLabels, value);
+        }
+
         private bool _isLoading;
         public bool IsLoading
         {
             get => _isLoading;
             private set
             {
-                // Use the SetProperty from BaseViewModel which should also handle ItemChangedCallback
-                // and then manually raise CanExecuteChanged for the command.
-                if (SetProperty(ref _isLoading, value)) // SetProperty returns true if value changed
+                // Use the SetProperty overload that takes an action to update commands
+                SetProperty(ref _isLoading, value, () =>
                 {
-                    // Manually notify the command that its CanExecute status might have changed.
-                    ((RelayCommand)LoadDashboardDataCommand)?.RaiseCanExecuteChanged();
-                    // Also notify other commands that might depend on IsLoading
-                    ((RelayCommand)GoToRulesheetsCommand)?.RaiseCanExecuteChanged();
-                    ((RelayCommand)GoToUserManagementCommand)?.RaiseCanExecuteChanged();
-                    ((RelayCommand)GoToOrdersCommand)?.RaiseCanExecuteChanged();
-                    ((RelayCommand)GoToReportsCommand)?.RaiseCanExecuteChanged();
-                }
+                    // Manually notify commands that their CanExecute status may have changed
+                    (LoadDashboardDataCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    (GoToRulesheetsCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    (GoToUserManagementCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    (GoToOrdersCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                });
             }
         }
-        // *****************************************************************
 
+        public Func<double, string> YFormatter { get; } = value => value.ToString("N0");
+
+        // --- Manually Implemented Commands ---
+        public ICommand LoadDashboardDataCommand { get; }
         public ICommand GoToRulesheetsCommand { get; }
         public ICommand GoToUserManagementCommand { get; }
         public ICommand GoToOrdersCommand { get; }
-        public ICommand GoToReportsCommand { get; }
-        public ICommand LoadDashboardDataCommand { get; }
+        public ICommand GoToReportsCommand { get; } // From original code
 
         public AdminDashboardViewModel(
             ISoftwareOptionService softwareOptionService,
@@ -96,46 +105,36 @@ namespace RuleArchitect.DesktopClient.ViewModels
             _softwareOptionService = softwareOptionService ?? throw new ArgumentNullException(nameof(softwareOptionService));
             _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            _activityLogService = activityLogService ?? throw new ArgumentNullException(nameof(activityLogService)); // ADDED
+            _activityLogService = activityLogService ?? throw new ArgumentNullException(nameof(activityLogService));
 
-            // IsLoading is false by default for a bool field.
+            _activitySeries = new SeriesCollection();
+            _activityLabels = Array.Empty<string>();
+            _rulesheetDistributionSeries = new SeriesCollection();
+            _rulesheetDistributionLabels = Array.Empty<string>();
+
+            // Initialize commands in the constructor using your original RelayCommand class
             LoadDashboardDataCommand = new RelayCommand(async () => await LoadDataAsync(), () => !IsLoading);
-            System.Diagnostics.Debug.WriteLine($"AdminDashboardViewModel Constructor: IsLoading is initially {IsLoading}. CanExecute LoadDashboardDataCommand: {LoadDashboardDataCommand.CanExecute(null)}");
-
-            // Assuming other commands should also be disabled while loading
-            GoToRulesheetsCommand = new RelayCommand(ExecuteGoToRulesheets, () => !IsLoading);
-            GoToUserManagementCommand = new RelayCommand(ExecuteGoToUserManagement, () => !IsLoading);
-            GoToOrdersCommand = new RelayCommand(ExecuteGoToOrders, () => !IsLoading);
-            GoToReportsCommand = new RelayCommand(ExecuteGoToReports, () => !IsLoading);
-
-            System.Diagnostics.Debug.WriteLine("AdminDashboardViewModel: Constructor END. Data loading should be triggered by view's Loaded event.");
-            ActivitySeries = new SeriesCollection();
-            ActivityLabels = new string[0];
-
-            RulesheetDistributionSeries = new SeriesCollection();
-            RulesheetDistributionLabels = new string[0];
+            GoToRulesheetsCommand = new RelayCommand(() => ExecuteGoToRulesheets(), () => !IsLoading);
+            GoToUserManagementCommand = new RelayCommand(() => ExecuteGoToUserManagement(), () => !IsLoading);
+            GoToOrdersCommand = new RelayCommand(() => ExecuteGoToOrders(), () => !IsLoading);
+            GoToReportsCommand = new RelayCommand(() => ExecuteGoToReports(), () => !IsLoading);
         }
 
         private async Task LoadDataAsync()
         {
-            if (IsLoading) return;
-
-            System.Diagnostics.Debug.WriteLine("AdminDashboardViewModel: LoadDataAsync START.");
             IsLoading = true;
-
             try
             {
                 var allOptions = await _softwareOptionService.GetAllSoftwareOptionsAsync();
                 TotalRulesheets = allOptions?.Count ?? 0;
-                System.Diagnostics.Debug.WriteLine($"AdminDashboardViewModel: TotalRulesheets = {TotalRulesheets}");
-                // --- NEW: Logic for Rulesheet Distribution Chart ---
+
                 if (allOptions != null && allOptions.Any())
                 {
                     var distribution = allOptions
                         .Where(o => !string.IsNullOrEmpty(o.ControlSystemName))
                         .GroupBy(o => o.ControlSystemName)
                         .Select(g => new { ControlSystem = g.Key, Count = g.Count() })
-                        .OrderByDescending(x => x.Count) // Show most used systems first
+                        .OrderByDescending(x => x.Count)
                         .ToList();
 
                     RulesheetDistributionLabels = distribution.Select(d => d.ControlSystem).ToArray();
@@ -147,16 +146,14 @@ namespace RuleArchitect.DesktopClient.ViewModels
                         {
                             Title = "Rulesheets",
                             Values = new ChartValues<int>(distribution.Select(d => d.Count)),
-                            DataLabels = true, // Optional: Shows count on top of bars
+                            DataLabels = true,
                         });
                     });
-                    OnPropertyChanged(nameof(RulesheetDistributionLabels));
-                    OnPropertyChanged(nameof(RulesheetDistributionSeries));
                 }
-                // --- END NEW ---
+
                 ActiveUsers = await _userService.GetActiveUserCountAsync();
                 OrdersPendingReview = 0;
-                // --- NEW: Logic to load data for the activity chart ---
+
                 var sevenDaysAgo = DateTime.UtcNow.AddDays(-7).Date;
                 var logs = await _activityLogService.GetActivityLogsAsync(new ActivityLogFilterDto { DateFrom = sevenDaysAgo });
                 var activityByDay = logs
@@ -165,68 +162,53 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     .OrderBy(x => x.Date)
                     .ToList();
 
-                // Create a complete 7-day range to show days with zero activity
                 var dateRange = Enumerable.Range(0, 7).Select(offset => DateTime.UtcNow.AddDays(-6 + offset).Date);
-
                 var chartData = from date in dateRange
                                 join activity in activityByDay on date equals activity.Date into gj
                                 from subActivity in gj.DefaultIfEmpty()
-                                select new
-                                {
-                                    Label = date.ToString("MMM dd"),
-                                    Value = subActivity?.Count ?? 0
-                                };
+                                select new { Label = date.ToString("MMM dd"), Value = subActivity?.Count ?? 0 };
 
                 ActivityLabels = chartData.Select(x => x.Label).ToArray();
-                ActivitySeries.Clear();
-                ActivitySeries.Add(new LineSeries
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    Title = "User Activities",
-                    Values = new ChartValues<int>(chartData.Select(x => x.Value)),
-                    PointGeometry = DefaultGeometries.Circle,
-                    PointGeometrySize = 10
+                    ActivitySeries.Clear();
+                    ActivitySeries.Add(new LineSeries
+                    {
+                        Title = "User Activities",
+                        Values = new ChartValues<int>(chartData.Select(x => x.Value)),
+                        PointGeometry = DefaultGeometries.Circle,
+                        PointGeometrySize = 10
+                    });
                 });
-                // --- END NEW ---
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                TotalRulesheets = -1;
-                ActiveUsers = -1;
-                OrdersPendingReview = -1;
-                System.Diagnostics.Debug.WriteLine($"CRITICAL ERROR in AdminDashboardViewModel.LoadDataAsync: {ex.ToString()}");
-                Application.Current?.Dispatcher?.Invoke(() =>
-                    MessageBox.Show($"Error loading dashboard data: {ex.Message}", "Dashboard Error", MessageBoxButton.OK, MessageBoxImage.Error)
-                );
+                MessageBox.Show($"Error loading dashboard data: {ex.Message}", "Dashboard Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
                 IsLoading = false;
             }
-            System.Diagnostics.Debug.WriteLine("AdminDashboardViewModel: LoadDataAsync END.");
         }
 
         private void ExecuteGoToRulesheets()
         {
-            System.Diagnostics.Debug.WriteLine("Navigate to Rulesheets triggered.");
-            // Navigation logic here
+            // TODO: Implement navigation logic
         }
 
         private void ExecuteGoToUserManagement()
         {
-            System.Diagnostics.Debug.WriteLine("Navigate to User Management triggered.");
-            // Navigation logic here
+            // TODO: Implement navigation logic
         }
 
         private void ExecuteGoToOrders()
         {
-            System.Diagnostics.Debug.WriteLine("Navigate to Orders triggered.");
-            // Navigation logic here
+            // TODO: Implement navigation logic
         }
 
         private void ExecuteGoToReports()
         {
-            System.Diagnostics.Debug.WriteLine("Navigate to Reports triggered.");
-            // Navigation logic here
+            // TODO: Implement navigation logic
         }
     }
 }
