@@ -25,7 +25,6 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <!-- Header -->
             <StackPanel Grid.Row="0" Margin="0,0,0,16">
                 <TextBlock Text="Create New Software Option" Style="{StaticResource MaterialDesignHeadline5TextBlock}" />
                 <TextBlock Text="{Binding StepTitle}" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Foreground="{DynamicResource MaterialDesignBodyLight}"/>
@@ -34,7 +33,6 @@
 
             <materialDesign:Transitioner Grid.Row="1" SelectedIndex="{Binding CurrentStepIndex}">
 
-                <!-- Step 1: Core Details -->
                 <materialDesign:TransitionerSlide>
                     <ScrollViewer Padding="0,16,16,16" VerticalScrollBarVisibility="Auto">
                         <StackPanel DataContext="{Binding NewSoftwareOption}">
@@ -51,7 +49,6 @@
                     </ScrollViewer>
                 </materialDesign:TransitionerSlide>
 
-                <!-- Step 2: Option Numbers -->
                 <materialDesign:TransitionerSlide>
                     <Grid Margin="0,16,0,0">
                         <Grid.RowDefinitions>
@@ -81,7 +78,6 @@
                     </Grid>
                 </materialDesign:TransitionerSlide>
 
-                <!-- Step 3: Spec Codes -->
                 <materialDesign:TransitionerSlide>
                     <Grid Margin="0,16,0,0">
                         <Grid.RowDefinitions>
@@ -94,7 +90,7 @@
                                  VirtualizingStackPanel.IsVirtualizing="True"
                                  HorizontalContentAlignment="Stretch">
                             <ListBox.ItemTemplate>
-                                <DataTemplate DataType="{x:Type dtos:SoftwareOptionSpecificationCodeCreateDto}">
+                                <DataTemplate DataType="{x:Type viewModels:SpecCodeViewModel}">
                                     <Border Margin="0,4,8,4" Padding="16" CornerRadius="4" 
                                             Background="{DynamicResource MaterialDesignPaper}"
                                             Effect="{DynamicResource MaterialDesignElevationShadow2}">
@@ -125,7 +121,8 @@
                                                       SelectedValue="{Binding SpecCodeBit, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
                                             <TextBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" materialDesign:HintAssist.Hint="Description"
                                                      Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
-                                                     TextWrapping="Wrap" AcceptsReturn="True"/>
+                                                     TextWrapping="Wrap" AcceptsReturn="True"
+                                                     IsReadOnly="{Binding IsDescriptionReadOnly}"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -134,7 +131,6 @@
                     </Grid>
                 </materialDesign:TransitionerSlide>
 
-                <!-- Step 4: Requirements -->
                 <materialDesign:TransitionerSlide>
                     <Grid Margin="0,16,0,0">
                         <Grid.RowDefinitions>
@@ -143,14 +139,14 @@
                         </Grid.RowDefinitions>
                         <Button Grid.Row="1" Content="Add Requirement" Command="{Binding AddRequirementCommand}" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,8,0,0"/>
                         <ListBox Grid.Row="0" ItemsSource="{Binding Requirements}"
-                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                                 VirtualizingStackPanel.IsVirtualizing="True"
-                                 HorizontalContentAlignment="Stretch">
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 VirtualizingStackPanel.IsVirtualizing="True"
+                 HorizontalContentAlignment="Stretch">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="{x:Type viewModels:RequirementViewModel}">
                                     <Border Margin="0,4,8,4" Padding="16" CornerRadius="4"
-                                            Background="{DynamicResource MaterialDesignPaper}"
-                                            Effect="{DynamicResource MaterialDesignElevationShadow2}">
+                            Background="{DynamicResource MaterialDesignPaper}"
+                            Effect="{DynamicResource MaterialDesignElevationShadow2}">
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
@@ -163,17 +159,18 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <Button Style="{StaticResource MaterialDesignIconForegroundButton}" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="-8,-8,0,0"
-                                                    Command="{Binding DataContext.RemoveRequirementCommand, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
-                                                    CommandParameter="{Binding}" ToolTip="Remove this requirement">
+                                    Command="{Binding DataContext.RemoveRequirementCommand, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
+                                    CommandParameter="{Binding}" ToolTip="Remove this requirement">
                                                 <materialDesign:PackIcon Kind="Close"/>
                                             </Button>
                                             <ComboBox Grid.Row="0" Grid.Column="0" materialDesign:HintAssist.Hint="Requirement Type" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                                                      ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableRequirementTypes}}"
-                                                      SelectedValue="{Binding RequirementType, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,8"/>
+                                      ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableRequirementTypes}}"
+                                      SelectedValue="{Binding RequirementType, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,8"/>
                                             <ComboBox Grid.Row="0" Grid.Column="1" materialDesign:HintAssist.Hint="Condition" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                                                      ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableConditions}}"
-                                                      SelectedValue="{Binding Condition, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
-                                            <ContentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,8">
+                                      ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableConditions}}"
+                                      SelectedValue="{Binding Condition, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
+                                            <!-- THIS IS THE CRUCIAL LINE TO CHANGE -->
+                                            <ContentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,8" Content="{Binding .}">
                                                 <ContentControl.Style>
                                                     <Style TargetType="ContentControl">
                                                         <Setter Property="ContentTemplate">
@@ -189,9 +186,9 @@
                                                                     <Setter.Value>
                                                                         <DataTemplate>
                                                                             <ComboBox materialDesign:HintAssist.Hint="Required Software Option" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                                                                                      ItemsSource="{Binding DataContext.AvailableSoftwareOptionsForRequirements, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
-                                                                                      DisplayMemberPath="PrimaryName" SelectedValuePath="SoftwareOptionId"
-                                                                                      SelectedValue="{Binding RequiredSoftwareOptionId, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
+                                                                      ItemsSource="{Binding DataContext.AvailableSoftwareOptionsForRequirements, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
+                                                                      DisplayMemberPath="PrimaryName" SelectedValuePath="SoftwareOptionId"
+                                                                      SelectedValue="{Binding RequiredSoftwareOptionId, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
                                                                         </DataTemplate>
                                                                     </Setter.Value>
                                                                 </Setter>
@@ -201,9 +198,9 @@
                                                                     <Setter.Value>
                                                                         <DataTemplate>
                                                                             <ComboBox materialDesign:HintAssist.Hint="Required Spec Code" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                                                                                      ItemsSource="{Binding DataContext.AvailableSpecCodesForRequirements, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
-                                                                                      DisplayMemberPath="DisplayName" SelectedValuePath="SpecCodeDefinitionId"
-                                                                                      SelectedValue="{Binding RequiredSpecCodeDefinitionId, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
+                                                                      ItemsSource="{Binding DataContext.AvailableSpecCodesForRequirements, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
+                                                                      DisplayMemberPath="DisplayName" SelectedValuePath="SpecCodeDefinitionId"
+                                                                      SelectedValue="{Binding RequiredSpecCodeDefinitionId, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
                                                                         </DataTemplate>
                                                                     </Setter.Value>
                                                                 </Setter>
@@ -213,7 +210,7 @@
                                                 </ContentControl.Style>
                                             </ContentControl>
                                             <TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" materialDesign:HintAssist.Hint="Notes"
-                                                     Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                                     Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -222,11 +219,9 @@
                     </Grid>
                 </materialDesign:TransitionerSlide>
 
-                <!-- Step 5: Review Step -->
                 <materialDesign:TransitionerSlide>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
                         <StackPanel>
-                            <!-- Core Details Card -->
                             <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8">
                                 <StackPanel>
                                     <TextBlock Text="Core Details" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,8"/>
@@ -245,7 +240,6 @@
                                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding NewSoftwareOption.PrimaryName}" TextWrapping="Wrap"/>
 
                                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Control System:" FontWeight="Bold" Margin="0,4,16,4"/>
-                                        <!-- UPDATED: Added Grid.Column="1" to fix alignment -->
                                         <ComboBox Grid.Row="1" Grid.Column="1" ItemsSource="{Binding AvailableControlSystems}"
                                                   SelectedValue="{Binding NewSoftwareOption.ControlSystemId}"
                                                   DisplayMemberPath="Name"
@@ -259,8 +253,6 @@
                                 </StackPanel>
                             </materialDesign:Card>
 
-                            <!-- Option Numbers Card -->
-                            <!-- UPDATED: Binding to IsEmpty with an inverted converter for robustness -->
                             <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" Visibility="{Binding OptionNumbers.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}">
                                 <StackPanel>
                                     <TextBlock Text="Option Numbers" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,8"/>
@@ -276,8 +268,6 @@
                                 </StackPanel>
                             </materialDesign:Card>
 
-                            <!-- Specification Codes Card -->
-                            <!-- UPDATED: Binding to IsEmpty with an inverted converter for robustness -->
                             <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" Visibility="{Binding SpecificationCodes.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}">
                                 <StackPanel>
                                     <TextBlock Text="Specification Codes" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,8"/>
@@ -295,8 +285,6 @@
                                 </StackPanel>
                             </materialDesign:Card>
 
-                            <!-- Requirements Card -->
-                            <!-- UPDATED: Binding to IsEmpty with an inverted converter for robustness -->
                             <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" Visibility="{Binding Requirements.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}">
                                 <StackPanel>
                                     <TextBlock Text="Requirements" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,8"/>
@@ -329,7 +317,6 @@
 
             </materialDesign:Transitioner>
 
-            <!-- Footer -->
             <Border Grid.Row="2" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,1,0,0" Padding="0,16,0,0">
                 <Grid>
                     <Button Content="Cancel" Command="{Binding CancelCommand}" HorizontalAlignment="Left" Style="{StaticResource MaterialDesignFlatButton}"/>
