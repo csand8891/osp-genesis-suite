@@ -57,7 +57,7 @@
 
             <Border Grid.Row="0" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1" CornerRadius="{DynamicResource ButtonCornerRadius}" >
                 <ToolBarTray Background="{DynamicResource MaterialDesignPaper}">
-                    <ToolBar Style="{DynamicResource MaterialDesignToolBar}" ClipToBounds="False" >
+                    <ToolBar Style="{DynamicResource MaterialDesignToolBar}" Background="Transparent" ClipToBounds="False" >
                         <Button Command="{Binding LoadCommand}" ToolTip="Refresh Software Options" Style="{StaticResource MaterialDesignToolButton}">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="Refresh" VerticalAlignment="Center"/>
