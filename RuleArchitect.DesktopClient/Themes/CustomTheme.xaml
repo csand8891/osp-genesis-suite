@@ -127,6 +127,18 @@
         <Setter Property="Height" Value="40"/>
     </Style>
 
+    <Style x:Key="CustomTabItemStyle" TargetType="TabItem" BasedOn="{StaticResource MaterialDesignTabItem}">
+        <Setter Property="Foreground" Value="Black"/>
+        <!--<Setter Property="materialDesign:TabAssist.SelectedForeground" Value="Black"/>
+        <Setter Property="materialDesign:TabAssist.UnselectedForeground" Value="#99000000"/>-->
+        <!--<Setter Property="Padding" Value="12,8"/>-->
+        <!-- More vertical padding -->
+        <Setter Property="MinHeight" Value="55"/>
+        <Setter Property="MaxWidth" Value="130" />
+        <Setter Property="Padding" Value="8,0"/>
+        <Setter Property="Margin" Value="0"/>
+    </Style>
+
     <!-- ===== CORNER RADIUS ===== -->
     <CornerRadius x:Key="ButtonCornerRadius">4</CornerRadius>
     <CornerRadius x:Key="TextBoxCornerRadius">4</CornerRadius>
