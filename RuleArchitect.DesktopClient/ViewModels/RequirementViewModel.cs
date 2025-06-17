@@ -26,7 +26,27 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public string? Condition { get => _condition; set => SetProperty(ref _condition, value); }
         //public string GeneralRequiredValue { get => _generalRequiredValue; set => SetProperty(ref _generalRequiredValue, value); }
         //public int? RequiredSoftwareOptionId { get => _requiredSoftwareOptionId; set => SetProperty(ref _requiredSoftwareOptionId, value); }
-        public int? RequiredSpecCodeDefinitionId { get => _requiredSpecCodeDefinitionId; set => SetProperty(ref _requiredSpecCodeDefinitionId, value); }
+        public int? RequiredSpecCodeDefinitionId
+        {
+            get => _requiredSpecCodeDefinitionId;
+            set
+            {
+                // Add this line for debugging
+                System.Diagnostics.Debug.WriteLine($"RequiredSpecCodeDefinitionId setter hit. New value: {value}");
+
+                if (SetProperty(ref _requiredSpecCodeDefinitionId, value))
+                {
+                    // Add this line if SetProperty indicates a change occurred
+                    System.Diagnostics.Debug.WriteLine($"RequiredSpecCodeDefinitionId changed to: {value}. Calling Validate().");
+                    Validate(); // Trigger validation on change
+                }
+                else
+                {
+                    // Add this line if SetProperty returned false (no change)
+                    System.Diagnostics.Debug.WriteLine($"RequiredSpecCodeDefinitionId setter finished, but SetProperty returned false (no change or skipped).");
+                }
+            }
+        }
         public string? OspFileName { get => _ospFileName; set => SetProperty(ref _ospFileName, value); }
         public string? OspFileVersion { get => _ospFileVersion; set => SetProperty(ref _ospFileVersion, value); }
         public string? Notes { get => _notes; set => SetProperty(ref _notes, value); }
