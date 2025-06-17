@@ -145,26 +145,7 @@
                                    Style="{StaticResource MaterialDesignHeadline6TextBlock}" 
                                    Margin="0,0,0,16"/>
 
-                        <lvc:CartesianChart Series="{Binding RulesheetDistributionSeries}" LegendLocation="None" MinHeight="250">
-                            <lvc:CartesianChart.AxisX>
-                                <lvc:Axis Title="Control System" 
-                                          Labels="{Binding RulesheetDistributionLabels}"
-                                          LabelsRotation="-45">
-                                    <lvc:Axis.Separator>
-                                        <lvc:Separator Step="1" IsEnabled="False" />
-                                    </lvc:Axis.Separator>
-                                </lvc:Axis>
-                            </lvc:CartesianChart.AxisX>
-                            <lvc:CartesianChart.AxisY>
-                                <lvc:Axis Title="Number of Rulesheets" 
-                                          LabelFormatter="{Binding YFormatter}" 
-                                          MinValue="0">
-                                    <lvc:Axis.Separator>
-                                        <lvc:Separator Step="1" />
-                                    </lvc:Axis.Separator>
-                                </lvc:Axis>
-                            </lvc:CartesianChart.AxisY>
-                        </lvc:CartesianChart>
+                        <lvc:PieChart Series="{Binding RulesheetDistributionSeries}" LegendLocation="Right" MinHeight="250"/>
                     </StackPanel>
                 </materialDesign:Card>
 
