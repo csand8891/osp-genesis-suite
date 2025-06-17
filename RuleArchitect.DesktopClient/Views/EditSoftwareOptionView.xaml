@@ -15,236 +15,313 @@
 
     <UserControl.Resources>
         <converters:RequirementTypeToVisibilityConverter x:Key="RequirementTypeToVisibilityConverter" />
-        
-        <!-- Add this DataTemplate -->
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:BooleanNegationConverter x:Key="BooleanNegationConverter"/>
+
         <DataTemplate x:Key="TabHeaderTemplate">
-            <TextBlock Text="{Binding}"
-                      Foreground="{DynamicResource MaterialDesignBody}"
-                      FontSize="14"/>
+            <TextBlock Text="{Binding}" Foreground="Black" FontSize="14"/>
         </DataTemplate>
 
-        <!-- Add these brushes -->
         <SolidColorBrush x:Key="MaterialDesignBody" Color="#DD000000"/>
         <SolidColorBrush x:Key="MaterialDesignTabHeaderSelectedBrush" Color="#005EB8"/>
         <SolidColorBrush x:Key="MaterialDesignTabHeaderUnselectedBrush" Color="#89000000"/>
 
-        <!-- Define the TabItem style -->
-        <Style x:Key="CustomTabItemStyle" TargetType="TabItem" BasedOn="{StaticResource MaterialDesignTabItem}">
-        </Style>
     </UserControl.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- DialogHost and content below header -->
-        <materialDesign:DialogHost Grid.Row="1"
-                                  Identifier="EditSoftwareOptionDialogHost"
-                                  CloseOnClickAway="True"
-                                  Margin="0,8,0,0">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+        <!-- Combine header and tabs in one row -->
+        <StackPanel Grid.Row="0" Orientation="Vertical" Margin="16,8,16,0">
+            <TextBlock Text="{Binding ViewTitle}" 
+                       Foreground="#FF000000"  
+                       FontSize="24"
+                       FontWeight="Bold"
+                       Margin="0,0,0,4"
+                       VerticalAlignment="Top"/>
+            <TabControl
+                Style="{DynamicResource MaterialDesignTabControl}"
+                TabStripPlacement="Top"
+                ItemTemplate="{StaticResource TabHeaderTemplate}"
+                ItemContainerStyle="{StaticResource CustomTabItemStyle}">
+                <TabItem Header="Details">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
+                        <StackPanel>
+                            <TextBox materialDesign:HintAssist.Hint="Primary Name" Text="{Binding PrimaryName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5"
+                                     IsReadOnly="{Binding IsReadOnlyMode}"/>
+                            <TextBox materialDesign:HintAssist.Hint="Alternative Names" Text="{Binding AlternativeNames, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5"
+                                     IsReadOnly="{Binding IsReadOnlyMode}"/>
+                            <TextBox materialDesign:HintAssist.Hint="Source File Name" Text="{Binding SourceFileName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5"
+                                     IsReadOnly="{Binding IsReadOnlyMode}"/>
+                            <ComboBox materialDesign:HintAssist.Hint="Control System" ItemsSource="{Binding AvailableControlSystems}" DisplayMemberPath="Name" SelectedValuePath="ControlSystemId" SelectedValue="{Binding ControlSystemId}" Style="{StaticResource MaterialDesignFloatingHintComboBox}" Margin="0,5"
+                                      IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                            <TextBox materialDesign:HintAssist.Hint="Primary Option Number Display" Text="{Binding PrimaryOptionNumberDisplay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5"
+                                     IsReadOnly="{Binding IsReadOnlyMode}"/>
+                            <TextBox materialDesign:HintAssist.Hint="Notes" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" TextWrapping="Wrap" MinLines="3" Margin="0,5"
+                                     IsReadOnly="{Binding IsReadOnlyMode}"/>
 
-                <!-- Header: Always visible, not overlapped -->
-                <TextBlock Grid.Row="0"
-                           Text="{Binding ViewTitle}" 
-                           Foreground="#FF000000"  
-                           FontSize="24"
-                           FontWeight="Bold"
-                           Margin="16,16,16,0"
-                           VerticalAlignment="Top"/>
+                            <TextBlock Text="{Binding LastModifiedBy, StringFormat='Last Modified By: {0}'}" Style="{StaticResource MaterialDesignCaptionTextBlock}" Margin="0,10,0,0"/>
+                            <TextBlock Text="{Binding LastModifiedDate, StringFormat='Last Modified Date: {0:yyyy-MM-dd HH:mm}'}" Style="{StaticResource MaterialDesignCaptionTextBlock}" Margin="0,2,0,0"/>
+                            <TextBlock Text="{Binding Version, StringFormat='Version: {0}'}" Style="{StaticResource MaterialDesignCaptionTextBlock}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
 
-                <!-- Content Tabs -->
-                <TabControl Grid.Row="1" Margin="8" 
-                            Style="{DynamicResource MaterialDesignTabControl}">
-                    <!-- Details Tab -->
-                    <TabItem Style="{StaticResource CustomTabItemStyle}" Header="Details">
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
-                            <StackPanel>
-                                <TextBox materialDesign:HintAssist.Hint="Primary Name" Text="{Binding PrimaryName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5"/>
-                                <TextBox materialDesign:HintAssist.Hint="Alternative Names" Text="{Binding AlternativeNames, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5"/>
-                                <TextBox materialDesign:HintAssist.Hint="Source File Name" Text="{Binding SourceFileName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5"/>
-                                <ComboBox materialDesign:HintAssist.Hint="Control System" ItemsSource="{Binding AvailableControlSystems}" DisplayMemberPath="Name" SelectedValuePath="ControlSystemId" SelectedValue="{Binding ControlSystemId}" Style="{StaticResource MaterialDesignFloatingHintComboBox}" Margin="0,5"/>
-                                <TextBox materialDesign:HintAssist.Hint="Notes" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" TextWrapping="Wrap" MinLines="3" Margin="0,5"/>
-                            </StackPanel>
-                        </ScrollViewer>
-                    </TabItem>
+                <TabItem Header="Option #">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <ListView Grid.Row="0" ItemsSource="{Binding OptionNumbers}" Margin="8">
+                            <ListView.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0" Text="{Binding OptionNumber, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" BorderThickness="0,0,0,1"
+                                                 IsReadOnly="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"/>
+                                        <Button Grid.Column="1" 
+                                                Command="{Binding DataContext.RemoveOptionNumberCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" 
+                                                CommandParameter="{Binding}" 
+                                                Style="{StaticResource MaterialDesignToolButton}" 
+                                                ToolTip="Remove Option Number"
+                                                IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}, Converter={StaticResource BooleanNegationConverter}}">
+                                            <materialDesign:PackIcon Kind="Delete"/>
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+                        <Button Grid.Row="1" Content="Add Option #" Command="{Binding AddOptionNumberCommand}" Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Right" Margin="8"
+                                IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                    </Grid>
+                </TabItem>
 
-                    <!-- Option # Tab -->
-                    <TabItem Style="{StaticResource CustomTabItemStyle}" Header="Option #">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <ListView Grid.Row="0" ItemsSource="{Binding OptionNumbers}" Margin="8">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <TextBox Grid.Column="0" Text="{Binding OptionNumber, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" BorderThickness="0,0,0,1"/>
-                                            <Button Grid.Column="1" 
-                                                    Command="{Binding DataContext.RemoveOptionNumberCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" 
-                                                    CommandParameter="{Binding}" 
-                                                    Style="{StaticResource MaterialDesignToolButton}" 
-                                                    ToolTip="Remove Option Number">
-                                                <materialDesign:PackIcon Kind="Delete"/>
+                <TabItem Header="Spec Codes">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <DataGrid Grid.Row="0" ItemsSource="{Binding SpecificationCodes}" 
+                                  SelectedItem="{Binding SelectedSpecificationCode, Mode=TwoWay}"
+                                  AutoGenerateColumns="False" CanUserAddRows="False" 
+                                  IsReadOnly="{Binding IsReadOnlyMode}" Margin="8">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="*">
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox" >
+                                            <Setter Property="IsEnabled" Value="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Spec No" Binding="{Binding SpecCodeNo}" Width="*">
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox" >
+                                            <Setter Property="IsEnabled" Value="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Spec Bit" Binding="{Binding SpecCodeBit}" Width="*">
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="IsEnabled" Value="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="3*">
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="IsReadOnly" Value="{Binding IsDescriptionReadOnly}"/>
+                                            <Setter Property="IsEnabled" Value="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Activation Rule" Binding="{Binding ActivationRuleName}" Width="2*">
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="IsEnabled" Value="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Interpretation" Binding="{Binding SpecificInterpretation}" Width="2*">
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="IsEnabled" Value="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTemplateColumn>
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource MaterialDesignToolButton}" 
+                                                    Command="{Binding DataContext.EditSpecificationCodeCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
+                                                    CommandParameter="{Binding}"
+                                                    ToolTip="Edit Specification Code"
+                                                    IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}, Converter={StaticResource BooleanNegationConverter}}">
+                                                <materialDesign:PackIcon Kind="Pencil" />
                                             </Button>
-                                        </Grid>
-                                    </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
-                            <Button Grid.Row="1" Content="Add Option #" Command="{Binding AddOptionNumberCommand}" Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Right" Margin="8"/>
-                        </Grid>
-                    </TabItem>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
 
-                    <!-- Spec Codes Tab -->
-                    <TabItem Style="{StaticResource CustomTabItemStyle}" Header="Spec Codes">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+                            <Button Content="Remove Selected" 
+                                    Command="{Binding RemoveSpecificationCodeCommand}" 
+                                    Style="{StaticResource MaterialDesignOutlinedButton}"
+                                    ToolTip="Removes the currently selected specification code from the list."
+                                    Margin="0,0,8,0"
+                                    IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
 
-                            <DataGrid Grid.Row="0" ItemsSource="{Binding SpecificationCodes}" 
-                                      SelectedItem="{Binding SelectedSpecificationCode, Mode=TwoWay}"
-                                      AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" Margin="8">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="*"/>
-                                    <DataGridTextColumn Header="Spec No" Binding="{Binding SpecCodeNo}" Width="*"/>
-                                    <DataGridTextColumn Header="Spec Bit" Binding="{Binding SpecCodeBit}" Width="*"/>
-                                    <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="3*"/>
-                                    <DataGridTextColumn Header="Activation Rule" Binding="{Binding ActivationRuleName}" Width="2*"/>
-                                    <DataGridTextColumn Header="Interpretation" Binding="{Binding SpecificInterpretation}" Width="2*"/>
-                                    <DataGridTemplateColumn>
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Button Style="{StaticResource MaterialDesignToolButton}" 
-                                                        Command="{Binding DataContext.EditSpecificationCodeCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
-                                                        CommandParameter="{Binding}"
-                                                        ToolTip="Edit Specification Code">
-                                                    <materialDesign:PackIcon Kind="Pencil" />
-                                                </Button>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
+                            <Button Content="Add Specification Code" 
+                                    Command="{Binding AddSpecificationCodeCommand}" 
+                                    Style="{StaticResource MaterialDesignFlatButton}"
+                                    IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
 
-                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
-                                <Button Content="Remove Selected" 
-                                        Command="{Binding RemoveSpecificationCodeCommand}" 
-                                        Style="{StaticResource MaterialDesignOutlinedButton}"
-                                        ToolTip="Removes the currently selected specification code from the list."
-                                        Margin="0,0,8,0" />
+                <TabItem Header="Requirements">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <DataGrid Grid.Row="0" ItemsSource="{Binding Requirements}" AutoGenerateColumns="False" CanUserAddRows="False" Margin="8" SelectedItem="{Binding SelectedRequirement, Mode=TwoWay}"
+                                  IsReadOnly="{Binding IsReadOnlyMode}">
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="Type" Width="*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableRequirementTypes}}" 
+                                                      SelectedValue="{Binding RequirementType, UpdateSourceTrigger=PropertyChanged}"
+                                                      IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
 
-                                <Button Content="Add Specification Code" 
-                                        Command="{Binding AddSpecificationCodeCommand}" 
-                                        Style="{StaticResource MaterialDesignFlatButton}"/>
-                            </StackPanel>
-                        </Grid>
-                    </TabItem>
+                                <DataGridTemplateColumn Header="Condition" Width="*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <ComboBox ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableConditions}}" 
+                                                      SelectedValue="{Binding Condition, UpdateSourceTrigger=PropertyChanged}"
+                                                      IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
 
-                    <!-- Requirements Tab -->
-                    <TabItem Style="{StaticResource CustomTabItemStyle}" Header="Requirements">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <DataGrid Grid.Row="0" ItemsSource="{Binding Requirements}" AutoGenerateColumns="False" CanUserAddRows="False" Margin="8" SelectedItem="{Binding SelectedRequirement, Mode=TwoWay}">
-                                <DataGrid.Columns>
-                                    <!-- Requirement Type Selector -->
-                                    <DataGridTemplateColumn Header="Type" Width="*">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <ComboBox ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableRequirementTypes}}" 
-                                                          SelectedValue="{Binding RequirementType, UpdateSourceTrigger=PropertyChanged}"/>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
+                                <DataGridTemplateColumn Header="Value" Width="2*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <TextBox Text="{Binding GeneralRequiredValue, UpdateSourceTrigger=PropertyChanged}"
+                                                         Visibility="{Binding RequirementType, Converter={StaticResource RequirementTypeToVisibilityConverter}, ConverterParameter='General Text'}"
+                                                         IsReadOnly="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}}"/>
 
-                                    <!-- Condition Selector -->
-                                    <DataGridTemplateColumn Header="Condition" Width="*">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <ComboBox ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableConditions}}" 
-                                                          SelectedValue="{Binding Condition, UpdateSourceTrigger=PropertyChanged}"/>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
+                                                <ComboBox ItemsSource="{Binding DataContext.AvailableSoftwareOptionsForRequirements, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
+                                                          DisplayMemberPath="PrimaryName"
+                                                          SelectedValuePath="SoftwareOptionId"
+                                                          SelectedValue="{Binding RequiredSoftwareOptionId, UpdateSourceTrigger=PropertyChanged}"
+                                                          Visibility="{Binding RequirementType, Converter={StaticResource RequirementTypeToVisibilityConverter}, ConverterParameter='Software Option'}"
+                                                          IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
 
-                                    <!-- Value (Dynamic content based on Type) -->
-                                    <DataGridTemplateColumn Header="Value" Width="2*">
-                                        <DataGridTemplateColumn.CellTemplate>
-                                            <DataTemplate>
-                                                <Grid>
-                                                    <!-- Text Box for General Text -->
-                                                    <TextBox Text="{Binding GeneralRequiredValue, UpdateSourceTrigger=PropertyChanged}"
-                                                             Visibility="{Binding RequirementType, Converter={StaticResource RequirementTypeToVisibilityConverter}, ConverterParameter='General Text'}"/>
+                                                <ComboBox ItemsSource="{Binding DataContext.AvailableSpecCodesForRequirements, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
+                                                          DisplayMemberPath="DisplayName"
+                                                          SelectedValuePath="SpecCodeDefinitionId"
+                                                          SelectedValue="{Binding RequiredSpecCodeDefinitionId, UpdateSourceTrigger=PropertyChanged}"
+                                                          Visibility="{Binding RequirementType, Converter={StaticResource RequirementTypeToVisibilityConverter}, ConverterParameter='Spec Code'}"
+                                                          IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
 
-                                                    <!-- ComboBox for Software Options -->
-                                                    <ComboBox ItemsSource="{Binding DataContext.AvailableSoftwareOptionsForRequirements, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
-                                                              DisplayMemberPath="PrimaryName"
-                                                              SelectedValuePath="SoftwareOptionId"
-                                                              SelectedValue="{Binding RequiredSoftwareOptionId}"
-                                                              Visibility="{Binding RequirementType, Converter={StaticResource RequirementTypeToVisibilityConverter}, ConverterParameter='Software Option'}"/>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+                            <Button Content="Remove Selected" Command="{Binding RemoveRequirementCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,8,0"
+                                    IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                            <Button Content="Add Requirement" Command="{Binding AddRequirementCommand}" Style="{StaticResource MaterialDesignFlatButton}"
+                                    IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
 
-                                                    <!-- ComboBox for Spec Codes -->
-                                                    <ComboBox ItemsSource="{Binding DataContext.AvailableSpecCodesForRequirements, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"
-                                                              DisplayMemberPath="DisplayName"
-                                                              SelectedValuePath="SpecCodeDefinitionId"
-                                                              SelectedValue="{Binding RequiredSpecCodeDefinitionId}"
-                                                              Visibility="{Binding RequirementType, Converter={StaticResource RequirementTypeToVisibilityConverter}, ConverterParameter='Spec Code'}"/>
+                <TabItem Header="Activation Rules">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <DataGrid Grid.Row="0" ItemsSource="{Binding ActivationRules}"
+                                  SelectedItem="{Binding SelectedActivationRule, Mode=TwoWay}"
+                                  AutoGenerateColumns="False" CanUserAddRows="False" 
+                                  IsReadOnly="{Binding IsReadOnlyMode}" Margin="8">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Rule Name" Binding="{Binding RuleName, UpdateSourceTrigger=PropertyChanged}" Width="*">
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="IsEnabled" Value="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Activation Setting" Binding="{Binding ActivationSetting, UpdateSourceTrigger=PropertyChanged}" Width="2*">
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="IsEnabled" Value="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="Notes" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="3*">
+                                    <DataGridTextColumn.EditingElementStyle>
+                                        <Style TargetType="TextBox">
+                                            <Setter Property="IsEnabled" Value="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                        </Style>
+                                    </DataGridTextColumn.EditingElementStyle>
+                                </DataGridTextColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+                            <Button Content="Remove Selected" Command="{Binding RemoveActivationRuleCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,8,0"
+                                    IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                            <Button Content="Add Rule" Command="{Binding AddActivationRuleCommand}" Style="{StaticResource MaterialDesignFlatButton}"
+                                    IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                        </StackPanel>
+                    </Grid>
+                </TabItem>
 
-                                                    <!-- You can add more controls here for other RequirementTypes -->
-                                                </Grid>
-                                            </DataTemplate>
-                                        </DataGridTemplateColumn.CellTemplate>
-                                    </DataGridTemplateColumn>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
-                                <Button Content="Remove Selected" Command="{Binding RemoveRequirementCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,8,0"/>
-                                <Button Content="Add Requirement" Command="{Binding AddRequirementCommand}" Style="{StaticResource MaterialDesignFlatButton}"/>
-                            </StackPanel>
-                        </Grid>
-                    </TabItem>
+            </TabControl>
+        </StackPanel>
 
-                    <!-- Activation Rules Tab -->
-                    <TabItem Style="{StaticResource CustomTabItemStyle}" Header="Activation Rules">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <DataGrid Grid.Row="0" ItemsSource="{Binding ActivationRules}"
-                                      SelectedItem="{Binding SelectedActivationRule, Mode=TwoWay}"
-                                      AutoGenerateColumns="False" CanUserAddRows="False" Margin="8">
-                                <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Rule Name" Binding="{Binding RuleName, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
-                                    <DataGridTextColumn Header="Activation Setting" Binding="{Binding ActivationSetting, UpdateSourceTrigger=PropertyChanged}" Width="2*"/>
-                                    <DataGridTextColumn Header="Notes" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="3*"/>
-                                </DataGrid.Columns>
-                            </DataGrid>
-                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
-                                <Button Content="Remove Selected" Command="{Binding RemoveActivationRuleCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,8,0"/>
-                                <Button Content="Add Rule" Command="{Binding AddActivationRuleCommand}" Style="{StaticResource MaterialDesignFlatButton}"/>
-                            </StackPanel>
-                        </Grid>
-                    </TabItem>
-
-                </TabControl>
-            </Grid>
+        <materialDesign:DialogHost Grid.Row="1"
+                                 Identifier="EditSoftwareOptionDialogHost"
+                                 CloseOnClickAway="True"
+                                 Margin="0,8,0,0"
+                                 Visibility="{Binding IsOpen, RelativeSource={RelativeSource Self}, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <!-- Dialog content here -->
         </materialDesign:DialogHost>
+
+        <Border Grid.Row="2" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,1,0,0" Padding="0,16,0,0">
+            <Grid>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Edit" Command="{Binding ToggleEditModeCommand}" Margin="0,0,8,0"
+                            Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+                    <Button Content="Save" Command="{Binding SaveCommand}" Margin="0,0,8,0"
+                            Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}"/>
+                    <Button Content="Cancel" Command="{Binding CancelEditCommand}"
+                            Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>
