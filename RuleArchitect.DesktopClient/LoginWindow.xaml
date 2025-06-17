@@ -11,7 +11,7 @@
         Title="Login - OSP Genesis Suite" 
         Height="650" 
         Width="1100"
-    WindowStartupLocation="CenterScreen"
+        WindowStartupLocation="CenterScreen"
         d:DataContext="{d:DesignInstance Type=vm:LoginViewModel, IsDesignTimeCreatable=True}"
         Background="{DynamicResource MaterialDesignBackground}">
 
@@ -52,35 +52,33 @@
             <ColumnDefinition Width="1*" MinWidth="450"/>
         </Grid.ColumnDefinitions>
 
+        <!-- Left Panel - Now properly stretching -->
         <materialDesign:ColorZone Grid.Column="0" 
-                                  Mode="PrimaryMid"
-                                  Padding="32"
-                                  HorizontalAlignment="Stretch"
-                                  VerticalAlignment="Stretch">
+                                Mode="PrimaryMid"
+                                Padding="32"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch">
             <StackPanel HorizontalAlignment="Center" 
-                        VerticalAlignment="Center"
-                        Width="300">
+                       VerticalAlignment="Center">
                 <TextBlock Text="OSP Genesis Suite"
-             Style="{StaticResource MaterialDesignHeadline5TextBlock}"
-             Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
-             TextAlignment="Center" 
-             Margin="0,8,0,0"/>
+                           Style="{StaticResource MaterialDesignHeadline4TextBlock}"
+                           Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
+                           TextAlignment="Center" 
+                           Margin="0,8,0,0"/>
                 <materialDesign:Card Background="Transparent"
-                                     Width="256"
-                                     Height="256"
-                                     Padding="0"
-                                      HorizontalAlignment="Center"
-                                     materialDesign:ElevationAssist.Elevation="Dp8">
+                                   Width="256"
+                                   Height="256"
+                                   Padding="0"
+                                   HorizontalAlignment="Center"
+                                   materialDesign:ElevationAssist.Elevation="Dp8">
                     <Image Source="/genesis-suite-outline-icon-256x256.ico" 
                            Height="256" 
                            Width="256"
                            RenderOptions.BitmapScalingMode="Fant"/>
                 </materialDesign:Card>
 
-
-
                 <TextBlock Text="Orchestrating OSP Software Production, from Order to Machine"
-                           Style="{StaticResource MaterialDesignSubtitle2TextBlock}"
+                           Style="{StaticResource MaterialDesignSubtitle1TextBlock}"
                            Foreground="{DynamicResource PrimaryHueMidForegroundBrush}"
                            TextAlignment="Center" 
                            Margin="0,8,0,0" 
@@ -88,16 +86,18 @@
             </StackPanel>
         </materialDesign:ColorZone>
 
+        <!-- Right Panel - Now properly stretching -->
         <Grid Grid.Column="1" Background="{DynamicResource MaterialDesignPaper}">
             <materialDesign:ColorZone Mode="PrimaryLight"
-                                  CornerRadius="8"
-                                  Width="450" 
-                                  HorizontalAlignment="Stretch"
-                                  VerticalAlignment="Stretch">
+                                   CornerRadius="8"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch">
                 <materialDesign:Card Padding="32" 
-                                     Margin="48"
-                                     materialDesign:ElevationAssist.Elevation="Dp8"
-                                     Background="{DynamicResource MaterialDesignPaper}">
+                                   materialDesign:ElevationAssist.Elevation="Dp8"
+                                   Background="{DynamicResource MaterialDesignPaper}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Width="400">
                     <StackPanel x:Name="stackPanel" RenderTransformOrigin="0.5,0.5">
                         <StackPanel.RenderTransform>
                             <TransformGroup>
@@ -108,8 +108,8 @@
                             </TransformGroup>
                         </StackPanel.RenderTransform>
 
-                        <TextBlock Text="Welcome to OSP Genesis Suite" 
-                                   Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                        <TextBlock Text="OSP Genesis Portal" 
+                                   Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                                    HorizontalAlignment="Center"
                                    Margin="0,0,0,16"
                                    Foreground="{DynamicResource MaterialDesignBody}"/>
