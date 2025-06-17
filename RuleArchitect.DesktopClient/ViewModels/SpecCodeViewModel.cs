@@ -1,7 +1,10 @@
 ﻿// RuleArchitect.DesktopClient/ViewModels/SpecCodeViewModel.cs
+using Microsoft.Extensions.DependencyInjection;
+using RuleArchitect.Abstractions.Interfaces;
 using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace RuleArchitect.DesktopClient.ViewModels
 {
@@ -24,9 +27,22 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         // This might be less used now, or dynamically built
         private string? _specCodeDisplayName;
-
+        // NEW: Add a backing field and property for ControlSystemId
+        private int? _controlSystemId;
+        public int? ControlSystemId
+        {
+            get => _controlSystemId;
+            set => SetProperty(ref _controlSystemId, value);
+        }
 
         public int OriginalId { get => _originalId; set => SetProperty(ref _originalId, value); }
+        private readonly IServiceScopeFactory _scopeFactory;
+        public SpecCodeViewModel(IServiceScopeFactory scopeFactory)
+        {
+            _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
+            // Default IsDescriptionReadOnly to true.
+            _isDescriptionReadOnly = true;
+        }
 
         /// <summary>
         /// Gets or sets the ID of the associated SpecCodeDefinition.
@@ -114,6 +130,46 @@ namespace RuleArchitect.DesktopClient.ViewModels
             // The parent ViewModel (EditSoftwareOptionViewModel) will manage this state
             // after checking if the SpecCodeDefinition exists.
             _isDescriptionReadOnly = true;
+        }
+
+        public async Task CheckDefinitionAsync(IServiceScopeFactory scopeFactory)
+        {
+            // Clear any previous errors related to definition existence if using INotifyDataErrorInfo
+            // ClearErrors(nameof(Description)); // If you want to add validation here
+
+            if (!ControlSystemId.HasValue || ControlSystemId.Value <= 0 ||
+                string.IsNullOrWhiteSpace(Category) ||
+                string.IsNullOrWhiteSpace(SpecCodeNo) ||
+                string.IsNullOrWhiteSpace(SpecCodeBit))
+            {
+                // Not enough information to perform a lookup
+                IsDescriptionReadOnly = false; // Allow editing if incomplete
+                Description = string.Empty; // Clear description if inputs are invalid
+                SpecCodeDefinitionId = 0; // Indicate no definition found/linked
+                return;
+            }
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
+                var foundSpecCodeDef = await softwareOptionService.FindSpecCodeDefinitionAsync(
+                    ControlSystemId.Value, Category, SpecCodeNo, SpecCodeBit);
+
+                if (foundSpecCodeDef != null)
+                {
+                    Description = foundSpecCodeDef.Description;
+                    SpecCodeDefinitionId = foundSpecCodeDef.SpecCodeDefinitionId;
+                    IsDescriptionReadOnly = true; // Description is now read-only
+                }
+                else
+                {
+                    // No existing definition found, allow user to input a new description
+                    IsDescriptionReadOnly = false;
+                    SpecCodeDefinitionId = 0; // Indicate no definition found/linked (new spec code)
+                    // Do NOT clear Description here if user has already typed something.
+                    // Only clear if you want strict auto-clear on no match.
+                }
+            }
         }
     }
 }
