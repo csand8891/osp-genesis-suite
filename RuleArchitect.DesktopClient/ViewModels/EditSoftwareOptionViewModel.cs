@@ -25,7 +25,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private readonly IAuthenticationStateProvider _authStateProvider;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly INotificationService _notificationService;
-
+        private bool _isReadOnlyMode; // NEW backing field for read-only state
         #region Backing Fields
         private int _softwareOptionId;
         private static int _tempActivationRuleId = -1;
@@ -60,6 +60,20 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 if (SetProperty(ref _isLoading, value))
                 {
                     (SaveCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        public bool IsReadOnlyMode // NEW public property
+        {
+            get => _isReadOnlyMode;
+            set
+            {
+                if (SetProperty(ref _isReadOnlyMode, value))
+                {
+                    // Update command states when read-only mode changes
+                    (ToggleEditModeCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    (SaveCommand as RelayCommand)?.RaiseCanExecuteChanged(); // Save is disabled in read-only mode
                 }
             }
         }
@@ -137,6 +151,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public ICommand AddActivationRuleCommand { get; }
         public ICommand RemoveActivationRuleCommand { get; }
         public ICommand CancelEditCommand { get; }
+        public ICommand ToggleEditModeCommand { get; } // NEW Command
         #endregion
 
         public EditSoftwareOptionViewModel(IAuthenticationStateProvider authStateProvider, IServiceScopeFactory scopeFactory, INotificationService notificationService)
@@ -160,7 +175,11 @@ namespace RuleArchitect.DesktopClient.ViewModels
             RemoveActivationRuleCommand = new RelayCommand(_ => ExecuteRemoveActivationRule(), _ => SelectedActivationRule != null);
             SubscribeToCollectionChanges();
 
-            SaveCommand = new RelayCommand(async _ => await ExecuteSaveAsync(), _ => !HasErrors);
+            // Adjust SaveCommand CanExecute to depend on IsReadOnlyMode
+            SaveCommand = new RelayCommand(async _ => await ExecuteSaveAsync(), _ => !HasErrors && !IsLoading && !IsReadOnlyMode);
+
+            // NEW: Initialize ToggleEditModeCommand
+            ToggleEditModeCommand = new RelayCommand(_ => IsReadOnlyMode = !IsReadOnlyMode, _ => !IsLoading);
 
             AddOptionNumberCommand = new RelayCommand(_ => ExecuteAddOptionNumber());
             RemoveOptionNumberCommand = new RelayCommand(ExecuteRemoveOptionNumber, (param) => param is OptionNumberViewModel);
@@ -181,10 +200,11 @@ namespace RuleArchitect.DesktopClient.ViewModels
             Validate(); // Perform initial validation
         }
 
-        public async Task LoadSoftwareOptionAsync(int softwareOptionIdToLoad)
+        public async Task LoadSoftwareOptionAsync(int softwareOptionIdToLoad, bool initialReadOnly = false)
         {
             IsLoading = true;
             IsNewSoftwareOption = softwareOptionIdToLoad <= 0;
+            IsReadOnlyMode = initialReadOnly; // Set the initial mode here
             if (!AvailableControlSystems.Any()) await LoadInitialLookupsAsync();
 
             try
@@ -252,6 +272,11 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         public async Task<bool> ExecuteSaveAsync()
         {
+            if (IsReadOnlyMode) // NEW: Cannot save if in read-only mode
+            {
+                _notificationService.ShowWarning("Currently in view mode. Click 'Edit' to make changes.", "Cannot Save");
+                return false;
+            }
             Validate();
             if (HasErrors)
             {

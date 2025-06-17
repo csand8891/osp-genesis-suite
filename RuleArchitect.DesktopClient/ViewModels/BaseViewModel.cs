@@ -28,8 +28,15 @@ namespace RuleArchitect.DesktopClient.ViewModels
         // Overload to handle actions on property changed, which is used in your original code.
         protected bool SetProperty<T>(ref T storage, T value, Action? onChanged, [CallerMemberName] string? propertyName = null)
         {
+            // Add this line for debugging
+            System.Diagnostics.Debug.WriteLine($"SetProperty called for {propertyName}. Current value: {storage}, New value: {value}");
+
             if (EqualityComparer<T>.Default.Equals(storage, value))
+            {
+                // Add this line if it's skipping due to equality
+                System.Diagnostics.Debug.WriteLine($"SetProperty for {propertyName} skipped due to equality: {storage} == {value}");
                 return false;
+            }
 
             storage = value;
             onChanged?.Invoke();

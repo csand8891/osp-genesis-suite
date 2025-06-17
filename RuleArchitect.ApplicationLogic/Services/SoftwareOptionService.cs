@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+
 namespace RuleArchitect.ApplicationLogic.Services
 {
     /// <summary>
@@ -132,6 +133,7 @@ namespace RuleArchitect.ApplicationLogic.Services
 
                     return await GetSoftwareOptionByIdAsync(newSoftwareOption.SoftwareOptionId);
                 }
+
                 catch (Exception)
                 {
                     await transaction.RollbackAsync();

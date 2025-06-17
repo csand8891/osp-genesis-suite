@@ -144,13 +144,29 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         RulesheetDistributionSeries.Clear();
-                        RulesheetDistributionSeries.Add(new ColumnSeries
+                        // Example color palette (use your theme or custom colors)
+                        Brush[] pieColors = new Brush[]
                         {
-                            Title = "Rulesheets",
-                            Values = new ChartValues<int>(distribution.Select(d => d.Count)),
-                            DataLabels = true,
-                        });
-                        
+                            (Brush)Application.Current.FindResource("SecondaryHueLightBrush"),
+                            (Brush)Application.Current.FindResource("SecondaryHueMidBrush"),
+                            (Brush)Application.Current.FindResource("PrimaryHueDarkBrush"),
+                            (Brush)Application.Current.FindResource("SecondaryHueDarkBrush"),
+                            Brushes.Orange, // fallback
+                            Brushes.Green   // fallback
+                        };
+
+                        int colorIndex = 0;
+                        foreach (var d in distribution)
+                        {
+                            RulesheetDistributionSeries.Add(new PieSeries
+                            {
+                                Title = d.ControlSystem,
+                                Values = new ChartValues<int> { d.Count },
+                                DataLabels = true,
+                                Fill = pieColors[colorIndex % pieColors.Length] // Cycle through colors
+                            });
+                            colorIndex++;
+                        }
                     });
                 }
 
