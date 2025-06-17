@@ -33,6 +33,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private bool _isDetailPaneVisible;
         private bool _isAdding;
 
+
         private string _searchText = string.Empty;
         public string SearchText { get => _searchText; set { if (SetProperty(ref _searchText, value)) { FilteredSoftwareOptionsView?.Refresh(); } } }
 
@@ -53,7 +54,27 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public ObservableCollection<SoftwareOptionDto> SoftwareOptions { get; private set; }
         public ICollectionView FilteredSoftwareOptionsView { get; private set; }
 
-        public SoftwareOptionDto? SelectedSoftwareOption { get => _selectedSoftwareOption; set { if (SetProperty(ref _selectedSoftwareOption, value)) { UpdateCommandStates(); if (_selectedSoftwareOption == null && !IsAdding) { IsDetailPaneVisible = false; } } } }
+        public SoftwareOptionDto? SelectedSoftwareOption
+        {
+            get => _selectedSoftwareOption;
+            set
+            {
+                if (SetProperty(ref _selectedSoftwareOption, value))
+                {
+                    UpdateCommandStates();
+                    // NEW LOGIC: If a software option is selected (not null) AND we are not currently in 'adding' mode,
+                    // automatically prepare for editing in read-only mode.
+                    if (_selectedSoftwareOption != null && !IsAdding)
+                    {
+                        PrepareEditSoftwareOption(true); // Pass true to indicate initial read-only
+                    }
+                    else if (_selectedSoftwareOption == null && !IsAdding)
+                    {
+                        IsDetailPaneVisible = false; // Hide detail pane if nothing is selected and not adding
+                    }
+                }
+            }
+        }
         public bool IsLoading { get => _isLoading; set => SetProperty(ref _isLoading, value, UpdateCommandStates); }
         public bool IsAdding { get => _isAdding; set => SetProperty(ref _isAdding, value, UpdateCommandStates); }
         public UserDto? CurrentUser { get => _currentUser; set { SetProperty(ref _currentUser, value); } }
@@ -61,7 +82,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         public ICommand LoadCommand { get; }
         public ICommand AddCommand { get; }
-        public ICommand EditCommand { get; }
+        //public ICommand EditCommand { get; }
         public ICommand DeleteCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand CancelEditCommand { get; }
@@ -72,6 +93,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
             _authStateProvider = authStateProvider ?? throw new ArgumentNullException(nameof(authStateProvider));
             _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
 
+
+
             SoftwareOptions = new ObservableCollection<SoftwareOptionDto>();
             AllControlSystemsForFilter = new ObservableCollection<ControlSystemLookupDto>();
             FilteredSoftwareOptionsView = CollectionViewSource.GetDefaultView(SoftwareOptions);
@@ -79,7 +102,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
             LoadCommand = new RelayCommand(async () => await LoadSoftwareOptionsAndFiltersAsync(), () => !IsLoading);
             AddCommand = new RelayCommand(async () => await PrepareAddSoftwareOptionAsync(), () => !IsLoading && !IsDetailPaneVisible);
-            EditCommand = new RelayCommand(PrepareEditSoftwareOption, () => SelectedSoftwareOption != null && !IsLoading && !IsDetailPaneVisible);
+            //EditCommand = new RelayCommand(PrepareEditSoftwareOption, () => SelectedSoftwareOption != null && !IsLoading && !IsDetailPaneVisible);
             DeleteCommand = new RelayCommand(async () => await DeleteSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading && !IsDetailPaneVisible);
             SaveCommand = new RelayCommand(async () => await SaveSoftwareOptionAsync(), () => IsDetailPaneVisible && CurrentEditSoftwareOption != null && !IsLoading);
             CancelEditCommand = new RelayCommand(CancelEditOrAdd, () => IsDetailPaneVisible);
@@ -150,7 +173,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         {
             ((RelayCommand)LoadCommand).RaiseCanExecuteChanged();
             ((RelayCommand)AddCommand).RaiseCanExecuteChanged();
-            ((RelayCommand)EditCommand).RaiseCanExecuteChanged();
+            //((RelayCommand)EditCommand).RaiseCanExecuteChanged();
             ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
             ((RelayCommand)SaveCommand).RaiseCanExecuteChanged();
             ((RelayCommand)CancelEditCommand).RaiseCanExecuteChanged();
@@ -200,12 +223,13 @@ namespace RuleArchitect.DesktopClient.ViewModels
             }
         }
 
-        private async void PrepareEditSoftwareOption()
+        private async void PrepareEditSoftwareOption(bool initialReadOnly)
         {
             if (SelectedSoftwareOption == null) return;
             IsAdding = false;
             CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(_authStateProvider, _scopeFactory, _notificationService);
-            await CurrentEditSoftwareOption.LoadSoftwareOptionAsync(SelectedSoftwareOption.SoftwareOptionId);
+            // Pass the initial read-only state to the Load method
+            await CurrentEditSoftwareOption.LoadSoftwareOptionAsync(SelectedSoftwareOption.SoftwareOptionId, initialReadOnly);
             IsDetailPaneVisible = true;
             UpdateCommandStates();
         }
