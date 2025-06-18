@@ -1,4 +1,4 @@
-﻿// Suggested location: RuleArchitect.DesktopClient/Commands/RelayCommand.cs
+﻿// In RuleArchitect.DesktopClient/Commands/RelayCommand.cs
 namespace RuleArchitect.DesktopClient.Commands
 {
     using System;
@@ -17,6 +17,20 @@ namespace RuleArchitect.DesktopClient.Commands
             remove { CommandManager.RequerySuggested -= value; }
         }
 
+        // Constructor for parameterless actions
+        public RelayCommand(Action execute, Func<bool>? canExecute = null)
+            : this(param => execute(),
+                    canExecute == null ? (Func<object?, bool>?)null : (param => canExecute()))
+        {
+        }
+
+        // Constructor for parameterless async actions
+        public RelayCommand(Func<Task> executeAsync, Func<bool>? canExecute = null)
+            : this(async param => await executeAsync(),
+                    canExecute == null ? (Func<object?, bool>?)null : (param => canExecute()))
+        {
+        }
+
         // Main constructor for actions with parameters
         public RelayCommand(Action<object?> execute, Func<object?, bool>? canExecute = null)
         {
@@ -31,21 +45,6 @@ namespace RuleArchitect.DesktopClient.Commands
             _canExecute = canExecute;
         }
 
-        // Constructor for parameterless actions
-        public RelayCommand(Action execute, Func<bool>? canExecute = null)
-            : this(param => execute(),
-                    canExecute == null ? (Func<object?, bool>?)null : (param => canExecute()) // Line 34 fix
-                  )
-        {
-        }
-
-        // Constructor for parameterless async actions
-        public RelayCommand(Func<Task> executeAsync, Func<bool>? canExecute = null)
-            : this(async param => await executeAsync(),
-                    canExecute == null ? (Func<object?, bool>?)null : (param => canExecute()) // Line 40 fix
-                  )
-        {
-        }
 
         public bool CanExecute(object? parameter)
         {
@@ -62,6 +61,23 @@ namespace RuleArchitect.DesktopClient.Commands
             {
                 await _executeAsync(parameter);
             }
+        }
+
+        /// <summary>
+        /// Method to manually raise the CanExecuteChanged event.
+        /// </summary>
+        public void RaiseCanExecuteChanged()
+        {
+            // CommandManager.InvalidateRequerySuggested(); // This line forces the CommandManager to requery
+            // While InvalidateRequerySuggested() works, a more direct way if you are not using the event directly:
+            // The CanExecuteChanged event in this RelayCommand uses CommandManager.RequerySuggested.
+            // To ensure an immediate update, you can call CommandManager.InvalidateRequerySuggested().
+            // Most MVVM frameworks that provide RelayCommand/DelegateCommand implement this
+            // by directly invoking the CanExecuteChanged event handler.
+            // However, since your implementation hooks into CommandManager.RequerySuggested,
+            // calling CommandManager.InvalidateRequerySuggested() is the most consistent way
+            // to work with your current RelayCommand setup.
+            CommandManager.InvalidateRequerySuggested();
         }
     }
 }

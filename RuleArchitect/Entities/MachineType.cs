@@ -1,3 +1,4 @@
+// Current file: csand8891/osp-genesis-suite/osp-genesis-suite-development/RuleArchitect/Entities/MachineType.cs
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -13,18 +14,17 @@ namespace RuleArchitect.Entities
 
         [Required]
         [MaxLength(100)]
-        // Removed: [Index("IX_MachineTypeName", IsUnique = true)]
-        // This index will be configured in OnModelCreating:
-        // modelBuilder.Entity<MachineType>().HasIndex(mt => mt.Name).IsUnique().HasDatabaseName("IX_MachineTypeName");
-        public string Name { get; set; } = null!; // Initialize with null forgiving
+        public string Name { get; set; } = null!; // e.g., "Lathe", "Machining Center", "Grinder"
 
         public virtual ICollection<ControlSystem> ControlSystems { get; set; }
-        public virtual ICollection<SpecCodeDefinition> SpecCodeDefinitions { get; set; }
+        //public virtual ICollection<SpecCodeDefinition> SpecCodeDefinitions { get; set; }
+        public virtual ICollection<MachineModel> MachineModels { get; set; } // <-- NEW: Collection of specific models
 
         public MachineType()
         {
             ControlSystems = new HashSet<ControlSystem>();
-            SpecCodeDefinitions = new HashSet<SpecCodeDefinition>();
+            //SpecCodeDefinitions = new HashSet<SpecCodeDefinition>();
+            MachineModels = new HashSet<MachineModel>(); // <-- NEW: Initialize the collection
         }
     }
 }

@@ -1,0 +1,322 @@
+﻿<UserControl x:Class="RuleArchitect.DesktopClient.Views.EditSoftwareOptionView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
+             xmlns:viewModels="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:converters="clr-namespace:RuleArchitect.DesktopClient.Converters"
+             FontFamily="{materialDesign:MaterialDesignFont}"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=viewModels:EditSoftwareOptionViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="600" d:DesignWidth="800"
+             Background="{DynamicResource MaterialDesignPaper}">
+
+    <UserControl.Resources>
+        <converters:RequirementTypeToVisibilityConverter x:Key="RequirementTypeToVisibilityConverter" />
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:BooleanNegationConverter x:Key="BooleanNegationConverter"/>
+
+        <DataTemplate x:Key="TabHeaderTemplate">
+            <TextBlock Text="{Binding}" Foreground="Black" FontSize="14"/>
+        </DataTemplate>
+
+        <SolidColorBrush x:Key="MaterialDesignBody" Color="#DD000000"/>
+        <SolidColorBrush x:Key="MaterialDesignTabHeaderSelectedBrush" Color="#005EB8"/>
+        <SolidColorBrush x:Key="MaterialDesignTabHeaderUnselectedBrush" Color="#89000000"/>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <materialDesign:DialogHost Grid.Row="0" Grid.RowSpan="3" Identifier="EditSoftwareOptionDialogHost" CloseOnClickAway="True"/>
+
+        <ScrollViewer Grid.Row="0" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <StackPanel Orientation="Vertical" Margin="16,8,16,0">
+                <TextBlock Text="{Binding ViewTitle}" 
+                           Foreground="{DynamicResource MaterialDesignBody}"
+                           Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                           Margin="0,8,0,12"/>
+
+                <TabControl
+                    Style="{DynamicResource MaterialDesignTabControl}"
+                    TabStripPlacement="Top"
+                    ItemTemplate="{StaticResource TabHeaderTemplate}"
+                    ItemContainerStyle="{StaticResource CustomTabItemStyle}">
+
+                    <TabItem Header="Details">
+                        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
+                            <StackPanel>
+                                <TextBox materialDesign:HintAssist.Hint="Primary Name" Text="{Binding PrimaryName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5" IsReadOnly="{Binding IsReadOnlyMode}"/>
+                                <TextBox materialDesign:HintAssist.Hint="Alternative Names" Text="{Binding AlternativeNames, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5" IsReadOnly="{Binding IsReadOnlyMode}"/>
+                                <TextBox materialDesign:HintAssist.Hint="Source File Name" Text="{Binding SourceFileName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5" IsReadOnly="{Binding IsReadOnlyMode}"/>
+                                <ComboBox materialDesign:HintAssist.Hint="Control System" ItemsSource="{Binding AvailableControlSystems}" DisplayMemberPath="Name" SelectedValuePath="ControlSystemId" SelectedValue="{Binding ControlSystemId}" Style="{StaticResource MaterialDesignFloatingHintComboBox}" Margin="0,5" IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                                <TextBox materialDesign:HintAssist.Hint="Primary Option Number Display" Text="{Binding PrimaryOptionNumberDisplay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,5" IsReadOnly="{Binding IsReadOnlyMode}"/>
+                                <TextBox materialDesign:HintAssist.Hint="Notes" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" TextWrapping="Wrap" MinLines="3" Margin="0,5" IsReadOnly="{Binding IsReadOnlyMode}"/>
+
+                                <Separator Style="{StaticResource MaterialDesignDarkSeparator}" Margin="0,16"/>
+
+                                <TextBlock Text="{Binding LastModifiedBy, StringFormat='Last Modified By: {0}'}" Style="{StaticResource MaterialDesignCaptionTextBlock}" Margin="0,10,0,0"/>
+                                <TextBlock Text="{Binding LastModifiedDate, StringFormat='Last Modified Date: {0:yyyy-MM-dd HH:mm}'}" Style="{StaticResource MaterialDesignCaptionTextBlock}" Margin="0,2,0,0"/>
+                                <TextBlock Text="{Binding Version, StringFormat='Version: {0}'}" Style="{StaticResource MaterialDesignCaptionTextBlock}" Margin="0,2,0,0"/>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </TabItem>
+
+                    <TabItem Header="Option #">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <ListView Grid.Row="0" ItemsSource="{Binding OptionNumbers}" Margin="8">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding OptionNumber, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center" BorderThickness="0,0,0,1"
+                                                     IsReadOnly="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}"/>
+                                            <Button Grid.Column="1" 
+                                                    Command="{Binding DataContext.RemoveOptionNumberCommand, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}}" 
+                                                    CommandParameter="{Binding}" 
+                                                    Style="{StaticResource MaterialDesignToolButton}" 
+                                                    ToolTip="Remove Option Number"
+                                                    IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType={x:Type local:EditSoftwareOptionView}}, Converter={StaticResource BooleanNegationConverter}}">
+                                                <materialDesign:PackIcon Kind="Delete"/>
+                                            </Button>
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            <Button Grid.Row="1" Content="Add Option #" Command="{Binding AddOptionNumberCommand}" Style="{StaticResource MaterialDesignFlatButton}" HorizontalAlignment="Right" Margin="8"
+                                    IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="Spec Codes">
+                        <Grid Margin="0,8,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Button Grid.Row="1" Content="Add Spec Code" Command="{Binding AddSpecificationCodeCommand}" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,8,8,0"
+                                    IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                            <ListBox Grid.Row="0" ItemsSource="{Binding SpecificationCodes}"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     VirtualizingStackPanel.IsVirtualizing="True"
+                                     HorizontalContentAlignment="Stretch">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type viewModels:SpecCodeViewModel}">
+                                        <Border Margin="0,4,8,4" Padding="16" CornerRadius="4" 
+                                                Background="{DynamicResource MaterialDesignPaper}"
+                                                Effect="{DynamicResource MaterialDesignElevationShadow2}">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Button Style="{StaticResource MaterialDesignIconForegroundButton}" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="-8,-8,0,0"
+                                                        Command="{Binding DataContext.RemoveSpecCodeCommand, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}}"
+                                                        CommandParameter="{Binding}" ToolTip="Remove this spec code"
+                                                        IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}">
+                                                    <materialDesign:PackIcon Kind="Close"/>
+                                                </Button>
+
+                                                <ComboBox Grid.Row="0" Grid.Column="0" materialDesign:HintAssist.Hint="Category" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                                          ItemsSource="{Binding DataContext.AvailableCategories, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}}"
+                                                          SelectedValue="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,8"
+                                                          IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                                <ComboBox Grid.Row="0" Grid.Column="1" materialDesign:HintAssist.Hint="Spec No" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                                          ItemsSource="{Binding DataContext.AvailableSpecNos, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}}"
+                                                          SelectedValue="{Binding SpecCodeNo, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,8,8"
+                                                          IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                                <ComboBox Grid.Row="0" Grid.Column="2" materialDesign:HintAssist.Hint="Spec Bit" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                                          ItemsSource="{Binding DataContext.AvailableSpecBits, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}}"
+                                                          SelectedValue="{Binding SpecCodeBit, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"
+                                                          IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+
+                                                <TextBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" materialDesign:HintAssist.Hint="Description"
+                                                         Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                                         TextWrapping="Wrap" AcceptsReturn="True"
+                                                         IsReadOnly="{Binding IsDescriptionReadOnly}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="Requirements">
+                        <Grid Margin="0,8,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Button Grid.Row="1" Content="Add Requirement" Command="{Binding AddRequirementCommand}" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,8,8,0"
+                                    IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                            <ListBox Grid.Row="0" ItemsSource="{Binding Requirements}"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                     VirtualizingStackPanel.IsVirtualizing="True"
+                                     HorizontalContentAlignment="Stretch">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type viewModels:RequirementViewModel}">
+                                        <Border Margin="0,4,8,4" Padding="16" CornerRadius="4"
+                                                Background="{DynamicResource MaterialDesignPaper}"
+                                                Effect="{DynamicResource MaterialDesignElevationShadow2}">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Button Style="{StaticResource MaterialDesignIconForegroundButton}" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="-8,-8,0,0"
+                                                        Command="{Binding DataContext.RemoveRequirementCommand, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}}"
+                                                        CommandParameter="{Binding}" ToolTip="Remove this requirement"
+                                                        IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}">
+                                                    <materialDesign:PackIcon Kind="Close"/>
+                                                </Button>
+
+                                                <ComboBox Grid.Row="0" Grid.Column="0" materialDesign:HintAssist.Hint="Requirement Type" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                                          ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableRequirementTypes}}"
+                                                          SelectedValue="{Binding RequirementType, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,8" 
+                                                          IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                                <ComboBox Grid.Row="0" Grid.Column="1" materialDesign:HintAssist.Hint="Condition" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                                          ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableConditions}}"
+                                                          SelectedValue="{Binding Condition, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"
+                                                          IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+
+                                                <ContentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,8" Content="{Binding .}">
+                                                    <ContentControl.Style>
+                                                        <Style TargetType="ContentControl">
+                                                            <Setter Property="ContentTemplate">
+                                                                <Setter.Value>
+                                                                    <DataTemplate>
+                                                                        <TextBox materialDesign:HintAssist.Hint="Value" Text="{Binding GeneralRequiredValue, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                                                                 IsReadOnly="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}}"/>
+                                                                    </DataTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding RequirementType}" Value="Software Option">
+                                                                    <Setter Property="ContentTemplate">
+                                                                        <Setter.Value>
+                                                                            <DataTemplate>
+                                                                                <ComboBox materialDesign:HintAssist.Hint="Required Software Option" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                                                                          ItemsSource="{Binding DataContext.AvailableSoftwareOptionsForRequirements, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}}"
+                                                                                          DisplayMemberPath="PrimaryName" SelectedValuePath="SoftwareOptionId"
+                                                                                          SelectedValue="{Binding RequiredSoftwareOptionId, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"
+                                                                                          IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                                                            </DataTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding RequirementType}" Value="Spec Code">
+                                                                    <Setter Property="ContentTemplate">
+                                                                        <Setter.Value>
+                                                                            <DataTemplate>
+                                                                                <ComboBox materialDesign:HintAssist.Hint="Required Spec Code" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                                                                          ItemsSource="{Binding DataContext.AvailableSpecCodesForRequirements, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}}"
+                                                                                          DisplayMemberPath="DisplayName" SelectedValuePath="SpecCodeDefinitionId"
+                                                                                          SelectedValue="{Binding RequiredSpecCodeDefinitionId, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"
+                                                                                          IsEnabled="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}, Converter={StaticResource BooleanNegationConverter}}"/>
+                                                                            </DataTemplate>
+                                                                        </Setter.Value>
+                                                                    </Setter>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </ContentControl.Style>
+                                                </ContentControl>
+
+                                                <TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" materialDesign:HintAssist.Hint="Notes"
+                                                         Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                                         IsReadOnly="{Binding DataContext.IsReadOnlyMode, RelativeSource={RelativeSource AncestorType=local:EditSoftwareOptionView}}"/>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+                        </Grid>
+                    </TabItem>
+
+                    <TabItem Header="Activation Rules">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <DataGrid Grid.Row="0" ItemsSource="{Binding ActivationRules}" SelectedItem="{Binding SelectedActivationRule, Mode=TwoWay}" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="{Binding IsReadOnlyMode}" Margin="8">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Rule Name" Binding="{Binding RuleName, UpdateSourceTrigger=PropertyChanged}" Width="*"/>
+                                    <DataGridTextColumn Header="Activation Setting" Binding="{Binding ActivationSetting, UpdateSourceTrigger=PropertyChanged}" Width="2*"/>
+                                    <DataGridTextColumn Header="Notes" Binding="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Width="3*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="8">
+                                <Button Content="Remove Selected" Command="{Binding RemoveActivationRuleCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,0,8,0" IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                                <Button Content="Add Rule" Command="{Binding AddActivationRuleCommand}" Style="{StaticResource MaterialDesignFlatButton}" IsEnabled="{Binding IsReadOnlyMode, Converter={StaticResource BooleanNegationConverter}}"/>
+                            </StackPanel>
+                        </Grid>
+                    </TabItem>
+
+                </TabControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Footer Action Bar -->
+        <Border Grid.Row="2" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,1,0,0" Padding="16">
+            <Grid>
+                <Button Content="Close"
+                        Command="{Binding CloseCommand}"
+                        Style="{StaticResource MaterialDesignFlatButton}"
+                        HorizontalAlignment="Left" />
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Edit" 
+                            Command="{Binding ToggleEditModeCommand}" 
+                            Style="{StaticResource MaterialDesignFlatButton}"
+                            Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+
+                    <Button Content="Cancel" 
+                            Command="{Binding CancelEditCommand}" 
+                            Style="{StaticResource MaterialDesignOutlinedButton}"
+                            Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}"
+                            Margin="8,0,8,0"/>
+
+                    <Button Content="Save" 
+                            Command="{Binding SaveCommand}" 
+                            IsDefault="True"
+                            Style="{StaticResource MaterialDesignRaisedButton}"
+                            Visibility="{Binding IsReadOnlyMode, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Loading Overlay -->
+        <Grid Grid.RowSpan="3" Background="#4CFFFFFF" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <ProgressBar IsIndeterminate="True" Style="{StaticResource MaterialDesignCircularProgressBar}" Width="50" Height="50" />
+        </Grid>
+    </Grid>
+</UserControl>

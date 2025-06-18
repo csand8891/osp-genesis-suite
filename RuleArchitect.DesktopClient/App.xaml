@@ -2,17 +2,63 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:RuleArchitect.DesktopClient"
-             StartupUri="MainWindow.xaml">
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:converters="clr-namespace:RuleArchitect.DesktopClient.Converters"
+             xmlns:viewModels="clr-namespace:RuleArchitect.DesktopClient.ViewModels" 
+             xmlns:views="clr-namespace:RuleArchitect.DesktopClient.Views"
+             xmlns:hc="https://handyorg.github.io/handycontrol"
+             ShutdownMode="OnExplicitShutdown">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <!-- 1. Load Control Libraries FIRST -->
                 <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Light.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/SkinDefault.xaml"/>
+                <ResourceDictionary Source="pack://application:,,,/HandyControl;component/Themes/Theme.xaml"/>
 
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Primary/MaterialDesignColor.DeepPurple.xaml" />
-                <ResourceDictionary Source="pack://application:,,,/MaterialDesignColors;component/Themes/Recommended/Accent/MaterialDesignColor.Lime.xaml" />
+                <!-- 2. Load your CUSTOM theme -->
+                <ResourceDictionary Source="Themes/CustomTheme.xaml" />
+
+                <!-- 3. Load converters -->
+                <ResourceDictionary>
+                    <converters:NullToBooleanConverter x:Key="NullToFalseConverter" FalseForNull="True"/>
+                    <converters:NullToBooleanConverter x:Key="NullToTrueConverter" FalseForNull="False" />
+                    <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+                    <converters:BooleanNegationConverter x:Key="BooleanNegationConverter" />
+                    <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
+                    <converters:TrueFalseToCustomStringConverter x:Key="TrueFalseToCustomStringConverter"
+                                                         TrueString="New User"
+                                                         FalseString="Edit User" />
+                    <converters:RequirementTypeToVisibilityConverter x:Key="GlobalReqTypeToVis"/>
+                </ResourceDictionary>
+
+
+
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Data Templates -->
+            <DataTemplate DataType="{x:Type viewModels:UserManagementViewModel}">
+                <views:UserManagementView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:AdminDashboardViewModel}">
+                <views:AdminDashboardView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:MainViewModel}">
+                <local:MainWindow />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:SoftwareOptionsViewModel}">
+                <views:SoftwareOptionsView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:EditSoftwareOptionViewModel}">
+                <views:EditSoftwareOptionView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:UserActivityLogViewModel}">
+                <views:UserActivityLogView />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:AddSoftwareOptionWizardViewModel}">
+                <views:AddSoftwareOptionWizardView />
+            </DataTemplate>
         </ResourceDictionary>
-         
     </Application.Resources>
 </Application>

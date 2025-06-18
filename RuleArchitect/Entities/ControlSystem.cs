@@ -25,10 +25,12 @@ namespace RuleArchitect.Entities
         public virtual MachineType MachineType { get; set; } = null!; // Initialize with null forgiving
 
         public virtual ICollection<SoftwareOption> SoftwareOptions { get; set; }
+        public virtual ICollection<SpecCodeDefinition> SpecCodeDefinitions { get; set; } // Collection of specification code definitions
 
         public ControlSystem()
         {
             SoftwareOptions = new HashSet<SoftwareOption>();
+            SpecCodeDefinitions = new HashSet<SpecCodeDefinition>(); // Initialize the collection
         }
     }
 }

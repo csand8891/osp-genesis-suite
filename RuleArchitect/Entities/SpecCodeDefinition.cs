@@ -36,13 +36,14 @@ namespace RuleArchitect.Entities
         [MaxLength(50)]
         public string Category { get; set; } = null!; // Initialize with null forgiving
 
+        
+
         [Required]
-        // Removed: [Index("IX_SpecCodeNoBitMachineType", 3, IsUnique = true)]
-        public int MachineTypeId { get; set; }
+        public int ControlSystemId { get; set; }
 
         // Foreign Key relationship
-        [ForeignKey("MachineTypeId")]
-        public virtual MachineType MachineType { get; set; } = null!; // Initialize with null forgiving
+        [ForeignKey("ControlSystemId")]
+        public virtual ControlSystem ControlSystem { get; set; } = null!;
 
         // Navigation property
         public virtual ICollection<SoftwareOptionSpecificationCode> SoftwareOptionSpecificationCodes { get; set; }

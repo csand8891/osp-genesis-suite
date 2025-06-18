@@ -120,26 +120,40 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Class1.cs" />
-    <Compile Include="DTOs\CreateSoftwareOptionCommandDto.cs" />
-    <Compile Include="DTOs\OptionNumberRegistryCreateDto.cs" />
-    <Compile Include="DTOs\RequirementCreateDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionActivationRuleCreateDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionDto.cs" />
-    <Compile Include="DTOs\SoftwareOptionSpecificationCodeCreateDto.cs" />
-    <Compile Include="DTOs\UpdateSoftwareOptionCommandDto.cs" />
-    <Compile Include="Interfaces\ISoftwareOptionService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\OrderService.cs" />
     <Compile Include="Services\SoftwareOptionService.cs" />
+    <Compile Include="Services\UserActivityLogService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GenesisOrderGateway\GenesisOrderGateway.csproj">
+      <Project>{75d80bce-9528-4ac3-ab69-8f81718a9756}</Project>
+      <Name>GenesisOrderGateway</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\GenesisSentry\GenesisSentry.csproj">
+      <Project>{28967177-5fe7-49f6-9c18-5a6b6aed137b}</Project>
+      <Name>GenesisSentry</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\HeraldKit\HeraldKit\HeraldKit.csproj">
+      <Project>{bfb69c3c-c16c-42d9-a39f-45fb1d56f778}</Project>
+      <Name>HeraldKit</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\RuleArchitect.Abstractions\RuleArchitect.Abstractions.csproj">
+      <Project>{47becf7c-b8a0-4641-babf-98f55eaf7c95}</Project>
+      <Name>RuleArchitect.Abstractions</Name>
+    </ProjectReference>
     <ProjectReference Include="..\RuleArchitect\RuleArchitect.csproj">
       <Project>{2e91c9c5-cbcd-03a1-fb79-b886b552cd87}</Project>
       <Name>RuleArchitect</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="DTOs\" />
+    <Folder Include="Interfaces\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
