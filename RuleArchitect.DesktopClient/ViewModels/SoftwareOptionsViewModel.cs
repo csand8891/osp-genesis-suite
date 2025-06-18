@@ -85,7 +85,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         //public ICommand EditCommand { get; }
         public ICommand DeleteCommand { get; }
         public ICommand SaveCommand { get; }
-        public ICommand CancelEditCommand { get; }
+        public ICommand CloseDetailPaneCommand { get; }
 
         public SoftwareOptionsViewModel(IServiceScopeFactory scopeFactory, IAuthenticationStateProvider authStateProvider, INotificationService notificationService)
         {
@@ -105,7 +105,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             //EditCommand = new RelayCommand(PrepareEditSoftwareOption, () => SelectedSoftwareOption != null && !IsLoading && !IsDetailPaneVisible);
             DeleteCommand = new RelayCommand(async () => await DeleteSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading && !IsDetailPaneVisible);
             SaveCommand = new RelayCommand(async () => await SaveSoftwareOptionAsync(), () => IsDetailPaneVisible && CurrentEditSoftwareOption != null && !IsLoading);
-            CancelEditCommand = new RelayCommand(CancelEditOrAdd, () => IsDetailPaneVisible);
+            CloseDetailPaneCommand = new RelayCommand(CancelEditOrAdd, () => IsDetailPaneVisible);
 
             CurrentUser = _authStateProvider.CurrentUser;
             _authStateProvider.PropertyChanged += (sender, args) => { if (args.PropertyName == nameof(IAuthenticationStateProvider.CurrentUser)) CurrentUser = _authStateProvider.CurrentUser; };
@@ -176,7 +176,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             //((RelayCommand)EditCommand).RaiseCanExecuteChanged();
             ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
             ((RelayCommand)SaveCommand).RaiseCanExecuteChanged();
-            ((RelayCommand)CancelEditCommand).RaiseCanExecuteChanged();
+            ((RelayCommand)CloseDetailPaneCommand).RaiseCanExecuteChanged();
         }
 
         private async Task LoadSoftwareOptionsAsync()
@@ -227,7 +227,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
         {
             if (SelectedSoftwareOption == null) return;
             IsAdding = false;
-            CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(_authStateProvider, _scopeFactory, _notificationService);
+            CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(
+            _authStateProvider,
+            _scopeFactory,
+            _notificationService,
+            CloseDetailPaneCommand // Pass the command down
+        );
             // Pass the initial read-only state to the Load method
             await CurrentEditSoftwareOption.LoadSoftwareOptionAsync(SelectedSoftwareOption.SoftwareOptionId, initialReadOnly);
             IsDetailPaneVisible = true;
