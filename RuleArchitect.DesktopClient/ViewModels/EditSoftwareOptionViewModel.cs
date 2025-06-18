@@ -50,6 +50,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private string? _lastModifiedBy;
         #endregion
 
+        // Add these three properties to EditSoftwareOptionViewModel.cs
+
+        public ObservableCollection<string> AvailableCategories { get; } = new ObservableCollection<string>();
+        public ObservableCollection<string> AvailableSpecNos { get; } = new ObservableCollection<string>(Enumerable.Range(1, 32).Select(i => i.ToString()));
+        public ObservableCollection<string> AvailableSpecBits { get; } = new ObservableCollection<string>(Enumerable.Range(0, 8).Select(i => i.ToString()));
+
         #region Public Properties
         public string ViewTitle => _isNewSoftwareOption ? "Create New Software Option" : $"Edit Software Option (ID: {SoftwareOptionId})";
         public bool IsLoading
@@ -106,6 +112,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             {
                 if (SetProperty(ref _controlSystemId, value, MarkScalarAsModified))
                 {
+                    PopulateAvailableCategories();
                     _ = LoadSpecCodeDefinitionsForRequirementsAsync();
                     Validate();
                 }
@@ -143,6 +150,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public ICommand AddSpecificationCodeCommand { get; }
         public ICommand EditSpecificationCodeCommand { get; }
         public ICommand RemoveSpecificationCodeCommand { get; }
+        public ICommand CloseCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand AddOptionNumberCommand { get; }
         public ICommand RemoveOptionNumberCommand { get; }
@@ -154,7 +162,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public ICommand ToggleEditModeCommand { get; } // NEW Command
         #endregion
 
-        public EditSoftwareOptionViewModel(IAuthenticationStateProvider authStateProvider, IServiceScopeFactory scopeFactory, INotificationService notificationService)
+        public EditSoftwareOptionViewModel(IAuthenticationStateProvider authStateProvider, IServiceScopeFactory scopeFactory, INotificationService notificationService, ICommand closeCommand)
         {
             _authStateProvider = authStateProvider;
             _scopeFactory = scopeFactory;
@@ -169,6 +177,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             AvailableActivationRules = new ObservableCollection<ActivationRuleLookupDto>();
             AvailableSoftwareOptionsForRequirements = new ObservableCollection<SoftwareOptionLookupDto>();
             AvailableSpecCodesForRequirements = new ObservableCollection<SpecCodeDefinitionLookupDto>();
+            CloseCommand = closeCommand;
 
             // UPDATED: RelayCommand calls now correctly match method signatures
             AddActivationRuleCommand = new RelayCommand(_ => ExecuteAddActivationRule());
@@ -188,7 +197,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             AddSpecificationCodeCommand = new RelayCommand(_ => ExecuteShowSpecCodeDialogForAdd());
             EditSpecificationCodeCommand = new RelayCommand(param => ExecuteShowSpecCodeDialogForEdit(param as SpecCodeViewModel), param => param is SpecCodeViewModel);
             RemoveSpecificationCodeCommand = new RelayCommand(_ => ExecuteRemoveSpecificationCode(), _ => SelectedSpecificationCode != null);
-            CancelEditCommand = new RelayCommand(ExecuteCancelEdit);
+            CancelEditCommand = new RelayCommand(ExecuteCancelEdit, _ => !IsReadOnlyMode && !IsLoading);
 
             PrimaryName = "";
             Version = 1;
@@ -478,6 +487,34 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private void ExecuteRemoveSpecificationCode()
         {
             if (SelectedSpecificationCode != null) SpecificationCodes.Remove(SelectedSpecificationCode);
+        }
+
+        // Add this method inside EditSoftwareOptionViewModel.cs
+
+        private void PopulateAvailableCategories()
+        {
+            AvailableCategories.Clear();
+            if (ControlSystemId.HasValue)
+            {
+                var controlSystem = AvailableControlSystems.FirstOrDefault(cs => cs.ControlSystemId == ControlSystemId.Value);
+                if (controlSystem != null)
+                {
+                    if (controlSystem.Name.ToUpperInvariant().StartsWith("P"))
+                    {
+                        AvailableCategories.Add("NC1");
+                        AvailableCategories.Add("NC2");
+                        AvailableCategories.Add("NC3");
+                        AvailableCategories.Add("PLC1");
+                        AvailableCategories.Add("PLC2");
+                        AvailableCategories.Add("PLC3");
+                    }
+                    else
+                    {
+                        AvailableCategories.Add("NC");
+                        AvailableCategories.Add("PLC");
+                    }
+                }
+            }
         }
         #endregion
 
