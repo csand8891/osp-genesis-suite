@@ -281,7 +281,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     SpecCodeBit = vm.SpecCodeBit,
                     Description = vm.Description,
                     SoftwareOptionActivationRuleId = vm.SoftwareOptionActivationRuleId,
-                    SpecificInterpretation = vm.SpecificInterpretation
+                    IsActive = vm.IsActive
                 })
                 .ToList();
 
@@ -439,6 +439,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
         {
             if (CanGoToNextStep())
             {
+
+                // If we are about to navigate to the review step (index 4), populate the display text.
+                if (CurrentStepIndex == 3)
+                {
+                    PrepareReviewStepData();
+                }
                 CurrentStepIndex++;
             }
         }
