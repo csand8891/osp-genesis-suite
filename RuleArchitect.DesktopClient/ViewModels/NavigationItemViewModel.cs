@@ -5,6 +5,7 @@
 using System.Windows.Input; // For ICommand
 using System; // For Type
 using RuleArchitect.DesktopClient.Commands; // If RelayCommand is used here, though MainViewModel sets it
+using MaterialDesignThemes.Wpf; // UPDATED: Required for PackIconKind
 
 
 namespace RuleArchitect.DesktopClient.ViewModels
@@ -27,7 +28,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
             set => SetProperty(ref _navigateCommand, value);
         }
 
-        // Optional: For icons in the navbar
-        // public materialDesign:PackIconKind IconKind { get; set; }
+        // UPDATED: Implemented the IconKind property
+        private PackIconKind _iconKind;
+        public PackIconKind IconKind
+        {
+            get => _iconKind;
+            set => SetProperty(ref _iconKind, value);
+        }
     }
 }

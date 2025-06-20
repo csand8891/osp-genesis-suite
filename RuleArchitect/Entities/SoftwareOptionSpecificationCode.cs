@@ -18,7 +18,8 @@ namespace RuleArchitect.Entities
 
         public int? SoftwareOptionActivationRuleId { get; set; }
 
-        public string? SpecificInterpretation { get; set; }
+        [Required]
+        public bool IsActive { get; set; } = true;
 
         [ForeignKey("SoftwareOptionId")]
         public virtual SoftwareOption SoftwareOption { get; set; } = null!;

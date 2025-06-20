@@ -1,5 +1,4 @@
-﻿
-using HeraldKit.Interfaces;
+﻿using HeraldKit.Interfaces;
 using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
 using RuleArchitect.Abstractions.DTOs.Auth;
@@ -62,15 +61,13 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 if (SetProperty(ref _selectedSoftwareOption, value))
                 {
                     UpdateCommandStates();
-                    // NEW LOGIC: If a software option is selected (not null) AND we are not currently in 'adding' mode,
-                    // automatically prepare for editing in read-only mode.
                     if (_selectedSoftwareOption != null && !IsAdding)
                     {
-                        PrepareEditSoftwareOption(true); // Pass true to indicate initial read-only
+                        PrepareEditSoftwareOption(true);
                     }
                     else if (_selectedSoftwareOption == null && !IsAdding)
                     {
-                        IsDetailPaneVisible = false; // Hide detail pane if nothing is selected and not adding
+                        IsDetailPaneVisible = false;
                     }
                 }
             }
@@ -82,7 +79,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         public ICommand LoadCommand { get; }
         public ICommand AddCommand { get; }
-        //public ICommand EditCommand { get; }
         public ICommand DeleteCommand { get; }
         public ICommand SaveCommand { get; }
         public ICommand CloseDetailPaneCommand { get; }
@@ -102,7 +98,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
             LoadCommand = new RelayCommand(async () => await LoadSoftwareOptionsAndFiltersAsync(), () => !IsLoading);
             AddCommand = new RelayCommand(async () => await PrepareAddSoftwareOptionAsync(), () => !IsLoading && !IsDetailPaneVisible);
-            //EditCommand = new RelayCommand(PrepareEditSoftwareOption, () => SelectedSoftwareOption != null && !IsLoading && !IsDetailPaneVisible);
             DeleteCommand = new RelayCommand(async () => await DeleteSoftwareOptionAsync(), () => SelectedSoftwareOption != null && !IsLoading && !IsDetailPaneVisible);
             SaveCommand = new RelayCommand(async () => await SaveSoftwareOptionAsync(), () => IsDetailPaneVisible && CurrentEditSoftwareOption != null && !IsLoading);
             CloseDetailPaneCommand = new RelayCommand(CancelEditOrAdd, () => IsDetailPaneVisible);
@@ -161,7 +156,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 bool matchesControlSystem = true;
                 if (SelectedFilterControlSystemId.HasValue && SelectedFilterControlSystemId.Value > 0)
                 {
-                    // FIX: Compare against the DTO's ControlSystemId
                     matchesControlSystem = so.ControlSystemId == SelectedFilterControlSystemId.Value;
                 }
                 return matchesSearch && matchesControlSystem;
@@ -173,7 +167,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
         {
             ((RelayCommand)LoadCommand).RaiseCanExecuteChanged();
             ((RelayCommand)AddCommand).RaiseCanExecuteChanged();
-            //((RelayCommand)EditCommand).RaiseCanExecuteChanged();
             ((RelayCommand)DeleteCommand).RaiseCanExecuteChanged();
             ((RelayCommand)SaveCommand).RaiseCanExecuteChanged();
             ((RelayCommand)CloseDetailPaneCommand).RaiseCanExecuteChanged();
@@ -186,7 +179,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 using (var scope = _scopeFactory.CreateScope())
                 {
                     var softwareOptionService = scope.ServiceProvider.GetRequiredService<ISoftwareOptionService>();
-                    // FIX: The service now returns a list of DTOs directly
                     var options = await softwareOptionService.GetAllSoftwareOptionsAsync();
                     Application.Current.Dispatcher.Invoke(() =>
                     {
@@ -206,16 +198,13 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         private async Task PrepareAddSoftwareOptionAsync()
         {
-            // Use the service provider to create an instance of the wizard's ViewModel
             using (var scope = _scopeFactory.CreateScope())
             {
                 var wizardVm = scope.ServiceProvider.GetRequiredService<AddSoftwareOptionWizardViewModel>();
                 var wizardView = new AddSoftwareOptionWizardView { DataContext = wizardVm };
 
-                // The identifier "RootDialog" must match the one on the DialogHost in SoftwareOptionsView.xaml
                 var result = await DialogHost.Show(wizardView, "SoftwareOptionsDialogHost");
 
-                // If the wizard was completed successfully (returned true), refresh the list
                 if (result is bool wasSuccessful && wasSuccessful)
                 {
                     await LoadSoftwareOptionsAndFiltersAsync();
@@ -228,12 +217,19 @@ namespace RuleArchitect.DesktopClient.ViewModels
             if (SelectedSoftwareOption == null) return;
             IsAdding = false;
             CurrentEditSoftwareOption = new EditSoftwareOptionViewModel(
-            _authStateProvider,
-            _scopeFactory,
-            _notificationService,
-            CloseDetailPaneCommand // Pass the command down
-        );
-            // Pass the initial read-only state to the Load method
+                _authStateProvider,
+                _scopeFactory,
+                _notificationService,
+                CloseDetailPaneCommand
+            );
+
+            // **UPDATED**: This sets up the callback.
+            CurrentEditSoftwareOption.OnSaveSuccessAsync = async () =>
+            {
+                IsDetailPaneVisible = false;
+                await LoadSoftwareOptionsAndFiltersAsync();
+            };
+
             await CurrentEditSoftwareOption.LoadSoftwareOptionAsync(SelectedSoftwareOption.SoftwareOptionId, initialReadOnly);
             IsDetailPaneVisible = true;
             UpdateCommandStates();
@@ -246,12 +242,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
             try
             {
                 bool success = await CurrentEditSoftwareOption.ExecuteSaveAsync();
-                if (success)
-                {
-                    IsDetailPaneVisible = false;
-                    IsAdding = false;
-                    await LoadSoftwareOptionsAndFiltersAsync();
-                }
+                // This logic is now handled by the OnSaveSuccessAsync callback.
+                // The child VM will invoke the callback which reloads the grid and closes the pane.
             }
             catch (Exception ex)
             {

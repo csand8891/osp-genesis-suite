@@ -113,7 +113,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
     <Compile Include="DTOs\Lookups\ActivationRuleLookupDto.cs" />
     <Compile Include="DTOs\Activity\ActivityLogFilterDto.cs" />
     <Compile Include="DTOs\Auth\AuthenticationResult.cs" />

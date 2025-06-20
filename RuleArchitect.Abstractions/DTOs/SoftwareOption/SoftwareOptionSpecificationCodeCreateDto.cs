@@ -26,6 +26,6 @@ namespace RuleArchitect.Abstractions.DTOs.SoftwareOption
         public string? Description { get; set; }
         //public int SpecCodeDefinitionId { get; set; } // Foreign key to SpecCodeDefinitions
         public int? SoftwareOptionActivationRuleId { get; set; } // Foreign key to SoftwareOptionActivationRules (nullable)
-        public string? SpecificInterpretation { get; set; } // Or string? if nullable types are enabled
+        [Required] public bool IsActive { get; set; } = true; // Or string? if nullable types are enabled
     }
 }

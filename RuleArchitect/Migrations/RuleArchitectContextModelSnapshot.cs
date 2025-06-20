@@ -558,6 +558,9 @@ namespace RuleArchitect.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("SoftwareOptionActivationRuleId")
                         .HasColumnType("INTEGER");
 
@@ -566,9 +569,6 @@ namespace RuleArchitect.Migrations
 
                     b.Property<int>("SpecCodeDefinitionId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("SpecificInterpretation")
-                        .HasColumnType("TEXT");
 
                     b.HasKey("SoftwareOptionSpecificationCodeId");
 

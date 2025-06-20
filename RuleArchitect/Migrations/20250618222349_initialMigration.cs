@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace RuleArchitect.Migrations
 {
-    public partial class IntialDBmigration : Migration
+    public partial class initialMigration : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -404,7 +404,7 @@ namespace RuleArchitect.Migrations
                     SoftwareOptionId = table.Column<int>(nullable: false),
                     SpecCodeDefinitionId = table.Column<int>(nullable: false),
                     SoftwareOptionActivationRuleId = table.Column<int>(nullable: true),
-                    SpecificInterpretation = table.Column<string>(nullable: true)
+                    IsActive = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {

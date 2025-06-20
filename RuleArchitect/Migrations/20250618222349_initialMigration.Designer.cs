@@ -9,8 +9,8 @@ using RuleArchitect.Data;
 namespace RuleArchitect.Migrations
 {
     [DbContext(typeof(RuleArchitectContext))]
-    [Migration("20250609220556_Intial DB migration")]
-    partial class IntialDBmigration
+    [Migration("20250618222349_initialMigration")]
+    partial class initialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -560,6 +560,9 @@ namespace RuleArchitect.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("SoftwareOptionActivationRuleId")
                         .HasColumnType("INTEGER");
 
@@ -568,9 +571,6 @@ namespace RuleArchitect.Migrations
 
                     b.Property<int>("SpecCodeDefinitionId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("SpecificInterpretation")
-                        .HasColumnType("TEXT");
 
                     b.HasKey("SoftwareOptionSpecificationCodeId");
 
