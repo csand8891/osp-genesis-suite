@@ -16,7 +16,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private readonly IAuthenticationStateProvider _authStateProvider;
         private readonly IServiceProvider _serviceProvider;
 
-        // RE-ADDED: The SnackbarMessageQueue property.
         public SnackbarMessageQueue SnackbarMessageQueue { get; }
 
         private BaseViewModel _currentViewViewModel;
@@ -65,12 +64,10 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         public ICommand LogoutCommand { get; }
 
-        // UPDATED: Constructor now requires SnackbarMessageQueue again.
         public MainViewModel(IAuthenticationStateProvider authStateProvider, IServiceProvider serviceProvider, SnackbarMessageQueue snackbarMessageQueue)
         {
             _authStateProvider = authStateProvider;
             _serviceProvider = serviceProvider;
-            // RE-ADDED: The SnackbarMessageQueue is now injected and stored.
             SnackbarMessageQueue = snackbarMessageQueue;
 
             NavigationItems = new ObservableCollection<NavigationItemViewModel>();
@@ -97,8 +94,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 {
                     DisplayName = displayName,
                     TargetViewModelType = targetVmType,
-                    NavigateCommand = new RelayCommand(() => NavigateTo(targetVmType)),
-                    
+                    // **UPDATED**: This now correctly assigns the icon.
+                    IconKind = icon,
+                    NavigateCommand = new RelayCommand(() => NavigateTo(targetVmType))
                 });
             }
 
