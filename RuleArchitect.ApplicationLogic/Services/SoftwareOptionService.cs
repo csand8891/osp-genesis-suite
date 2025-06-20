@@ -351,7 +351,7 @@ namespace RuleArchitect.ApplicationLogic.Services
                 OptionNumbers = entity.OptionNumberRegistries.Select(onr => new OptionNumberRegistryCreateDto { OptionNumber = onr.OptionNumber }).ToList(),
                 Requirements = entity.Requirements.Select(r => new RequirementCreateDto { RequirementType = r.RequirementType, Condition = r.Condition, GeneralRequiredValue = r.GeneralRequiredValue, RequiredSoftwareOptionId = r.RequiredSoftwareOptionId, RequiredSpecCodeDefinitionId = r.RequiredSpecCodeDefinitionId, OspFileName = r.OspFileName, OspFileVersion = r.OspFileVersion, Notes = r.Notes }).ToList(),
                 ActivationRules = entity.SoftwareOptionActivationRules.Select(ar => new SoftwareOptionActivationRuleCreateDto { RuleName = ar.RuleName, ActivationSetting = ar.ActivationSetting, Notes = ar.Notes }).ToList(),
-                SpecificationCodes = entity.SoftwareOptionSpecificationCodes.Select(sosc => new SoftwareOptionSpecificationCodeCreateDto { Category = sosc.SpecCodeDefinition.Category, SpecCodeNo = sosc.SpecCodeDefinition.SpecCodeNo, SpecCodeBit = sosc.SpecCodeDefinition.SpecCodeBit, Description = sosc.SpecCodeDefinition.Description, SoftwareOptionActivationRuleId = sosc.SoftwareOptionActivationRuleId, SpecificInterpretation = sosc.SpecificInterpretation }).ToList()
+                SpecificationCodes = entity.SoftwareOptionSpecificationCodes.Select(sosc => new SoftwareOptionSpecificationCodeCreateDto { Category = sosc.SpecCodeDefinition.Category, SpecCodeNo = sosc.SpecCodeDefinition.SpecCodeNo, SpecCodeBit = sosc.SpecCodeDefinition.SpecCodeBit, Description = sosc.SpecCodeDefinition.Description, SoftwareOptionActivationRuleId = sosc.SoftwareOptionActivationRuleId, IsActive = sosc.IsActive }).ToList()
             };
         }
 
@@ -407,7 +407,7 @@ namespace RuleArchitect.ApplicationLogic.Services
                         _context.SpecCodeDefinitions.Add(specDef);
                     }
 
-                    option.SoftwareOptionSpecificationCodes.Add(new SoftwareOptionSpecificationCode { SpecCodeDefinition = specDef, SoftwareOptionActivationRuleId = dto.SoftwareOptionActivationRuleId, SpecificInterpretation = dto.SpecificInterpretation });
+                    option.SoftwareOptionSpecificationCodes.Add(new SoftwareOptionSpecificationCode { SpecCodeDefinition = specDef, SoftwareOptionActivationRuleId = dto.SoftwareOptionActivationRuleId, IsActive = dto.IsActive });
                 }
             }
         }
