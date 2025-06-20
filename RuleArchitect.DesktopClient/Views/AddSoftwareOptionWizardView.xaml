@@ -7,7 +7,6 @@
              xmlns:viewModels="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:converters="clr-namespace:RuleArchitect.DesktopClient.Converters"
-             xmlns:dtos="clr-namespace:RuleArchitect.Abstractions.DTOs.SoftwareOption;assembly=RuleArchitect.Abstractions"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewModels:AddSoftwareOptionWizardViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600" d:DesignWidth="700">
@@ -33,6 +32,7 @@
 
             <materialDesign:Transitioner Grid.Row="1" SelectedIndex="{Binding CurrentStepIndex}">
 
+                <!-- Step 1: Core Details -->
                 <materialDesign:TransitionerSlide>
                     <ScrollViewer Padding="0,16,16,16" VerticalScrollBarVisibility="Auto">
                         <StackPanel DataContext="{Binding NewSoftwareOption}">
@@ -49,6 +49,7 @@
                     </ScrollViewer>
                 </materialDesign:TransitionerSlide>
 
+                <!-- Step 2: Option Numbers -->
                 <materialDesign:TransitionerSlide>
                     <Grid Margin="0,16,0,0">
                         <Grid.RowDefinitions>
@@ -78,6 +79,7 @@
                     </Grid>
                 </materialDesign:TransitionerSlide>
 
+                <!-- Step 3: Specification Codes -->
                 <materialDesign:TransitionerSlide>
                     <Grid Margin="0,16,0,0">
                         <Grid.RowDefinitions>
@@ -104,12 +106,15 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
-                                            <Button Style="{StaticResource MaterialDesignIconForegroundButton}" Grid.Column="3" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="-8,-8,0,0"
+
+                                            <Button Style="{StaticResource MaterialDesignIconForegroundButton}" Grid.Column="4" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="-8,-8,0,0"
                                                     Command="{Binding DataContext.RemoveSpecCodeCommand, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
                                                     CommandParameter="{Binding}" ToolTip="Remove this spec code">
                                                 <materialDesign:PackIcon Kind="Close"/>
                                             </Button>
+
                                             <ComboBox Grid.Row="0" Grid.Column="0" materialDesign:HintAssist.Hint="Category" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
                                                       ItemsSource="{Binding DataContext.AvailableCategories, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
                                                       SelectedValue="{Binding Category, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,8"/>
@@ -119,7 +124,15 @@
                                             <ComboBox Grid.Row="0" Grid.Column="2" materialDesign:HintAssist.Hint="Spec Bit" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
                                                       ItemsSource="{Binding DataContext.AvailableSpecBits, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
                                                       SelectedValue="{Binding SpecCodeBit, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
-                                            <TextBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" materialDesign:HintAssist.Hint="Description"
+
+                                            <StackPanel Grid.Row="0" Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0,0,8">
+                                                <TextBlock Text="Active" VerticalAlignment="Center" Margin="0,0,8,0" Foreground="{DynamicResource MaterialDesignBodyLight}"/>
+                                                <ToggleButton Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                                                              IsChecked="{Binding IsActive}"
+                                                              ToolTip="Activate or Deactivate this Spec Code" />
+                                            </StackPanel>
+
+                                            <TextBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" materialDesign:HintAssist.Hint="Description"
                                                      Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                                      TextWrapping="Wrap" AcceptsReturn="True"
                                                      IsReadOnly="{Binding IsDescriptionReadOnly}"/>
@@ -131,6 +144,7 @@
                     </Grid>
                 </materialDesign:TransitionerSlide>
 
+                <!-- Step 4: Requirements -->
                 <materialDesign:TransitionerSlide>
                     <Grid Margin="0,16,0,0">
                         <Grid.RowDefinitions>
@@ -139,14 +153,14 @@
                         </Grid.RowDefinitions>
                         <Button Grid.Row="1" Content="Add Requirement" Command="{Binding AddRequirementCommand}" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="0,8,0,0"/>
                         <ListBox Grid.Row="0" ItemsSource="{Binding Requirements}"
-                 ScrollViewer.VerticalScrollBarVisibility="Auto"
-                 VirtualizingStackPanel.IsVirtualizing="True"
-                 HorizontalContentAlignment="Stretch">
+                                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                                 VirtualizingStackPanel.IsVirtualizing="True"
+                                 HorizontalContentAlignment="Stretch">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="{x:Type viewModels:RequirementViewModel}">
                                     <Border Margin="0,4,8,4" Padding="16" CornerRadius="4"
-                            Background="{DynamicResource MaterialDesignPaper}"
-                            Effect="{DynamicResource MaterialDesignElevationShadow2}">
+                                            Background="{DynamicResource MaterialDesignPaper}"
+                                            Effect="{DynamicResource MaterialDesignElevationShadow2}">
                                         <Grid>
                                             <Grid.RowDefinitions>
                                                 <RowDefinition Height="Auto"/>
@@ -159,17 +173,16 @@
                                                 <ColumnDefinition Width="Auto"/>
                                             </Grid.ColumnDefinitions>
                                             <Button Style="{StaticResource MaterialDesignIconForegroundButton}" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="-8,-8,0,0"
-                                    Command="{Binding DataContext.RemoveRequirementCommand, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
-                                    CommandParameter="{Binding}" ToolTip="Remove this requirement">
+                                                    Command="{Binding DataContext.RemoveRequirementCommand, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
+                                                    CommandParameter="{Binding}" ToolTip="Remove this requirement">
                                                 <materialDesign:PackIcon Kind="Close"/>
                                             </Button>
                                             <ComboBox Grid.Row="0" Grid.Column="0" materialDesign:HintAssist.Hint="Requirement Type" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                                      ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableRequirementTypes}}"
-                                      SelectedValue="{Binding RequirementType, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,8"/>
+                                                      ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableRequirementTypes}}"
+                                                      SelectedValue="{Binding RequirementType, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,8"/>
                                             <ComboBox Grid.Row="0" Grid.Column="1" materialDesign:HintAssist.Hint="Condition" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                                      ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableConditions}}"
-                                      SelectedValue="{Binding Condition, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
-                                            <!-- THIS IS THE CRUCIAL LINE TO CHANGE -->
+                                                      ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableConditions}}"
+                                                      SelectedValue="{Binding Condition, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
                                             <ContentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,8" Content="{Binding .}">
                                                 <ContentControl.Style>
                                                     <Style TargetType="ContentControl">
@@ -186,9 +199,9 @@
                                                                     <Setter.Value>
                                                                         <DataTemplate>
                                                                             <ComboBox materialDesign:HintAssist.Hint="Required Software Option" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                                                                      ItemsSource="{Binding DataContext.AvailableSoftwareOptionsForRequirements, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
-                                                                      DisplayMemberPath="PrimaryName" SelectedValuePath="SoftwareOptionId"
-                                                                      SelectedValue="{Binding RequiredSoftwareOptionId, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
+                                                                                      ItemsSource="{Binding DataContext.AvailableSoftwareOptionsForRequirements, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
+                                                                                      DisplayMemberPath="PrimaryName" SelectedValuePath="SoftwareOptionId"
+                                                                                      SelectedValue="{Binding RequiredSoftwareOptionId, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
                                                                         </DataTemplate>
                                                                     </Setter.Value>
                                                                 </Setter>
@@ -198,9 +211,9 @@
                                                                     <Setter.Value>
                                                                         <DataTemplate>
                                                                             <ComboBox materialDesign:HintAssist.Hint="Required Spec Code" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                                                                      ItemsSource="{Binding DataContext.AvailableSpecCodesForRequirements, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
-                                                                      DisplayMemberPath="DisplayName" SelectedValuePath="SpecCodeDefinitionId"
-                                                                      SelectedValue="{Binding RequiredSpecCodeDefinitionId, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
+                                                                                      ItemsSource="{Binding DataContext.AvailableSpecCodesForRequirements, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
+                                                                                      DisplayMemberPath="DisplayName" SelectedValuePath="SpecCodeDefinitionId"
+                                                                                      SelectedValue="{Binding RequiredSpecCodeDefinitionId, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
                                                                         </DataTemplate>
                                                                     </Setter.Value>
                                                                 </Setter>
@@ -210,7 +223,7 @@
                                                 </ContentControl.Style>
                                             </ContentControl>
                                             <TextBox Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2" materialDesign:HintAssist.Hint="Notes"
-                                     Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                                                     Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -219,6 +232,7 @@
                     </Grid>
                 </materialDesign:TransitionerSlide>
 
+                <!-- Step 5: Review -->
                 <materialDesign:TransitionerSlide>
                     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="16">
                         <StackPanel>
@@ -273,12 +287,57 @@
                                     <TextBlock Text="Specification Codes" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,8"/>
                                     <ItemsControl ItemsSource="{Binding SpecificationCodes}">
                                         <ItemsControl.ItemTemplate>
-                                            <DataTemplate DataType="{x:Type dtos:SoftwareOptionSpecificationCodeCreateDto}">
-                                                <TextBlock Padding="0,8">
-                                                    <Run Text="Category:" FontWeight="Bold"/><Run Text=" "/><Run Text="{Binding Category}"/>
-                                                    <Run Text=" / No:" FontWeight="Bold"/><Run Text=" "/><Run Text="{Binding SpecCodeNo}"/>
-                                                    <Run Text=" / Bit:" FontWeight="Bold"/><Run Text=" "/><Run Text="{Binding SpecCodeBit}"/>
-                                                </TextBlock>
+                                            <DataTemplate DataType="{x:Type viewModels:SpecCodeViewModel}">
+                                                <Border BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1" Margin="0,4" Padding="0,8">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*"/>
+                                                            <ColumnDefinition Width="Auto"/>
+                                                        </Grid.ColumnDefinitions>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+
+                                                        <TextBlock Grid.Row="0" Grid.Column="0" TextWrapping="Wrap" VerticalAlignment="Center">
+                                                            <Run Text="Category:" FontWeight="Bold"/><Run Text=" "/><Run Text="{Binding Category}"/>
+                                                            <Run Text=" / No:" FontWeight="Bold"/><Run Text=" "/><Run Text="{Binding SpecCodeNo}"/>
+                                                            <Run Text=" / Bit:" FontWeight="Bold"/><Run Text=" "/><Run Text="{Binding SpecCodeBit}"/>
+                                                        </TextBlock>
+
+                                                        <materialDesign:PackIcon Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="16,0,0,0" ToolTip="Status">
+                                                            <materialDesign:PackIcon.Style>
+                                                                <Style TargetType="materialDesign:PackIcon" BasedOn="{StaticResource {x:Type materialDesign:PackIcon}}">
+                                                                    <Setter Property="Kind" Value="CloseCircleOutline"/>
+                                                                    <Setter Property="Foreground" Value="{DynamicResource MaterialDesignValidationErrorBrush}"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                                                            <Setter Property="Kind" Value="CheckCircleOutline"/>
+                                                                            <Setter Property="Foreground" Value="{DynamicResource PrimaryHueMidBrush}"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </materialDesign:PackIcon.Style>
+                                                        </materialDesign:PackIcon>
+
+                                                        <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding Description}" FontStyle="Italic"
+                                                                   Foreground="{DynamicResource MaterialDesignBodyLight}" TextWrapping="Wrap" Margin="0,4,0,0">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Grid>
+                                                </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
@@ -291,21 +350,41 @@
                                     <ItemsControl ItemsSource="{Binding Requirements}">
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate DataType="{x:Type viewModels:RequirementViewModel}">
-                                                <Grid Margin="0,8">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <materialDesign:PackIcon Kind="Check" Foreground="{DynamicResource PrimaryHueMidBrush}" VerticalAlignment="Top" Margin="0,4,8,0"/>
-                                                    <TextBlock Grid.Column="1" TextWrapping="Wrap">
-                                                        <Run Text="{Binding Condition, FallbackValue=Requires, Mode=OneWay}" FontWeight="Bold"/>
-                                                        <Run Text=" "/>
-                                                        <Run Text="{Binding RequirementType, FallbackValue='Item', Mode=OneWay}" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
-                                                        <Run Text=":" FontWeight="Bold"/>
-                                                        <Run Text=" "/>
-                                                        <Run Text="{Binding RequiredValueDisplayText, FallbackValue='(Value not set)', Mode=OneWay}" FontStyle="Italic"/>
-                                                    </TextBlock>
-                                                </Grid>
+                                                <!-- ** UPDATED: Requirements Review Card ** -->
+                                                <Border BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1" Margin="0,4" Padding="0,8">
+                                                    <Grid>
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto"/>
+                                                            <RowDefinition Height="Auto"/>
+                                                        </Grid.RowDefinitions>
+
+                                                        <TextBlock Grid.Row="0" TextWrapping="Wrap" VerticalAlignment="Center">
+                                                            <Run Text="{Binding Condition, FallbackValue=Requires, Mode=OneWay}" FontWeight="Bold"/>
+                                                            <Run Text=" "/>
+                                                            <Run Text="{Binding RequirementType, FallbackValue='Item', Mode=OneWay}" Foreground="{DynamicResource PrimaryHueMidBrush}"/>
+                                                            <Run Text=":" FontWeight="Bold"/>
+                                                            <Run Text=" "/>
+                                                            <Run Text="{Binding RequiredValueDisplayText, FallbackValue='(Value not set)', Mode=OneWay}" FontStyle="Italic"/>
+                                                        </TextBlock>
+
+                                                        <TextBlock Grid.Row="1" Text="{Binding Notes}" FontStyle="Italic"
+                                                                   Foreground="{DynamicResource MaterialDesignBodyLight}" TextWrapping="Wrap" Margin="16,4,0,0">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                                                    <Setter Property="Visibility" Value="Visible"/>
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding Text, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
+                                                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Grid>
+                                                </Border>
                                             </DataTemplate>
                                         </ItemsControl.ItemTemplate>
                                     </ItemsControl>
