@@ -17,6 +17,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private readonly IServiceProvider _serviceProvider;
 
         public SnackbarMessageQueue SnackbarMessageQueue { get; }
+        public event Action? LogoutRequested;
 
         private BaseViewModel _currentViewViewModel;
         public BaseViewModel CurrentViewViewModel
@@ -119,22 +120,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         private void ExecuteLogout()
         {
-            var currentMainWindow = Application.Current.MainWindow;
             _authStateProvider.ClearCurrentUser();
-            var loginWindow = _serviceProvider.GetRequiredService<LoginWindow>();
-            if (loginWindow.ShowDialog() == true)
-            {
-                var newMainViewModel = _serviceProvider.GetRequiredService<MainViewModel>();
-                var newMainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-                newMainWindow.DataContext = newMainViewModel;
-                Application.Current.MainWindow = newMainWindow;
-                newMainWindow.Show();
-                currentMainWindow?.Close();
-            }
-            else
-            {
-                Application.Current.Shutdown();
-            }
+            LogoutRequested?.Invoke();
         }
     }
 }
