@@ -58,8 +58,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     case 0: return "Step 1: Core Details";
                     case 1: return "Step 2: Option Numbers";
                     case 2: return "Step 3: Specification Codes";
-                    case 3: return "Step 4: Requirements";
-                    case 4: return "Step 5: Review and Finish";
+                    case 3: return "Step 4: Activation Rules"; // <-- NEW STEP
+                    case 4: return "Step 5: Requirements";
+                    case 5: return "Step 6: Review and Finish"; // <-- Now step 5
                     default: return "Create Software Option";
                 }
             }
@@ -72,7 +73,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         /// <summary>
         /// Indicates if the wizard is on the last step.
         /// </summary>
-        public bool IsOnLastStep => CurrentStepIndex == 4;
+        public bool IsOnLastStep => CurrentStepIndex == 5;
 
         // Main DTO being constructed and eventually saved
         public CreateSoftwareOptionCommandDto NewSoftwareOption { get; }
@@ -94,6 +95,10 @@ namespace RuleArchitect.DesktopClient.ViewModels
         // Lookup data for requirements step
         public ObservableCollection<SoftwareOptionLookupDto> AvailableSoftwareOptionsForRequirements { get; }
         public ObservableCollection<SpecCodeDefinitionLookupDto> AvailableSpecCodesForRequirements { get; }
+
+        public ObservableCollection<ActivationRuleViewModel> ActivationRules { get; }
+        public ICommand AddActivationRuleCommand { get; }
+        public ICommand RemoveActivationRuleCommand { get; }
 
         // Wizard navigation and action commands
         public ICommand NextCommand { get; }
@@ -131,6 +136,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
             AvailableSoftwareOptionsForRequirements = new ObservableCollection<SoftwareOptionLookupDto>();
             AvailableSpecCodesForRequirements = new ObservableCollection<SpecCodeDefinitionLookupDto>();
+            ActivationRules = new ObservableCollection<ActivationRuleViewModel>();
 
             // Subscribe to changes in the SpecificationCodes collection to manage event handlers and validation
             SpecificationCodes.CollectionChanged += (s, e) => {
@@ -170,6 +176,9 @@ namespace RuleArchitect.DesktopClient.ViewModels
             AddRequirementCommand = new RelayCommand(ExecuteAddRequirement);
             RemoveRequirementCommand = new RelayCommand(ExecuteRemoveRequirement, (param) => param is RequirementViewModel);
 
+            AddActivationRuleCommand = new RelayCommand(ExecuteAddActivationRule);
+            RemoveActivationRuleCommand = new RelayCommand(ExecuteRemoveActivationRule, (param) => param is ActivationRuleViewModel);
+
             // Begin loading lookup data asynchronously
             _ = LoadLookupsAsync();
 
@@ -189,6 +198,20 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 }
                 ((RelayCommand)NextCommand).RaiseCanExecuteChanged();
             };
+        }
+
+        // Add these helper methods to the ViewModel:
+        private void ExecuteAddActivationRule()
+        {
+            ActivationRules.Add(new ActivationRuleViewModel { RuleName = "New Rule", ActivationSetting = "Default Setting" });
+        }
+
+        private void ExecuteRemoveActivationRule(object parameter)
+        {
+            if (parameter is ActivationRuleViewModel ruleToRemove)
+            {
+                ActivationRules.Remove(ruleToRemove);
+            }
         }
 
         /// <summary>
@@ -302,6 +325,15 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 OspFileVersion = vm.OspFileVersion,
                 Notes = vm.Notes
             }).ToList();
+
+            NewSoftwareOption.ActivationRules = this.ActivationRules
+                .Select(vm => new SoftwareOptionActivationRuleCreateDto
+                {
+                    RuleName = vm.RuleName,
+                    ActivationSetting = vm.ActivationSetting,
+                    Notes = vm.Notes
+                })
+                .ToList();
         }
 
         /// <summary>
@@ -498,7 +530,15 @@ namespace RuleArchitect.DesktopClient.ViewModels
                         !string.IsNullOrWhiteSpace(sc.SpecCodeNo) &&
                         !string.IsNullOrWhiteSpace(sc.SpecCodeBit));
 
-                case 3: // Requirements
+                
+                case 3: // Activation Rules validation
+                        // Ensure every rule has a name and setting before proceeding.
+                    return ActivationRules.All(ar =>
+                        !string.IsNullOrWhiteSpace(ar.RuleName) &&
+                        !string.IsNullOrWhiteSpace(ar.ActivationSetting)
+                    );
+
+                case 4: // Requirements
                     foreach (var req in Requirements) { req.Validate(); }
                     return Requirements.All(req => !req.HasErrors);
 
