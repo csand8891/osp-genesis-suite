@@ -1,8 +1,3 @@
-Here are the detailed README.md files for each of the requested projects.
-
-RuleArchitect/README.md
-Markdown
-
 # RuleArchitect - Data Layer
 
 ## Overview
