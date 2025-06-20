@@ -62,10 +62,11 @@ namespace RuleArchitect.DesktopClient.ViewModels
             get => SpecCodeToEdit.SoftwareOptionActivationRuleId;
             set { if (SpecCodeToEdit.SoftwareOptionActivationRuleId != value) { SpecCodeToEdit.SoftwareOptionActivationRuleId = value; OnPropertyChanged(); } }
         }
-        public string? SpecificInterpretation
+        private bool _isActive = true;
+        public bool IsActive
         {
-            get => SpecCodeToEdit.SpecificInterpretation;
-            set { if (SpecCodeToEdit.SpecificInterpretation != value) { SpecCodeToEdit.SpecificInterpretation = value; OnPropertyChanged(); } }
+            get => _isActive;
+            set => SetProperty(ref _isActive, value);
         }
 
         public ObservableCollection<ActivationRuleLookupDto> AvailableActivationRules { get; }
