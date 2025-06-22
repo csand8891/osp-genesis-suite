@@ -43,7 +43,12 @@
                                       DisplayMemberPath="Name" SelectedValuePath="ControlSystemId" 
                                       SelectedValue="{Binding ControlSystemId, ValidatesOnNotifyDataErrors=True}" 
                                       Style="{StaticResource MaterialDesignFloatingHintComboBox}" Margin="0,8"/>
-                            <TextBox materialDesign:HintAssist.Hint="Option Number Display" Text="{Binding PrimaryOptionNumberDisplay, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,8"/>
+                            <TextBox
+                                materialDesign:HintAssist.Hint="Option Number"
+                                materialDesign:HintAssist.HelperText="4 alphanumeric characters (e.g., M515)"
+                                MaxLength="4"
+                                Text="{Binding NewSoftwareOption.PrimaryOptionNumberDisplay, UpdateSourceTrigger=PropertyChanged}"
+                                Margin="0,8" />
                             <TextBox materialDesign:HintAssist.Hint="Notes" Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource MaterialDesignFloatingHintTextBox}" TextWrapping="Wrap" MinLines="3" Margin="0,8"/>
                         </StackPanel>
                     </ScrollViewer>
