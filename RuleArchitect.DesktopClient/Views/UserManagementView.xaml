@@ -65,8 +65,7 @@
                 <TextBox Grid.Row="1" Grid.Column="1" 
                          Text="{Binding UserName, UpdateSourceTrigger=PropertyChanged}" 
                          IsEnabled="{Binding IsNewUser}" 
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         materialDesign:HintAssist.Hint="Enter username"
+                         Style="{StaticResource ShorterOutlinedTextBox}" materialDesign:HintAssist.Hint="Enter username"
                          materialDesign:HintAssist.Foreground="{DynamicResource PrimaryHueMidBrush}"
                          Margin="0,0,0,12"/>
 
@@ -90,16 +89,14 @@
                              materialDesign:HintAssist.Hint="{Binding IsNewUser, Converter={StaticResource PasswordHintConverter}}"
                              materialDesign:HintAssist.Foreground="{DynamicResource PrimaryHueMidBrush}"
                              materialDesign:PasswordBoxAssist.Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, NotifyOnValidationError=True}"
-                             Style="{StaticResource MaterialDesignOutlinedPasswordBox}" 
-                             Margin="0,0,0,12"/>
+                             Style="{StaticResource ShorterOutlinedPasswordBox}"  Margin="0,0,0,12"/>
 
                 <Label Grid.Row="5" Grid.Column="0" Content="Confirm Password:"/>
                 <PasswordBox x:Name="EditConfirmPasswordBox" Grid.Row="5" Grid.Column="1" 
                              materialDesign:HintAssist.Hint="Confirm password"
                              materialDesign:HintAssist.Foreground="{DynamicResource PrimaryHueMidBrush}"
                              materialDesign:PasswordBoxAssist.Password="{Binding ConfirmPassword, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ValidatesOnExceptions=True, NotifyOnValidationError=True}"
-                             Style="{StaticResource MaterialDesignOutlinedPasswordBox}" 
-                             Margin="0,0,0,12"/>
+                             Style="{StaticResource ShorterOutlinedPasswordBox}"  Margin="0,0,0,12"/>
             </Grid>
         </DataTemplate>
     </UserControl.Resources>
@@ -171,17 +168,17 @@
                               BorderThickness="0" GridLinesVisibility="Horizontal">
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="ID" Binding="{Binding UserId}" Width="Auto" 
-                                               ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" 
-                                               EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
+                                                ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" 
+                                                EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
                             <DataGridTextColumn Header="Username" Binding="{Binding UserName}" Width="*" 
-                                               ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" 
-                                               EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
+                                                ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" 
+                                                EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
                             <DataGridTextColumn Header="Role" Binding="{Binding Role}" Width="*" 
-                                               ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" 
-                                               EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
+                                                ElementStyle="{StaticResource MaterialDesignDataGridTextColumnStyle}" 
+                                                EditingElementStyle="{StaticResource MaterialDesignDataGridTextColumnEditingStyle}"/>
                             <DataGridCheckBoxColumn Header="Active" Binding="{Binding IsActive}" Width="Auto" 
-                                                  ElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnStyle}" 
-                                                  EditingElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnEditingStyle}"/>
+                                                    ElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnStyle}" 
+                                                    EditingElementStyle="{StaticResource MaterialDesignDataGridCheckBoxColumnEditingStyle}"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </materialDesign:Card>
@@ -202,11 +199,11 @@
 
                         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
                             <Button Command="{Binding SaveUserCommand}" Content="Save" 
-                                   Style="{StaticResource PrimaryRaisedButton}" 
-                                   Margin="0,0,8,0" Width="80"/>
+                                    Style="{StaticResource PrimaryRaisedButton}" 
+                                    Margin="0,0,8,0" Width="80"/>
                             <Button Command="{Binding CancelEditCommand}" Content="Cancel" 
-                                   Style="{StaticResource PrimaryOutlinedButton}" 
-                                   Width="80"/>
+                                    Style="{StaticResource PrimaryOutlinedButton}" 
+                                    Width="80"/>
                         </StackPanel>
                     </Grid>
                 </materialDesign:Card>
@@ -220,8 +217,8 @@
                                  Foreground="{DynamicResource PrimaryHueMidBrush}"
                                  Width="30" Height="30" Margin="0,0,12,0"/>
                     <TextBlock Text="Loading..." VerticalAlignment="Center" 
-                              Style="{StaticResource MaterialDesignBody1TextBlock}"
-                              Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
+                               Style="{StaticResource MaterialDesignBody1TextBlock}"
+                               Foreground="{DynamicResource PrimaryHueDarkBrush}"/>
                 </StackPanel>
             </materialDesign:Card>
         </Grid>

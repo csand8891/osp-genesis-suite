@@ -14,17 +14,16 @@ using RuleArchitect.DesktopClient.ViewModels;
 using RuleArchitect.DesktopClient.Views;
 using System;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace RuleArchitect.DesktopClient
 {
     public partial class App : Application
     {
-        private ServiceProvider _serviceProvider;
+        private readonly ServiceProvider _serviceProvider;
 
         public App()
         {
-            this.ShutdownMode = ShutdownMode.OnLastWindowClose;
+            this.ShutdownMode = ShutdownMode.OnExplicitShutdown; // This is correct
             ServiceCollection services = new ServiceCollection();
             ConfigureServices(services);
             _serviceProvider = services.BuildServiceProvider();
@@ -55,12 +54,12 @@ namespace RuleArchitect.DesktopClient
 
             // Notification Service
             services.AddSingleton<HeraldKit.Interfaces.INotificationService, WpfNotificationService>();
-            // RE-ADDED: The SnackbarMessageQueue is required for Material Design notifications.
             services.AddSingleton(new SnackbarMessageQueue(TimeSpan.FromSeconds(3)));
 
             // --- ViewModels ---
             services.AddTransient<LoginViewModel>();
-            services.AddSingleton<MainViewModel>();
+            // MainViewModel is now transient so we can create a fresh one after re-login.
+            services.AddTransient<MainViewModel>();
             services.AddTransient<AdminDashboardViewModel>();
             services.AddTransient<SoftwareOptionsViewModel>();
             services.AddTransient<EditSoftwareOptionViewModel>();
@@ -71,7 +70,8 @@ namespace RuleArchitect.DesktopClient
 
             // --- Windows and Views ---
             services.AddTransient<LoginWindow>();
-            services.AddSingleton<MainWindow>();
+            // MainWindow is now transient.
+            services.AddTransient<MainWindow>();
             services.AddTransient<EditSpecCodeDialog>();
             services.AddTransient<AddSoftwareOptionWizardView>();
         }
@@ -87,7 +87,7 @@ namespace RuleArchitect.DesktopClient
                 {
                     context.Database.Migrate();
                 }
-                catch (System.Exception ex)
+                catch (Exception ex)
                 {
                     MessageBox.Show($"Database operation failed: {ex.Message}", "Operation Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     Current.Shutdown(-1);
@@ -95,45 +95,71 @@ namespace RuleArchitect.DesktopClient
                 }
             }
 
+            ShowLogin();
+        }
+
+        private void ShowLogin()
+        {
             var loginWindow = _serviceProvider.GetService<LoginWindow>();
-            bool? loginResult = false;
-
-            if (loginWindow != null)
+            if (loginWindow.ShowDialog() == true)
             {
-                loginResult = loginWindow.ShowDialog();
-            }
-            else
-            {
-                MessageBox.Show("Critical error: Login window could not be initialized.", "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Current.Shutdown(-1);
-                return;
-            }
-
-            if (loginResult == true)
-            {
-                var authStateProvider = _serviceProvider.GetRequiredService<IAuthenticationStateProvider>();
-                UserDto currentUser = authStateProvider.CurrentUser;
-
-                if (currentUser == null)
-                {
-                    MessageBox.Show("Login succeeded but no user information is available. Shutting down.", "Authentication Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    Current.Shutdown(-1);
-                    return;
-                }
-
-                var mainViewModel = _serviceProvider.GetRequiredService<MainViewModel>();
-
-                var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-                mainWindow.DataContext = mainViewModel;
-                mainWindow.Title = $"OSP Genesis Suite - ({currentUser.Role})";
-
-                Application.Current.MainWindow = mainWindow;
-                mainWindow.Show();
+                ShowMainWindow();
             }
             else
             {
                 Current.Shutdown();
             }
+        }
+
+        private void ShowMainWindow()
+        {
+            var authStateProvider = _serviceProvider.GetRequiredService<IAuthenticationStateProvider>();
+            UserDto currentUser = authStateProvider.CurrentUser;
+
+            if (currentUser == null)
+            {
+                MessageBox.Show("Login succeeded but no user information is available. Shutting down.", "Authentication Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Current.Shutdown(-1);
+                return;
+            }
+
+            var mainViewModel = _serviceProvider.GetRequiredService<MainViewModel>();
+
+            // Subscribe to the logout event
+            mainViewModel.LogoutRequested += OnLogoutRequested;
+
+            var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+
+            // Unsubscribe from the old window's Closed event if it exists, to prevent memory leaks
+            mainWindow.Closed -= MainWindow_Closed;
+            // Subscribe to the new window's Closed event to handle app shutdown
+            mainWindow.Closed += MainWindow_Closed;
+
+            mainWindow.DataContext = mainViewModel;
+            mainWindow.Title = $"OSP Genesis Suite - ({currentUser.Role})";
+
+            Application.Current.MainWindow = mainWindow;
+            mainWindow.Show();
+        }
+
+        private void OnLogoutRequested()
+        {
+            // Close the current main window.
+            // This will trigger its 'Closed' event, but we need to remove our generic shutdown handler first.
+            if (Application.Current.MainWindow is MainWindow currentMain)
+            {
+                currentMain.Closed -= MainWindow_Closed; // Prevent shutdown
+                currentMain.Close();
+            }
+
+            // Show the login window again.
+            ShowLogin();
+        }
+
+        // This handler now ONLY handles the case where the user closes the main window with the 'X' button.
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            Application.Current.Shutdown();
         }
     }
 }

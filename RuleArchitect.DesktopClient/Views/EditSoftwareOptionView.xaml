@@ -39,8 +39,8 @@
         <ScrollViewer Grid.Row="0" Grid.RowSpan="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
             <StackPanel Orientation="Vertical" Margin="16,8,16,0">
                 <TextBlock Text="{Binding ViewTitle}" 
-                           Foreground="{DynamicResource MaterialDesignBody}"
-                           Style="{StaticResource MaterialDesignHeadline5TextBlock}"
+                           Foreground="{DynamicResource PrimaryHueDarkBrush}"
+                           Style="{StaticResource MaterialDesignHeadline6TextBlock}"
                            Margin="0,8,0,12"/>
 
                 <TabControl

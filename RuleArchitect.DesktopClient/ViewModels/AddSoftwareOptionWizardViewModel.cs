@@ -203,7 +203,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         // Add these helper methods to the ViewModel:
         private void ExecuteAddActivationRule()
         {
-            ActivationRules.Add(new ActivationRuleViewModel { RuleName = "New Rule", ActivationSetting = "Default Setting" });
+            ActivationRules.Add(new ActivationRuleViewModel { RuleName = "New Rule", ActivationSetting = "" });
         }
 
         private void ExecuteRemoveActivationRule(object parameter)
