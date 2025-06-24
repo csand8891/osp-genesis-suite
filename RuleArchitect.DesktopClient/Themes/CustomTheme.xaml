@@ -40,6 +40,7 @@
     <sys:Double x:Key="MaterialDesignButtonFontSize">14</sys:Double>
     <sys:Double x:Key="MaterialDesignCaptionFontSize">12</sys:Double>
 
+
     <Style TargetType="materialDesign:Snackbar">
         <Setter Property="Background" Value="{DynamicResource PrimaryHueDarkBrush}"/>
         <Setter Property="Foreground" Value="{DynamicResource PrimaryHueDarkForegroundBrush}"/>
@@ -101,6 +102,14 @@
 
     <Style x:Key="ShorterOutlinedPasswordBox" TargetType="PasswordBox" BasedOn="{StaticResource MaterialDesignOutlinedPasswordBox}">
         <Setter Property="Padding" Value="16,8,16,8" />
+    </Style>
+
+    <Style x:Key="WrappingMaterialDesignTextBox" TargetType="TextBox" BasedOn="{StaticResource MaterialDesignFloatingHintTextBox}">
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="AcceptsReturn" Value="True" />
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+        <!--<Setter Property="MinHeight" Value="80" />
+        <Setter Property="MaxHeight" Value="150" />-->
     </Style>
 
     <Style x:Key="PrimaryRaisedButton" BasedOn="{StaticResource MaterialDesignRaisedButton}" TargetType="Button">
