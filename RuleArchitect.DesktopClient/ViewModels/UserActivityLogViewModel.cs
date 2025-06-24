@@ -144,8 +144,25 @@ namespace RuleArchitect.DesktopClient.ViewModels
             switch (log.TargetEntityType)
             {
                 case "SoftwareOption":
-                    var editVm = _serviceProvider.GetRequiredService<EditSoftwareOptionViewModel>();
-                    await editVm.LoadSoftwareOptionAsync(log.TargetEntityId.Value);
+                    //var editVm = _serviceProvider.GetRequiredService<EditSoftwareOptionViewModel>();
+                    //await editVm.LoadSoftwareOptionAsync(log.TargetEntityId.Value);
+                    //dialogContent = new EditSoftwareOptionView { DataContext = editVm };
+                    //break;
+
+                    // Manually construct the ViewModel because its constructor requires a specific ICommand
+                    // that cannot be resolved automatically by the dependency injection container.
+                    var authProvider = _serviceProvider.GetRequiredService<IAuthenticationStateProvider>();
+                    var scopeFactory = _serviceProvider.GetRequiredService<IServiceScopeFactory>();
+                    var notificationService = _serviceProvider.GetRequiredService<INotificationService>();
+
+                    var editVm = new EditSoftwareOptionViewModel(
+                        authProvider,
+                        scopeFactory,
+                        notificationService,
+                        DialogHost.CloseDialogCommand // Use the static command from MaterialDesignThemes
+                    );
+
+                    await editVm.LoadSoftwareOptionAsync(log.TargetEntityId.Value, true); // Open in read-only mode
                     dialogContent = new EditSoftwareOptionView { DataContext = editVm };
                     break;
 
