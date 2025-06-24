@@ -44,6 +44,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private string? _checkedBy;
         private DateTime? _checkedDate;
         private int? _controlSystemId;
+        private string? _controlSystemName; // Backing field for Control System Name
         private int _version;
         private DateTime _lastModifiedDate;
         private string? _lastModifiedBy;
@@ -56,7 +57,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public ObservableCollection<string> AvailableSpecBits { get; } = new ObservableCollection<string>(Enumerable.Range(0, 8).Select(i => i.ToString()));
 
         #region Public Properties
-        public string ViewTitle => _isNewSoftwareOption ? "Create New Software Option" : $"Edit Software Option (ID: {SoftwareOptionId})";
+        // UPDATED: ViewTitle now uses PrimaryName and ControlSystemName
+        public string ViewTitle => _isNewSoftwareOption ? "Create New Software Option" : $"Edit Software Option: {PrimaryName} ({ControlSystemName})";
         public bool IsLoading
         {
             get => _isLoading;
@@ -111,9 +113,24 @@ namespace RuleArchitect.DesktopClient.ViewModels
             {
                 if (SetProperty(ref _controlSystemId, value, MarkScalarAsModified))
                 {
+                    // UPDATED: This now also sets the name for the ViewTitle
+                    ControlSystemName = AvailableControlSystems.FirstOrDefault(cs => cs.ControlSystemId == value)?.Name;
                     PopulateAvailableCategories();
                     _ = LoadSpecCodeDefinitionsForRequirementsAsync();
                     Validate();
+                }
+            }
+        }
+
+        // ADDED: New property to hold the name of the control system for the title
+        public string? ControlSystemName
+        {
+            get => _controlSystemName;
+            set
+            {
+                if (SetProperty(ref _controlSystemName, value))
+                {
+                    OnPropertyChanged(nameof(ViewTitle));
                 }
             }
         }
@@ -249,6 +266,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     //CheckedBy = _originalSoftwareOptionDto.CheckedBy;
                     //CheckedDate = _originalSoftwareOptionDto.CheckedDate;
                     ControlSystemId = _originalSoftwareOptionDto.ControlSystemId;
+                    ControlSystemName = _originalSoftwareOptionDto.ControlSystemName; // UPDATED: Set the name on load
                     Version = _originalSoftwareOptionDto.Version;
                     LastModifiedDate = _originalSoftwareOptionDto.LastModifiedDate;
                     LastModifiedBy = _originalSoftwareOptionDto.LastModifiedBy;
