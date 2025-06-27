@@ -1,0 +1,92 @@
+﻿<UserControl x:Class="RuleArchitect.DesktopClient.Views.OrderManagementView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
+             xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="800"
+             d:DataContext="{d:DesignInstance vm:OrderManagementViewModel, IsDesignTimeCreatable=False}">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <materialDesign:DialogHost Identifier="OrderManagementDialogHost">
+        <Grid Margin="16">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock Grid.Row="0" Style="{StaticResource MaterialDesignHeadline5TextBlock}" Foreground="{DynamicResource PrimaryHueDarkBrush}" Text="Order Management"/>
+
+            <Border Grid.Row="1" Margin="0,16,0,0" Padding="16" BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="1" CornerRadius="4">
+                <StackPanel Orientation="Horizontal">
+                    <TextBox materialDesign:HintAssist.Hint="Search Order #"
+                             Text="{Binding CurrentFilter.OrderNumber, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                             MinWidth="150"
+                             VerticalAlignment="Center"/>
+
+                    <TextBox materialDesign:HintAssist.Hint="Search Customer"
+                             Text="{Binding CurrentFilter.CustomerName, UpdateSourceTrigger=PropertyChanged}"
+                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                             MinWidth="150"
+                             Margin="16,0,0,0"
+                             VerticalAlignment="Center"/>
+
+                    <ComboBox materialDesign:HintAssist.Hint="Filter by Status"
+                              ItemsSource="{Binding AllOrderStatuses}"
+                              SelectedItem="{Binding CurrentFilter.Status}"
+                              Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                              MinWidth="150"
+                              Margin="16,0,0,0"
+                              VerticalAlignment="Center"/>
+
+                    <Button Content="Filter" Command="{Binding ApplyFiltersCommand}" Margin="16,0,0,0" VerticalAlignment="Bottom"/>
+                    <Button Content="Clear" Command="{Binding ClearFiltersCommand}" Style="{StaticResource MaterialDesignOutlinedButton}" Margin="8,0,0,0" VerticalAlignment="Bottom"/>
+                </StackPanel>
+            </Border>
+
+            <DataGrid Grid.Row="2" Margin="0,16,0,0"
+                      ItemsSource="{Binding FilteredOrdersView}"
+                      CanUserAddRows="False"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True"
+                      materialDesign:DataGridAssist.CellPadding="13 8 8 8"
+                      materialDesign:DataGridAssist.ColumnHeaderPadding="8">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Order #" Binding="{Binding OrderNumber}" FontWeight="Bold"/>
+                    <DataGridTextColumn Header="Customer" Binding="{Binding CustomerName}"/>
+                    <DataGridTextColumn Header="Status" Binding="{Binding Status}"/>
+                    <DataGridTextColumn Header="Order Date" Binding="{Binding OrderDate, StringFormat='d'}"/>
+                    <DataGridTextColumn Header="Required Date" Binding="{Binding RequiredDate, StringFormat='d'}"/>
+                    <DataGridTextColumn Header="Created By" Binding="{Binding CreatedByUserName}"/>
+                    <DataGridTextColumn Header="Last Modified" Binding="{Binding LastModifiedAt, StringFormat='g'}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <ProgressBar Grid.Row="2" IsIndeterminate="True" Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
+                         VerticalAlignment="Top" Margin="0,16,0,0"/>
+
+            <Button Style="{StaticResource MaterialDesignFloatingActionButton}"
+                    Grid.Row="2"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="0,0,24,24"
+                    Command="{Binding ShowCreateOrderDialogCommand}"
+                    ToolTip="Create Order from PDF">
+                <materialDesign:PackIcon Kind="FilePlusOutline" Width="24" Height="24" />
+            </Button>
+
+        </Grid>
+    </materialDesign:DialogHost>
+</UserControl>
