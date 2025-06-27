@@ -67,6 +67,8 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<UserManagementViewModel>();
             services.AddTransient<EditSpecCodeDialogViewModel>();
             services.AddTransient<UserActivityLogViewModel>();
+            services.AddTransient<OrderManagementViewModel>();
+
 
             // --- Windows and Views ---
             services.AddTransient<LoginWindow>();
@@ -74,6 +76,9 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<MainWindow>();
             services.AddTransient<EditSpecCodeDialog>();
             services.AddTransient<AddSoftwareOptionWizardView>();
+
+            services.AddTransient<CreateOrderFromPdfViewModel>();
+            services.AddTransient<Views.CreateOrderFromPdfView>();
         }
 
         protected override void OnStartup(StartupEventArgs e)

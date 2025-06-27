@@ -59,6 +59,9 @@
             <DataTemplate DataType="{x:Type viewModels:AddSoftwareOptionWizardViewModel}">
                 <views:AddSoftwareOptionWizardView />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type viewModels:OrderManagementViewModel}">
+                <views:OrderManagementView/>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

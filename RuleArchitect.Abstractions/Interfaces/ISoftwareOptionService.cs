@@ -64,5 +64,7 @@ namespace RuleArchitect.Abstractions.Interfaces
         Task<List<SpecCodeDefinitionDetailDto>> GetSpecCodeDefinitionsForControlSystemAsync(int controlSystemId);
 
         Task<SpecCodeDefinitionDetailDto?> FindSpecCodeDefinitionAsync(int controlSystemId, string category, string specCodeNo, string specCodeBit);
+
+        Task<List<SoftwareOptionDto>> FindSoftwareOptionsByOptionNumberAsync(string optionNumber);
     }
 }

@@ -20,7 +20,7 @@ namespace GenesisOrderGateway.Services
         // In PdfOrderGatewayService.cs
 
         // Core patterns for item codes (these remain the same)
-        private const string CoreFormat1Pattern = @"[A-Z0-9]{8}\.[MP]\d{4}-C\d{2}";
+        private const string CoreFormat1Pattern = @"[A-Z0-9]{8}\.[MP][A-Z0-9]{4}-C\d{2}";
         private const string CoreFormat2Pattern = @"[A-Z]{2,4}-\d{3,6}(?:-[A-Z0-9]{3,7})*-\d{1,3}";
 
         // Simplified and corrected construction for the combined pattern string
