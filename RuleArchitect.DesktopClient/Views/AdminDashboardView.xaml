@@ -5,12 +5,17 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
              xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+             xmlns:converters="clr-namespace:RuleArchitect.DesktopClient.Converters"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"  mc:Ignorable="d"
              FontFamily="{materialDesign:MaterialDesignFont}"
              d:DataContext="{d:DesignInstance Type=vm:AdminDashboardViewModel, IsDesignTimeCreatable=True}"
              d:DesignHeight="700" d:DesignWidth="1200">
+
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </UserControl.Resources>
 
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
@@ -19,7 +24,6 @@
     </i:Interaction.Triggers>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-        <!-- Using a Grid for more robust layout of dashboard sections -->
         <Grid Margin="16">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -27,7 +31,7 @@
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <TextBlock Grid.Row="0" Text="Administrator Dashboard" Style="{StaticResource MaterialDesignHeadline4TextBlock}" Margin="0,0,0,24" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Row="0" Text="Administrator Dashboard" Style="{StaticResource MaterialDesignHeadline4TextBlock}" Foreground="{DynamicResource PrimaryHueMidBrush}" Margin="0,0,0,24" HorizontalAlignment="Center"/>
 
             <!-- Summary Cards Section -->
             <WrapPanel Grid.Row="1" HorizontalAlignment="Center" Orientation="Horizontal">
@@ -50,7 +54,8 @@
                             <TextBlock Text="Add, edit, or delete software option rulesheets and their configurations." TextWrapping="Wrap" MinHeight="60"/>
                         </StackPanel>
                         <Button Grid.Row="2" Style="{StaticResource MaterialDesignFlatButton}"
-                                Command="{Binding GoToRulesheetsCommand}"
+                                Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{x:Type vm:SoftwareOptionsViewModel}"
                                 HorizontalAlignment="Right" Margin="8"
                                 Content="GO TO RULESHEETS"/>
                     </Grid>
@@ -74,7 +79,8 @@
                             <TextBlock Text="Create new user accounts, manage roles, and modify existing user details." TextWrapping="Wrap" MinHeight="60"/>
                         </StackPanel>
                         <Button Grid.Row="2" Style="{StaticResource MaterialDesignFlatButton}"
-                                Command="{Binding GoToUserManagementCommand}"
+                                Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{x:Type vm:UserManagementViewModel}"
                                 HorizontalAlignment="Right" Margin="8"
                                 Content="GO TO USER MANAGEMENT"/>
                     </Grid>
@@ -98,9 +104,39 @@
                             <TextBlock Text="Oversee the status of all orders within the system and track their progress." TextWrapping="Wrap" MinHeight="60"/>
                         </StackPanel>
                         <Button Grid.Row="2" Style="{StaticResource MaterialDesignFlatButton}"
-                                Command="{Binding GoToOrdersCommand}"
+                                Command="{Binding DataContext.NavigateCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{x:Type vm:OrderManagementViewModel}"
                                 HorizontalAlignment="Right" Margin="8"
                                 Content="GO TO ORDERS"/>
+                    </Grid>
+                </materialDesign:Card>
+
+                <materialDesign:Card Width="300" Margin="16" Padding="0" UniformCornerRadius="8">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <materialDesign:ColorZone Mode="PrimaryMid" Padding="16">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="DatabaseExport" VerticalAlignment="Center" Margin="0,0,8,0" Width="24" Height="24"/>
+                                <TextBlock Text="System Utilities" Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
+                            </StackPanel>
+                        </materialDesign:ColorZone>
+                        <StackPanel Grid.Row="1" Margin="16">
+                            <TextBlock Text="Backup Database" FontWeight="Bold" Margin="0,0,0,8"/>
+                            <TextBlock Text="Create a secure copy of the application's SQLite database file to a location of your choice." TextWrapping="Wrap" MinHeight="40"/>
+                            <!-- **NEW TEXTBLOCK FOR LAST BACKUP TIME** -->
+                            <TextBlock Margin="0,8,0,0" FontStyle="Italic" Foreground="{DynamicResource MaterialDesignBodyLightBrush}">
+                                <Run Text="Last backed up:"/>
+                                <Run Text="{Binding LastBackupDisplay, FallbackValue=Never}" FontWeight="SemiBold"/>
+                            </TextBlock>
+                        </StackPanel>
+                        <Button Grid.Row="2" Style="{StaticResource MaterialDesignFlatButton}"
+                                Command="{Binding BackupDatabaseCommand}"
+                                HorizontalAlignment="Right" Margin="8"
+                                Content="BACKUP DATABASE"/>
                     </Grid>
                 </materialDesign:Card>
 
@@ -113,7 +149,6 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- Existing User Activity Chart -->
                 <materialDesign:Card Grid.Column="0" Margin="16,0,8,0" Padding="16" UniformCornerRadius="8">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -138,7 +173,6 @@
                     </Grid>
                 </materialDesign:Card>
 
-                <!-- NEW: Rulesheet Distribution Chart -->
                 <materialDesign:Card Grid.Column="1" Margin="8,0,16,0" Padding="16" UniformCornerRadius="8">
                     <StackPanel>
                         <TextBlock Text="Rulesheets by Control System" 
@@ -149,6 +183,13 @@
                     </StackPanel>
                 </materialDesign:Card>
 
+            </Grid>
+
+            <Grid Grid.Row="0" Grid.RowSpan="3" Background="#4C000000"
+                  Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                <ProgressBar Style="{StaticResource MaterialDesignCircularProgressBar}"
+                             IsIndeterminate="True" Value="0" Width="50" Height="50"
+                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
             </Grid>
 
         </Grid>

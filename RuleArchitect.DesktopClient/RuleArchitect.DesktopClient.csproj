@@ -265,6 +265,7 @@
     <Compile Include="Converters\NullToBooleanConverter.cs" />
     <Compile Include="Converters\RequirementToVisibilityConverter.cs" />
     <Compile Include="Converters\TrueFalseToCustomStringConverter.cs" />
+    <Compile Include="Converters\UtcToLocalTimeConverter.cs" />
     <Compile Include="LoginWindow.xaml.cs">
       <DependentUpon>LoginWindow.xaml</DependentUpon>
     </Compile>

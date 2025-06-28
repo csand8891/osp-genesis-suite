@@ -4,13 +4,20 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:viewModels="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+             xmlns:converters="clr-namespace:RuleArchitect.DesktopClient.Converters"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d" 
              d:DataContext="{d:DesignInstance Type=viewModels:UserActivityLogViewModel, IsDesignTimeCreatable=True}"
              d:DesignHeight="600" d:DesignWidth="950">
 
-    <!-- **UPDATED**: Added Interaction.Triggers to load data automatically. -->
+    <UserControl.Resources>
+        <!-- Add the new converter here -->
+        <converters:UtcToLocalTimeConverter x:Key="UtcToLocalConverter"/>
+        <!-- Keep your existing converters -->
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+    </UserControl.Resources>
+
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Loaded">
             <i:InvokeCommandAction Command="{Binding LoadLogsCommand}" />
@@ -104,7 +111,8 @@
                       materialDesign:DataGridAssist.CellPadding="13 8 8 8"
                       materialDesign:DataGridAssist.ColumnHeaderPadding="8">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="Auto"/>
+                    <!-- **MODIFIED COLUMN** -->
+                    <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, Converter={StaticResource UtcToLocalConverter}, StringFormat='yyyy-MM-dd HH:mm:ss'}" Width="Auto"/>
                     <DataGridTextColumn Header="User" Binding="{Binding UserName}" Width="Auto"/>
                     <DataGridTemplateColumn Header="Activity Type" Width="Auto">
                         <DataGridTemplateColumn.CellTemplate>

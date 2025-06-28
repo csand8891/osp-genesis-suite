@@ -1,11 +1,13 @@
 ﻿// File: RuleArchitect.DesktopClient/ViewModels/AdminDashboardViewModel.cs
 using GenesisSentry.Interfaces;
+using HeraldKit.Interfaces;
 using LiveCharts;
 using LiveCharts.Wpf;
-using MaterialDesignColors;
+using Microsoft.Win32;
 using RuleArchitect.Abstractions.DTOs.Activity;
 using RuleArchitect.Abstractions.Interfaces;
 using RuleArchitect.DesktopClient.Commands;
+using RuleArchitect.DesktopClient.Properties;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,105 +23,124 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private readonly IOrderService _orderService;
         private readonly IUserService _userService;
         private readonly IUserActivityLogService _activityLogService;
+        private readonly IDatabaseService _databaseService;
+        private readonly INotificationService _notificationService;
+        private readonly IAuthenticationStateProvider _authStateProvider;
 
-        // --- Manually Implemented Properties with Backing Fields ---
-
+        // --- Properties with Backing Fields ---
         private int _totalRulesheets;
-        public int TotalRulesheets
-        {
-            get => _totalRulesheets;
-            set => SetProperty(ref _totalRulesheets, value);
-        }
+        public int TotalRulesheets { get => _totalRulesheets; set => SetProperty(ref _totalRulesheets, value); }
 
         private int _activeUsers;
-        public int ActiveUsers
-        {
-            get => _activeUsers;
-            set => SetProperty(ref _activeUsers, value);
-        }
+        public int ActiveUsers { get => _activeUsers; set => SetProperty(ref _activeUsers, value); }
 
         private int _ordersPendingReview;
-        public int OrdersPendingReview
-        {
-            get => _ordersPendingReview;
-            set => SetProperty(ref _ordersPendingReview, value);
-        }
+        public int OrdersPendingReview { get => _ordersPendingReview; set => SetProperty(ref _ordersPendingReview, value); }
 
         private SeriesCollection _activitySeries;
-        public SeriesCollection ActivitySeries
-        {
-            get => _activitySeries;
-            set => SetProperty(ref _activitySeries, value);
-        }
+        public SeriesCollection ActivitySeries { get => _activitySeries; set => SetProperty(ref _activitySeries, value); }
 
         private string[] _activityLabels;
-        public string[] ActivityLabels
-        {
-            get => _activityLabels;
-            private set => SetProperty(ref _activityLabels, value);
-        }
+        public string[] ActivityLabels { get => _activityLabels; private set => SetProperty(ref _activityLabels, value); }
 
         private SeriesCollection _rulesheetDistributionSeries;
-        public SeriesCollection RulesheetDistributionSeries
-        {
-            get => _rulesheetDistributionSeries;
-            set => SetProperty(ref _rulesheetDistributionSeries, value);
-        }
-
-        private string[] _rulesheetDistributionLabels;
-        public string[] RulesheetDistributionLabels
-        {
-            get => _rulesheetDistributionLabels;
-            private set => SetProperty(ref _rulesheetDistributionLabels, value);
-        }
+        public SeriesCollection RulesheetDistributionSeries { get => _rulesheetDistributionSeries; set => SetProperty(ref _rulesheetDistributionSeries, value); }
 
         private bool _isLoading;
-        public bool IsLoading
-        {
-            get => _isLoading;
-            private set
-            {
-                // Use the SetProperty overload that takes an action to update commands
-                SetProperty(ref _isLoading, value, () =>
-                {
-                    // Manually notify commands that their CanExecute status may have changed
-                    (LoadDashboardDataCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                    (GoToRulesheetsCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                    (GoToUserManagementCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                    (GoToOrdersCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                });
-            }
-        }
+        public bool IsLoading { get => _isLoading; private set => SetProperty(ref _isLoading, value, () => { ((RelayCommand)LoadDashboardDataCommand).RaiseCanExecuteChanged(); ((RelayCommand)BackupDatabaseCommand).RaiseCanExecuteChanged(); }); }
+
+        private string _lastBackupDisplay = "Never";
+        // **FIXED**: Changed 'private set' to 'set' to make the property writable by the binding engine.
+        public string LastBackupDisplay { get => _lastBackupDisplay; set => SetProperty(ref _lastBackupDisplay, value); }
 
         public Func<double, string> YFormatter { get; } = value => value.ToString("N0");
 
-        // --- Manually Implemented Commands ---
+        // --- Commands ---
         public ICommand LoadDashboardDataCommand { get; }
-        public ICommand GoToRulesheetsCommand { get; }
-        public ICommand GoToUserManagementCommand { get; }
-        public ICommand GoToOrdersCommand { get; }
-        public ICommand GoToReportsCommand { get; } // From original code
+        public ICommand BackupDatabaseCommand { get; }
 
         public AdminDashboardViewModel(
             ISoftwareOptionService softwareOptionService,
-            IOrderService orderService, IUserService userService, IUserActivityLogService activityLogService)
+            IOrderService orderService,
+            IUserService userService,
+            IUserActivityLogService activityLogService,
+            IDatabaseService databaseService,
+            INotificationService notificationService,
+            IAuthenticationStateProvider authStateProvider)
         {
             _softwareOptionService = softwareOptionService ?? throw new ArgumentNullException(nameof(softwareOptionService));
             _orderService = orderService ?? throw new ArgumentNullException(nameof(orderService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _activityLogService = activityLogService ?? throw new ArgumentNullException(nameof(activityLogService));
+            _databaseService = databaseService ?? throw new ArgumentNullException(nameof(databaseService));
+            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
+            _authStateProvider = authStateProvider ?? throw new ArgumentNullException(nameof(authStateProvider));
 
             _activitySeries = new SeriesCollection();
             _activityLabels = Array.Empty<string>();
             _rulesheetDistributionSeries = new SeriesCollection();
-            _rulesheetDistributionLabels = Array.Empty<string>();
 
-            // Initialize commands in the constructor using your original RelayCommand class
             LoadDashboardDataCommand = new RelayCommand(async () => await LoadDataAsync(), () => !IsLoading);
-            GoToRulesheetsCommand = new RelayCommand(() => ExecuteGoToRulesheets(), () => !IsLoading);
-            GoToUserManagementCommand = new RelayCommand(() => ExecuteGoToUserManagement(), () => !IsLoading);
-            GoToOrdersCommand = new RelayCommand(() => ExecuteGoToOrders(), () => !IsLoading);
-            GoToReportsCommand = new RelayCommand(() => ExecuteGoToReports(), () => !IsLoading);
+            BackupDatabaseCommand = new RelayCommand(async () => await ExecuteBackupDatabaseAsync(), () => !IsLoading);
+        }
+
+        private void UpdateLastBackupTime()
+        {
+            var lastBackupTime = Settings.Default.LastBackupTime;
+            if (lastBackupTime != default(DateTime))
+            {
+                LastBackupDisplay = lastBackupTime.ToString("g"); // General short date/time
+            }
+            else
+            {
+                LastBackupDisplay = "Never";
+            }
+        }
+
+        private async Task ExecuteBackupDatabaseAsync()
+        {
+            var currentUser = _authStateProvider.CurrentUser;
+            if (currentUser == null)
+            {
+                _notificationService.ShowError("Cannot perform backup. Current user is not authenticated.", "Authentication Error");
+                return;
+            }
+
+            var saveFileDialog = new SaveFileDialog
+            {
+                FileName = $"RuleArchitect_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.sqlite",
+                Filter = "SQLite Database Files (*.sqlite)|*.sqlite|All files (*.*)|*.*",
+                Title = "Save Database Backup"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                IsLoading = true;
+                try
+                {
+                    bool success = await _databaseService.BackupDatabaseAsync(saveFileDialog.FileName, currentUser.UserId, currentUser.UserName);
+                    if (success)
+                    {
+                        // **SAVE AND UPDATE DISPLAY FROM VIEWMODEL**
+                        Settings.Default.LastBackupTime = DateTime.Now;
+                        Settings.Default.Save();
+                        UpdateLastBackupTime();
+                        _notificationService.ShowSuccess($"Database successfully backed up to:\n{saveFileDialog.FileName}", "Backup Complete");
+                    }
+                    else
+                    {
+                        _notificationService.ShowError("Failed to create database backup. The database file might be in use or inaccessible. Please check application logs for details.", "Backup Failed", isCritical: true);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _notificationService.ShowError($"An unexpected error occurred during backup: {ex.Message}", "Backup Error", isCritical: true);
+                }
+                finally
+                {
+                    IsLoading = false;
+                }
+            }
         }
 
         private async Task LoadDataAsync()
@@ -127,6 +148,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
             IsLoading = true;
             try
             {
+                UpdateLastBackupTime();
+
                 var allOptions = await _softwareOptionService.GetAllSoftwareOptionsAsync();
                 TotalRulesheets = allOptions?.Count ?? 0;
 
@@ -139,20 +162,17 @@ namespace RuleArchitect.DesktopClient.ViewModels
                         .OrderByDescending(x => x.Count)
                         .ToList();
 
-                    RulesheetDistributionLabels = distribution.Select(d => d.ControlSystem).ToArray();
-
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         RulesheetDistributionSeries.Clear();
-                        // Example color palette (use your theme or custom colors)
                         Brush[] pieColors = new Brush[]
                         {
                             (Brush)Application.Current.FindResource("SecondaryHueLightBrush"),
                             (Brush)Application.Current.FindResource("SecondaryHueMidBrush"),
                             (Brush)Application.Current.FindResource("PrimaryHueDarkBrush"),
                             (Brush)Application.Current.FindResource("SecondaryHueDarkBrush"),
-                            Brushes.Orange, // fallback
-                            Brushes.Green   // fallback
+                            Brushes.Orange,
+                            Brushes.Green
                         };
 
                         int colorIndex = 0;
@@ -163,7 +183,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                                 Title = d.ControlSystem,
                                 Values = new ChartValues<int> { d.Count },
                                 DataLabels = true,
-                                Fill = pieColors[colorIndex % pieColors.Length] // Cycle through colors
+                                Fill = pieColors[colorIndex % pieColors.Length]
                             });
                             colorIndex++;
                         }
@@ -176,12 +196,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 var sevenDaysAgo = DateTime.UtcNow.AddDays(-7).Date;
                 var logs = await _activityLogService.GetActivityLogsAsync(new ActivityLogFilterDto { DateFrom = sevenDaysAgo });
                 var activityByDay = logs
-                    .GroupBy(l => l.Timestamp.Date)
+                    .GroupBy(l => l.Timestamp.ToLocalTime().Date)
                     .Select(g => new { Date = g.Key, Count = g.Count() })
                     .OrderBy(x => x.Date)
                     .ToList();
 
-                var dateRange = Enumerable.Range(0, 7).Select(offset => DateTime.UtcNow.AddDays(-6 + offset).Date);
+                var dateRange = Enumerable.Range(0, 7).Select(offset => DateTime.Now.AddDays(-6 + offset).Date);
                 var chartData = from date in dateRange
                                 join activity in activityByDay on date equals activity.Date into gj
                                 from subActivity in gj.DefaultIfEmpty()
@@ -210,26 +230,6 @@ namespace RuleArchitect.DesktopClient.ViewModels
             {
                 IsLoading = false;
             }
-        }
-
-        private void ExecuteGoToRulesheets()
-        {
-            // TODO: Implement navigation logic
-        }
-
-        private void ExecuteGoToUserManagement()
-        {
-            // TODO: Implement navigation logic
-        }
-
-        private void ExecuteGoToOrders()
-        {
-            // TODO: Implement navigation logic
-        }
-
-        private void ExecuteGoToReports()
-        {
-            // TODO: Implement navigation logic
         }
     }
 }

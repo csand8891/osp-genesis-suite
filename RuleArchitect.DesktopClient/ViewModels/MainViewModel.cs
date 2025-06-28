@@ -65,6 +65,12 @@ namespace RuleArchitect.DesktopClient.ViewModels
 
         public ICommand LogoutCommand { get; }
 
+        /// <summary>
+        /// A generic command that can be called from child views to request navigation.
+        /// The CommandParameter should be the Type of the ViewModel to navigate to.
+        /// </summary>
+        public ICommand NavigateCommand { get; }
+
         public MainViewModel(IAuthenticationStateProvider authStateProvider, IServiceProvider serviceProvider, SnackbarMessageQueue snackbarMessageQueue)
         {
             _authStateProvider = authStateProvider;
@@ -77,10 +83,25 @@ namespace RuleArchitect.DesktopClient.ViewModels
             ToggleMenuCommand = new RelayCommand(() => IsMenuOpen = !IsMenuOpen);
             LogoutCommand = new RelayCommand(ExecuteLogout);
 
+            // Command to allow child views to request navigation
+            NavigateCommand = new RelayCommand(param =>
+            {
+                if (param is Type vmType)
+                {
+                    NavigateTo(vmType);
+                }
+            });
+
+
             if (CurrentUser != null)
             {
                 BuildNavigationForRole();
-                SelectedNavigationItem = NavigationItems.FirstOrDefault();
+                // Set initial view to the first item in the navigation (e.g., Dashboard)
+                var initialVmType = NavigationItems.FirstOrDefault()?.TargetViewModelType;
+                if (initialVmType != null)
+                {
+                    NavigateTo(initialVmType);
+                }
             }
         }
 
@@ -95,8 +116,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
                 {
                     DisplayName = displayName,
                     TargetViewModelType = targetVmType,
-                    // **UPDATED**: This now correctly assigns the icon.
                     IconKind = icon,
+                    // The command for the side navigation remains the same
                     NavigateCommand = new RelayCommand(() => NavigateTo(targetVmType))
                 });
             }
@@ -110,13 +131,29 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     AddNavItem("Manage Users", typeof(UserManagementViewModel), PackIconKind.AccountGroupOutline);
                     AddNavItem("Activity Log", typeof(UserActivityLogViewModel), PackIconKind.History);
                     break;
+                    // Other roles can be added here
             }
         }
 
         private void NavigateTo(Type viewModelType)
         {
             if (viewModelType == null) return;
+
+            // Prevent navigating to the same view again
+            if (CurrentViewViewModel?.GetType() == viewModelType)
+            {
+                return;
+            }
+
             CurrentViewViewModel = (BaseViewModel)_serviceProvider.GetRequiredService(viewModelType);
+
+            // Update the selected item in the navigation menu to reflect the change
+            var newSelectedItem = NavigationItems.FirstOrDefault(nav => nav.TargetViewModelType == viewModelType);
+            if (_selectedNavigationItem != newSelectedItem)
+            {
+                _selectedNavigationItem = newSelectedItem;
+                OnPropertyChanged(nameof(SelectedNavigationItem));
+            }
         }
 
         private void ExecuteLogout()

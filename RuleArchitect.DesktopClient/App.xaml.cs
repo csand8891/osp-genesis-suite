@@ -42,6 +42,7 @@ namespace RuleArchitect.DesktopClient
             services.AddScoped<ISoftwareOptionService, SoftwareOptionService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IUserActivityLogService, UserActivityLogService>();
+            services.AddScoped<IDatabaseService, DatabaseService>();
 
             // GenesisSentry Services
             services.AddTransient<IPasswordHasher, PasswordHasher>();
