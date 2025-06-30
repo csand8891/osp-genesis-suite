@@ -1,4 +1,4 @@
-﻿
+﻿using RuleArchitect.Abstractions.DTOs.Auth;
 using RuleArchitect.Abstractions.DTOs.Notification;
 using System;
 using System.Collections.Generic;
@@ -37,10 +37,10 @@ namespace RuleArchitect.Abstractions.Interfaces
         void ClearAll();
 
         /// <summary>
-        /// Retrieves all current notifications from the store.
+        /// Retrieves all current notifications from the store for a specific user, including system-wide and role-based notifications.
         /// </summary>
         /// <returns>An enumerable collection of NotificationMessage.</returns>
-        IEnumerable<NotificationMessage> GetAll();
+        IEnumerable<NotificationMessage> GetAll(UserDto user);
 
         /// <summary>
         /// Gets a specific notification by its ID.
@@ -50,10 +50,10 @@ namespace RuleArchitect.Abstractions.Interfaces
         NotificationMessage GetById(Guid messageId);
 
         /// <summary>
-        /// Gets the count of unread notifications.
+        /// Gets the count of unread notifications for a specific user.
         /// </summary>
         /// <returns>The number of unread notifications.</returns>
-        int GetUnreadCount();
+        int GetUnreadCount(UserDto user);
 
         /// <summary>
         /// Marks a specific notification as read.

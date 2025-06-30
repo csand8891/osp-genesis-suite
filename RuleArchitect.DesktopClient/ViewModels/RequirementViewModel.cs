@@ -56,6 +56,18 @@ namespace RuleArchitect.DesktopClient.ViewModels
             "requires", "excludes", "minimumversion"
         };
 
+        public static List<string> AvailableOspFileNames { get; } = new List<string>
+        {
+            "NC - (L/M)NC*",
+            "PLC - LU*/MA*",
+            "Easy Modelling - SOECA*",
+            "Custom API - (L/M)CAPI*",
+            "OSP Suite - SUITE*",
+            "OSP Suite Utility - SUITEUTY*",
+            "Volante System - VSYS*",
+            "Volante Driver - VDRV*"
+        };
+
         public string RequirementType
         {
             get => _requirementType;

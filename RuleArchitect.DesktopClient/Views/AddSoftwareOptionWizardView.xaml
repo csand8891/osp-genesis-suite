@@ -4,11 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
-             xmlns:viewModels="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+             xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
              xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              xmlns:converters="clr-namespace:RuleArchitect.DesktopClient.Converters"
              mc:Ignorable="d" 
-             d:DataContext="{d:DesignInstance Type=viewModels:AddSoftwareOptionWizardViewModel, IsDesignTimeCreatable=False}"
+             d:DataContext="{d:DesignInstance Type=vm:AddSoftwareOptionWizardViewModel, IsDesignTimeCreatable=False}"
              d:DesignHeight="600" d:DesignWidth="700"
              Width="500">
     <UserControl.Resources>
@@ -97,7 +97,7 @@
                     <ListBox Grid.Row="0" ItemsSource="{Binding OptionNumbers}" HorizontalContentAlignment="Stretch"
                              ScrollViewer.VerticalScrollBarVisibility="Auto">
                         <ListBox.ItemTemplate>
-                            <DataTemplate DataType="{x:Type viewModels:OptionNumberWizardViewModel}">
+                            <DataTemplate DataType="{x:Type vm:OptionNumberWizardViewModel}">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -146,7 +146,7 @@
                              HorizontalContentAlignment="Stretch"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemTemplate>
-                            <DataTemplate DataType="{x:Type viewModels:SpecCodeViewModel}">
+                            <DataTemplate DataType="{x:Type vm:SpecCodeViewModel}">
                                 <Border Margin="0,4,8,4" Padding="16" CornerRadius="4" 
                                         Background="{DynamicResource MaterialDesignPaper}"
                                         Effect="{DynamicResource MaterialDesignElevationShadow2}">
@@ -219,7 +219,7 @@
                              HorizontalContentAlignment="Stretch"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemTemplate>
-                            <DataTemplate DataType="{x:Type viewModels:ActivationRuleViewModel}">
+                            <DataTemplate DataType="{x:Type vm:ActivationRuleViewModel}">
                                 <materialDesign:Card Margin="0,4,8,4" Padding="16" UniformCornerRadius="4">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -231,14 +231,28 @@
                                                 CommandParameter="{Binding}" ToolTip="Remove this rule">
                                             <materialDesign:PackIcon Kind="Close"/>
                                         </Button>
+
                                         <StackPanel Grid.Column="0">
-                                            <TextBox materialDesign:HintAssist.Hint="Activation Setting" 
-                                                     Text="{Binding ActivationSetting, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"
-                                                     Style="{StaticResource WrappingMaterialDesignTextBox}"
-                                                     Margin="0,0,0,8"/>
-                                            <TextBox materialDesign:HintAssist.Hint="Notes (Optional)" 
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBox Grid.Column="0"
+                                                         materialDesign:HintAssist.Hint="Rule Name"
+                                                         Text="{Binding RuleName, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"
+                                                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                                                <TextBlock Grid.Column="1" Text="=" VerticalAlignment="Center" Margin="8,16,8,0" FontWeight="Bold"/>
+                                                <TextBox Grid.Column="2"
+                                                         materialDesign:HintAssist.Hint="Activation Setting"
+                                                         Text="{Binding ActivationSetting, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"
+                                                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                                            </Grid>
+                                            <TextBox materialDesign:HintAssist.Hint="Notes (Optional)"
                                                      Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}"
-                                                     Style="{StaticResource WrappingMaterialDesignTextBox}"/>
+                                                     Style="{StaticResource WrappingMaterialDesignTextBox}"
+                                                     Margin="0,8,0,0"/>
                                         </StackPanel>
                                     </Grid>
                                 </materialDesign:Card>
@@ -277,7 +291,7 @@
                              HorizontalContentAlignment="Stretch"
                              ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                         <ListBox.ItemTemplate>
-                            <DataTemplate DataType="{x:Type viewModels:RequirementViewModel}">
+                            <DataTemplate DataType="{x:Type vm:RequirementViewModel}">
                                 <Border Margin="0,4,8,4" Padding="16" CornerRadius="4"
                                         Background="{DynamicResource MaterialDesignPaper}"
                                         Effect="{DynamicResource MaterialDesignElevationShadow2}">
@@ -298,10 +312,10 @@
                                             <materialDesign:PackIcon Kind="Close"/>
                                         </Button>
                                         <ComboBox Grid.Row="0" Grid.Column="0" materialDesign:HintAssist.Hint="Requirement Type" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                                                  ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableRequirementTypes}}"
+                                                  ItemsSource="{Binding Source={x:Static vm:RequirementViewModel.AvailableRequirementTypes}}"
                                                   SelectedValue="{Binding RequirementType, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,8"/>
                                         <ComboBox Grid.Row="0" Grid.Column="1" materialDesign:HintAssist.Hint="Condition" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
-                                                  ItemsSource="{Binding Source={x:Static viewModels:RequirementViewModel.AvailableConditions}}"
+                                                  ItemsSource="{Binding Source={x:Static vm:RequirementViewModel.AvailableConditions}}"
                                                   SelectedValue="{Binding Condition, UpdateSourceTrigger=PropertyChanged}" Margin="8,0,0,8"/>
                                         <ContentControl Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,8,0,8" Content="{Binding .}">
                                             <ContentControl.Style>
@@ -336,6 +350,23 @@
                                                                                   ItemsSource="{Binding DataContext.AvailableSpecCodesForRequirements, RelativeSource={RelativeSource AncestorType=local:AddSoftwareOptionWizardView}}"
                                                                                   DisplayMemberPath="DisplayName" SelectedValuePath="SpecCodeDefinitionId"
                                                                                   SelectedValue="{Binding RequiredSpecCodeDefinitionId, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
+                                                                    </DataTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding RequirementType}" Value="OSP File Version">
+                                                            <Setter Property="ContentTemplate">
+                                                                <Setter.Value>
+                                                                    <DataTemplate>
+                                                                        <StackPanel>
+                                                                            <ComboBox materialDesign:HintAssist.Hint="OSP File Name" Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                                                                      ItemsSource="{Binding Source={x:Static vm:RequirementViewModel.AvailableOspFileNames}}"
+                                                                                      SelectedValue="{Binding OspFileName, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"/>
+                                                                            <TextBox materialDesign:HintAssist.Hint="OSP File Version"
+                                                                                     Text="{Binding OspFileVersion, UpdateSourceTrigger=PropertyChanged, ValidatesOnNotifyDataErrors=True}"
+                                                                                     Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                                                                     Margin="0,16,0,0"/>
+                                                                        </StackPanel>
                                                                     </DataTemplate>
                                                                 </Setter.Value>
                                                             </Setter>
@@ -400,12 +431,12 @@
                                 </Grid>
                             </StackPanel>
                         </materialDesign:Card>
-                        <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" Visibility="{Binding OptionNumbers.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}">
+                        <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" Visibility="{Binding OptionNumbers.Count, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel>
                                 <TextBlock Text="Option Numbers" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,8"/>
                                 <ItemsControl ItemsSource="{Binding OptionNumbers}">
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate DataType="{x:Type viewModels:OptionNumberWizardViewModel}">
+                                        <DataTemplate DataType="{x:Type vm:OptionNumberWizardViewModel}">
                                             <Border BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1" Margin="0,4">
                                                 <TextBlock Text="{Binding OptionNumber}" Padding="0,8"/>
                                             </Border>
@@ -414,12 +445,12 @@
                                 </ItemsControl>
                             </StackPanel>
                         </materialDesign:Card>
-                        <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" Visibility="{Binding SpecificationCodes.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}">
+                        <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" Visibility="{Binding SpecificationCodes.Count, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel>
                                 <TextBlock Text="Specification Codes" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,8"/>
                                 <ItemsControl ItemsSource="{Binding SpecificationCodes}">
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate DataType="{x:Type viewModels:SpecCodeViewModel}">
+                                        <DataTemplate DataType="{x:Type vm:SpecCodeViewModel}">
                                             <Border BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1" Margin="0,4" Padding="0,8">
                                                 <Grid>
                                                     <Grid.ColumnDefinitions>
@@ -472,12 +503,12 @@
                                 </ItemsControl>
                             </StackPanel>
                         </materialDesign:Card>
-                        <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" Visibility="{Binding ActivationRules.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}">
+                        <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" Visibility="{Binding ActivationRules.Count, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel>
                                 <TextBlock Text="Activation Rules" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,8"/>
                                 <ItemsControl ItemsSource="{Binding ActivationRules}">
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate DataType="{x:Type viewModels:ActivationRuleViewModel}">
+                                        <DataTemplate DataType="{x:Type vm:ActivationRuleViewModel}">
                                             <Border BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1" Margin="0,4" Padding="0,8">
                                                 <Grid>
                                                     <Grid.RowDefinitions>
@@ -485,8 +516,8 @@
                                                         <RowDefinition Height="Auto"/>
                                                     </Grid.RowDefinitions>
                                                     <TextBlock Grid.Row="0" TextWrapping="Wrap" VerticalAlignment="Center">
-                                                        <Run Text="Setting:" FontWeight="Bold"/>
-                                                        <Run Text=" "/>
+                                                        <Run Text="{Binding RuleName, FallbackValue='Rule', Mode=OneWay}" FontWeight="Bold"/>
+                                                        <Run Text=" = "/>
                                                         <Run Text="{Binding ActivationSetting, Mode=OneWay}"/>
                                                     </TextBlock>
                                                     <TextBlock Grid.Row="1" Text="{Binding Notes}" FontStyle="Italic"
@@ -512,12 +543,12 @@
                                 </ItemsControl>
                             </StackPanel>
                         </materialDesign:Card>
-                        <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" Visibility="{Binding Requirements.IsEmpty, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=invert}">
+                        <materialDesign:Card Padding="16" Margin="0,0,0,16" UniformCornerRadius="8" Visibility="{Binding Requirements.Count, Converter={StaticResource BooleanToVisibilityConverter}}">
                             <StackPanel>
                                 <TextBlock Text="Requirements" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Margin="0,0,0,8"/>
                                 <ItemsControl ItemsSource="{Binding Requirements}">
                                     <ItemsControl.ItemTemplate>
-                                        <DataTemplate DataType="{x:Type viewModels:RequirementViewModel}">
+                                        <DataTemplate DataType="{x:Type vm:RequirementViewModel}">
                                             <Border BorderBrush="{DynamicResource MaterialDesignDivider}" BorderThickness="0,0,0,1" Margin="0,4" Padding="0,8">
                                                 <Grid>
                                                     <Grid.RowDefinitions>

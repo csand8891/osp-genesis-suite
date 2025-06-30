@@ -42,12 +42,14 @@ namespace RuleArchitect.DesktopClient
             services.AddScoped<ISoftwareOptionService, SoftwareOptionService>();
             services.AddScoped<IOrderService, OrderService>();
             services.AddScoped<IUserActivityLogService, UserActivityLogService>();
+            services.AddScoped<IDatabaseService, DatabaseService>();
 
             // GenesisSentry Services
             services.AddTransient<IPasswordHasher, PasswordHasher>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddSingleton<IAuthenticationStateProvider, GenesisSentry.Services.AuthenticationStateProvider>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<RuleArchitect.Abstractions.Interfaces.INotificationStore, HeraldKit.Implementations.DatabaseNotificationStore>();
 
             // GenesisOrderGateway Service
             services.AddTransient<IGenesisOrderGateway, PdfOrderGatewayService>();
@@ -67,6 +69,9 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<UserManagementViewModel>();
             services.AddTransient<EditSpecCodeDialogViewModel>();
             services.AddTransient<UserActivityLogViewModel>();
+            services.AddTransient<OrderManagementViewModel>();
+            services.AddTransient<NotificationCenterViewModel>();
+
 
             // --- Windows and Views ---
             services.AddTransient<LoginWindow>();
@@ -74,6 +79,9 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<MainWindow>();
             services.AddTransient<EditSpecCodeDialog>();
             services.AddTransient<AddSoftwareOptionWizardView>();
+
+            services.AddTransient<CreateOrderFromPdfViewModel>();
+            services.AddTransient<Views.CreateOrderFromPdfView>();
         }
 
         protected override void OnStartup(StartupEventArgs e)

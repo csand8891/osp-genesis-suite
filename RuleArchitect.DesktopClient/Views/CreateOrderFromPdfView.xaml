@@ -1,0 +1,111 @@
+﻿<UserControl x:Class="RuleArchitect.DesktopClient.Views.CreateOrderFromPdfView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RuleArchitect.DesktopClient.Views"
+             xmlns:vm="clr-namespace:RuleArchitect.DesktopClient.ViewModels"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=vm:CreateOrderFromPdfViewModel, IsDesignTimeCreatable=False}"
+             d:DesignHeight="700" d:DesignWidth="800"
+             Width="700">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MaterialDesignThemes.Wpf;component/Themes/MaterialDesignTheme.Defaults.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Style="{StaticResource MaterialDesignHeadline6TextBlock}" Foreground="{DynamicResource PrimaryHueDarkBrush}" Text="Create Order from PDF"/>
+
+        <Button Grid.Row="1" Command="{Binding SelectAndParsePdfCommand}"
+                Style="{StaticResource MaterialDesignRaisedButton}"
+                HorizontalAlignment="Left" Margin="0,16,0,0">
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon Kind="FilePdfBox" Margin="0,0,8,0"/>
+                <TextBlock Text="Select and Parse PDF..."/>
+            </StackPanel>
+        </Button>
+
+        <Grid Grid.Row="2" Margin="0,16,0,0" IsEnabled="{Binding ParsedOrder.IsSuccess}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Collapsed" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ParsedOrder.IsSuccess}" Value="True">
+                                <Setter Property="Visibility" Value="Visible" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBox materialDesign:HintAssist.Hint="Sales Order"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Text="{Binding ParsedOrder.SalesOrderNumber}"
+                         IsReadOnly="True"
+                         MinWidth="150"/>
+                <TextBox materialDesign:HintAssist.Hint="Serial #"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Text="{Binding ParsedOrder.MachineSerialNumber}"
+                         IsReadOnly="True"
+                         MinWidth="150"
+                         Margin="16,0,0,0"/>
+                <TextBox materialDesign:HintAssist.Hint="Control System"
+                         Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                         Text="{Binding ParsedOrder.ControlSystemName}"
+                         IsReadOnly="True"
+                         MinWidth="150"
+                         Margin="16,0,0,0"/>
+            </StackPanel>
+
+            <TextBlock Grid.Row="1" Style="{StaticResource MaterialDesignSubtitle1TextBlock}" Text="Parsed Line Items"/>
+            <TextBlock Grid.Row="1" HorizontalAlignment="Right" FontStyle="Italic" Text="{Binding PdfFilePath}"/>
+
+            <DataGrid Grid.Row="2" ItemsSource="{Binding LineItems}" Margin="0,8,0,0" CanUserAddRows="False" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Header="" Binding="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <DataGridTextColumn Header="Option Number" Binding="{Binding ParsedItem.SoftwareOptionNumber}" Width="*"/>
+                    <DataGridTextColumn Header="Description" Binding="{Binding ParsedItem.Description}" Width="2*"/>
+
+                    <DataGridTemplateColumn Header="Rulesheet" Width="2*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="Matching UI will go here" FontStyle="Italic" Foreground="Gray"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                    Style="{StaticResource MaterialDesignFlatButton}"
+                    Content="CANCEL"/>
+            <Button Command="{Binding CreateOrderCommand}"
+                    IsDefault="True"
+                    Content="CREATE ORDER" Margin="8,0,0,0"/>
+        </StackPanel>
+
+        <ProgressBar IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource BooleanToVisibilityConverter}}"
+                     Grid.RowSpan="4" VerticalAlignment="Top" Margin="-16,0"/>
+    </Grid>
+</UserControl>

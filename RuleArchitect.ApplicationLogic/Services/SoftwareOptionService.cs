@@ -412,5 +412,30 @@ namespace RuleArchitect.ApplicationLogic.Services
             }
         }
         #endregion
+
+        public async Task<List<SoftwareOptionDto>> FindSoftwareOptionsByOptionNumberAsync(string optionNumber)
+        {
+            if (string.IsNullOrWhiteSpace(optionNumber))
+            {
+                return new List<SoftwareOptionDto>();
+            }
+
+            return await _context.OptionNumberRegistries
+                .AsNoTracking()
+                .Where(onr => onr.OptionNumber.ToLower() == optionNumber.ToLower())
+                .Select(onr => onr.SoftwareOption)
+                .Select(so => new SoftwareOptionDto
+                {
+                    SoftwareOptionId = so.SoftwareOptionId,
+                    PrimaryName = so.PrimaryName,
+                    AlternativeNames = so.AlternativeNames,
+                    ControlSystemId = so.ControlSystemId.GetValueOrDefault(),
+                    ControlSystemName = so.ControlSystem != null ? so.ControlSystem.Name : null,
+                    Version = so.Version,
+                    LastModifiedDate = so.LastModifiedDate,
+                    LastModifiedBy = so.LastModifiedBy
+                })
+                .ToListAsync();
+        }
     }
 }
