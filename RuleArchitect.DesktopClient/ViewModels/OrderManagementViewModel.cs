@@ -33,6 +33,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
             set => SetProperty(ref _isLoading, value, () => ((RelayCommand)LoadOrdersCommand).RaiseCanExecuteChanged());
         }
 
+
         public ObservableCollection<OrderDetailDto> Orders { get; }
         public ICollectionView FilteredOrdersView { get; }
 

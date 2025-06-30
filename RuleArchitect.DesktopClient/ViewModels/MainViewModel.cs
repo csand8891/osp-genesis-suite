@@ -128,6 +128,7 @@ namespace RuleArchitect.DesktopClient.ViewModels
                     AddNavItem("Dashboard", typeof(AdminDashboardViewModel), PackIconKind.ViewDashboardOutline);
                     AddNavItem("Rulesheets", typeof(SoftwareOptionsViewModel), PackIconKind.FileDocumentMultipleOutline);
                     AddNavItem("Order Management", typeof(OrderManagementViewModel), PackIconKind.ClipboardListOutline);
+                    //AddNavItem("Notifications", typeof(NotificationCenterViewModel), PackIconKind.BellOutline);
                     AddNavItem("Manage Users", typeof(UserManagementViewModel), PackIconKind.AccountGroupOutline);
                     AddNavItem("Activity Log", typeof(UserActivityLogViewModel), PackIconKind.History);
                     break;

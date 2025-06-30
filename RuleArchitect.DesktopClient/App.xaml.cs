@@ -49,6 +49,7 @@ namespace RuleArchitect.DesktopClient
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddSingleton<IAuthenticationStateProvider, GenesisSentry.Services.AuthenticationStateProvider>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<RuleArchitect.Abstractions.Interfaces.INotificationStore, HeraldKit.Implementations.DatabaseNotificationStore>();
 
             // GenesisOrderGateway Service
             services.AddTransient<IGenesisOrderGateway, PdfOrderGatewayService>();
@@ -69,6 +70,7 @@ namespace RuleArchitect.DesktopClient
             services.AddTransient<EditSpecCodeDialogViewModel>();
             services.AddTransient<UserActivityLogViewModel>();
             services.AddTransient<OrderManagementViewModel>();
+            services.AddTransient<NotificationCenterViewModel>();
 
 
             // --- Windows and Views ---
