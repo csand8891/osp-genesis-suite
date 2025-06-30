@@ -19,6 +19,8 @@ namespace RuleArchitect.DesktopClient.ViewModels
         private readonly IGenesisOrderGateway _orderGateway;
         private readonly IOrderService _orderService;
         private readonly INotificationService _notificationService;
+        private readonly ISoftwareOptionService _softwareOptionService;
+        private readonly IAuthenticationStateProvider _authStateProvider;
 
         private bool _isBusy;
         public bool IsBusy { get => _isBusy; private set => SetProperty(ref _isBusy, value); }
@@ -35,11 +37,13 @@ namespace RuleArchitect.DesktopClient.ViewModels
         public ICommand SelectAndParsePdfCommand { get; }
         public ICommand CreateOrderCommand { get; }
 
-        public CreateOrderFromPdfViewModel(IGenesisOrderGateway orderGateway, IOrderService orderService, INotificationService notificationService)
+        public CreateOrderFromPdfViewModel(IGenesisOrderGateway orderGateway, IOrderService orderService, INotificationService notificationService, ISoftwareOptionService softwareOptionService, IAuthenticationStateProvider authStateProvider)
         {
             _orderGateway = orderGateway;
             _orderService = orderService;
             _notificationService = notificationService;
+            _softwareOptionService = softwareOptionService;
+            _authStateProvider = authStateProvider;
 
             LineItems = new ObservableCollection<ParsedLineItemViewModel>();
             SelectAndParsePdfCommand = new RelayCommand(async () => await ExecuteSelectAndParsePdfAsync(), () => !IsBusy);
@@ -69,7 +73,11 @@ namespace RuleArchitect.DesktopClient.ViewModels
                         _notificationService.ShowSuccess("PDF parsed successfully!", "Parse Complete");
                         foreach (var item in ParsedOrder.LineItems)
                         {
-                            LineItems.Add(new ParsedLineItemViewModel(item));
+                            var vm = new ParsedLineItemViewModel(item);
+                            LineItems.Add(vm);
+
+                            // --- ADD THIS ---
+                            await vm.FindMatchingRulesheetsAsync(_softwareOptionService);
                         }
                     }
                     else
@@ -92,26 +100,40 @@ namespace RuleArchitect.DesktopClient.ViewModels
         }
         private async Task ExecuteCreateOrderAsync()
         {
-            // 1. Filter for only the selected line items
-            var selectedItems = LineItems.Where(li => li.IsSelected).ToList();
+            var selectedItems = LineItems
+                .Where(li => li.IsSelected && li.SelectedRulesheet != null)
+                .ToList();
 
             if (!selectedItems.Any())
             {
-                _notificationService.ShowWarning("No line items were selected.", "Cannot Create Order");
+                _notificationService.ShowWarning("No line items with a matched and selected rulesheet were chosen.", "Cannot Create Order");
                 return;
             }
 
-            // This is where we will eventually map the selected items to SoftwareOptionIds
-            // For now, this demonstrates the selection logic. We will complete this in the next step.
-            _notificationService.ShowSuccess($"{selectedItems.Count} line items selected. Order creation logic will go here.", "Ready to Create");
+            // You will need to get the MachineModelId from your UI
+            // For now, let's assume it's hardcoded for demonstration
+            var machineModelId = 1; // Replace with actual UI selection
 
-            // Example of what will happen next:
-            // var createDto = new CreateOrderDto { ... };
-            // createDto.SoftwareOptionIds = selectedItems.Select(i => i.MatchedSoftwareOptionId).ToList();
-            // await _orderService.CreateOrderAsync(createDto);
+            var createDto = new CreateOrderDto
+            {
+                OrderNumber = ParsedOrder.SalesOrderNumber,
+                CustomerName = "Customer from PDF", // You might need to parse this from the PDF as well
+                OrderDate = DateTime.UtcNow,
+                ControlSystemId = selectedItems.First().SelectedRulesheet.ControlSystemId, // Assumes all have the same
+                MachineModelId = machineModelId,
+                SoftwareOptionIds = selectedItems.Select(i => i.SelectedRulesheet.SoftwareOptionId).ToList()
+            };
 
-            // Close the dialog by passing a "true" result
-            DialogHost.CloseDialogCommand.Execute(true, null);
+            try
+            {
+                await _orderService.CreateOrderAsync(createDto, _authStateProvider.CurrentUser.UserId);
+                _notificationService.ShowSuccess($"Order '{createDto.OrderNumber}' created successfully.", "Order Created");
+                DialogHost.CloseDialogCommand.Execute(true, null);
+            }
+            catch (Exception ex)
+            {
+                _notificationService.ShowError($"Failed to create order: {ex.Message}", "Creation Error", isCritical: true);
+            }
         }
     }
 }
