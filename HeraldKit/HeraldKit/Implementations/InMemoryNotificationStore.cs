@@ -1,4 +1,6 @@
-﻿using HeraldKit.Interfaces; // Ensure you have the 's' if your folder/namespace is 'Interaces'
+﻿// In HeraldKit/Implementations/InMemoryNotificationStore.cs
+using HeraldKit.Interfaces;
+using RuleArchitect.Abstractions.DTOs.Auth;
 using RuleArchitect.Abstractions.DTOs.Notification;
 using RuleArchitect.Abstractions.Interfaces;
 using System;
@@ -6,10 +8,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace HeraldKit.Implementations
-{  // Or HeraldKit.Implementations if you created that sub-folder/namespace
-
+{
     /// <summary>
     /// A simple, non-persistent implementation of INotificationStore using an in-memory list.
+    /// NOTE: This implementation does not filter by user and returns all notifications. It is suitable for scenarios where only one user is logged in at a time or for system-wide notifications.
     /// </summary>
     public class InMemoryNotificationStore : INotificationStore
     {
@@ -62,11 +64,15 @@ namespace HeraldKit.Implementations
             }
         }
 
-        public IEnumerable<NotificationMessage> GetAll()
+        /// <summary>
+        /// Retrieves all current notifications from the store. This in-memory implementation does not filter by user.
+        /// </summary>
+        public IEnumerable<NotificationMessage> GetAll(UserDto user)
         {
             lock (_lock)
             {
-                // Return a copy to prevent external modification issues
+                // This is an in-memory store, so for simplicity, we return all notifications
+                // regardless of the user. A more complex implementation could handle user-specific messages.
                 return _notifications.ToList();
             }
         }
@@ -79,7 +85,10 @@ namespace HeraldKit.Implementations
             }
         }
 
-        public int GetUnreadCount()
+        /// <summary>
+        /// Gets the count of all unread notifications. This in-memory implementation does not filter by user.
+        /// </summary>
+        public int GetUnreadCount(UserDto user)
         {
             lock (_lock)
             {
@@ -131,6 +140,18 @@ namespace HeraldKit.Implementations
                 StoreChanged?.Invoke(this, new StoreChangedEventArgs(StoreChangeAction.Updated, updatedIds));
             }
             return updatedIds.Count;
+        }
+
+        // Explicitly implementing the old parameter-less GetAll method to satisfy any remaining dependencies,
+        // although the interface now requires the version with UserDto.
+        public IEnumerable<NotificationMessage> GetAll()
+        {
+            return this.GetAll(null); // Delegate to the new method, passing null.
+        }
+
+        public int GetUnreadCount()
+        {
+            return this.GetUnreadCount(null); // Delegate to the new method, passing null.
         }
     }
 }
