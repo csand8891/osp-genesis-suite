@@ -26,7 +26,7 @@ namespace RuleArchitect.Data
         public virtual DbSet<OrderItem> OrderItems { get; set; } = null!;
         public virtual DbSet<MachineModel> MachineModels { get; set; } = null!; // <-- NEW DbSet
         public virtual DbSet<UserActivityLog> UserActivityLogs { get; set; } = null!;
-
+        public virtual DbSet<Notification> Notifications { get; set; } = null!;
         public RuleArchitectContext() { }
 
         public RuleArchitectContext(DbContextOptions<RuleArchitectContext> options) : base(options) { }

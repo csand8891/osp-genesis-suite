@@ -118,7 +118,7 @@
                             <RowDefinition Height="*"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <materialDesign:ColorZone Mode="PrimaryMid" Padding="16">
+                        <materialDesign:ColorZone Mode="PrimaryLight" Padding="16">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="DatabaseExport" VerticalAlignment="Center" Margin="0,0,8,0" Width="24" Height="24"/>
                                 <TextBlock Text="System Utilities" Style="{StaticResource MaterialDesignHeadline6TextBlock}"/>
